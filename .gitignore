@@ -1,0 +1,4 @@
+.settings
+.project
+*.log
+node_modules/*
