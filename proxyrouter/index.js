@@ -44,7 +44,7 @@ proxyRouter.prototype.__getProxyList = function(){
 	
 }
 
-proxyRouter.prototype.run = function(){
+proxyRouter.prototype.start = function(){
 	this.__getProxyList();
 	this.once('proxyListChanged',function (proxylist){
 		var httpProxyServer = http.createServer(function(request, response) {
@@ -113,5 +113,5 @@ proxyRouter.prototype.run = function(){
 	});	
 		
 }
-
+///////////////////////////////////////////////////////////////////////////////
 module.exports = proxyRouter;

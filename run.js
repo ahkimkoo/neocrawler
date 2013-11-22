@@ -34,16 +34,21 @@ var settings = require('./instance/'+options['i']+'/'+'settings.json');
 ////crawling action///////////////////////////////////////////////////////////
 var crawling = function(){
 	var logger = logging.getLogger('crawling',options['i'],'DEBUG');
-	logger.debug(new Date());
+    settings['logger'] = logger;
+    settings['instance'] = options['i'];
+    var spider = new (require('./spider'))(settings);
+
+    spider.start();
 }
 ////proxy Service////////////////////////////////////////////////////////////
 var proxyService = function(){
 	var logger = logging.getLogger('config-service',options['i'],'DEBUG');
 	settings['logger'] = logger;
+    settings['instance'] = options['i'];
 	settings['port'] = parseInt(options['p']);
 	var proxyRouter = new (require('./proxyrouter'))(settings);
 	
-	proxyRouter.run();
+	proxyRouter.start();
 }
 ////config service////////////////////////////////////////////////////////////
 var configService = function(){

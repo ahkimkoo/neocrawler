@@ -1,4 +1,5 @@
 .settings
 .project
+.idea
 *.log
 node_modules/*
