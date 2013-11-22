@@ -5,6 +5,7 @@
 
 var system = require('system');
 var page = require('webpage').create();
+
 ////page event////////////////////////////////////////////////////////////////////////////////////
 page.onLoadStarted = function () {
     page.startTime = new Date();
@@ -22,7 +23,7 @@ page.onResourceReceived = function (res) {
         if(res.url===page.address){
             for(var s=0;s<res.headers.length;s++){
                 if(res.headers[s]['name']==='remoteProxy'){
-                    page.feedback['remoteProxy'] = res.headers[s]['value'];
+                    page.remoteProxy = res.headers[s]['value'];
                     break;
                 }
             }
@@ -52,14 +53,14 @@ var openUrl = function(urlinfo,navigateRules){
 
     page.open(page.address, function (status) {
         if (status !== 'success') {
-            console.log('FAIL to load the address');
+            //console.log('FAIL to load the address');
         } else {
             page.endTime = new Date();
-            if(page.navigateRules){
+            if(page.navigateRules.length>0){
                 //pass
             }else{
-                var feedback = {"signal":CMD_SIGNAL_CRAWL_SUCCESS,"content":page.content,"cost":page.endTime-page.startTime}
-                sendToCaller(JSON.stringify(feedback));
+                var result = {"signal":CMD_SIGNAL_CRAWL_SUCCESS,"content":page.content,"remoteProxy":page.remoteProxy,"cost":page.endTime-page.startTime};
+                sendToCaller(result);
             }
         }
     });
@@ -67,7 +68,8 @@ var openUrl = function(urlinfo,navigateRules){
 
 ////caller interactive////////////////////////////////////////////////////////////////////////
 var sendToCaller = function(msg){
-    system.stdout.writeLine(msg);
+    system.stdout.writeLine(JSON.stringify(msg));
+    //system.stdout.end();
 }
 //command signal defined
 var CMD_SIGNAL_EXIT = -1;
@@ -84,13 +86,14 @@ var commandExec = function(str){
             phantom.exit();
             break;
         case CMD_SIGNAL_OPENURL:
-            openUrl(cmd['url']);
+            openUrl(cmd['url'],[]);
             break;
         default:
             //pass
     }
 
 }
+
 ////check out command from caller/////////////////////////////////////////////////////////////////
 setInterval(function(){
     var input='';

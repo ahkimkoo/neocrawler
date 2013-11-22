@@ -20,7 +20,7 @@ var userArgv = require('optimist')
     })
 .options('p', {
         'alias' : 'port',
-        'default' : 5000,
+        'default' : 2013,
         'describe' : 'Specify a service port, for config service and proxy router'
     })
 .options('h', {
