@@ -18,8 +18,9 @@ util.inherits(spiderCore, events.EventEmitter);//eventemitter inherits
 
 ////get url////////////////////////////////////////////
 spiderCore.prototype.getUrlQueue = function(){
-    var url = 'http://www.amazon.cn/gp/bestsellers';
-    this.emit('new_url_queue',{"url":url,"referer":"http://www.amazon.cn","jshandle":true});
+    var url = 'http://ju.taobao.com/?spm=1.6659421.754904973.2.ALtBmk';
+    var script = "jsexec_result = $.map($('.category li a span'),function(n,i) {return $(n).text();});";
+    this.emit('new_url_queue',{"url":url,"type":"branch","referer":"http://www.taobao.com","jshandle":true,"inject_jquery":true,"script":script,"navigate_rules":[]});
 }
 
 ////start///////////////////////////////////////////////

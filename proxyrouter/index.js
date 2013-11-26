@@ -54,7 +54,14 @@ proxyRouter.prototype.start = function(){
 		  	var choseProxy = proxylist['public_3s'][Math.floor(Math.random() * proxylist['public_3s'].length)].split(':');
 			var remoteProxyHost = choseProxy[0];
 			var remoteProxyPort = choseProxy[1];
-			var proxy_request = http.request({'host':remoteProxyHost,'port':remoteProxyPort,'method':request.method,'path':request.url,'headers':request.headers})
+            var route = false;
+
+            if(route){
+                var proxy_request = http.request({'host':remoteProxyHost,'port':remoteProxyPort,'method':request.method,'path':request.url,'headers':request.headers});
+            }else{
+                var proxy_request = http.request({'host':request.headers['host'],'port':request.headers['port'],'method':request.method,'path':request.url,'headers':request.headers});
+            }
+
 			var timer_start = (new Date()).getTime();
 			logger.debug(util.format('Request Forward to remote proxy server %s:%s',remoteProxyHost,remoteProxyPort));
 			proxy_request.addListener('response', function (proxy_response) {
