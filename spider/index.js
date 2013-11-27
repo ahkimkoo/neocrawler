@@ -18,9 +18,19 @@ util.inherits(spiderCore, events.EventEmitter);//eventemitter inherits
 
 ////get url////////////////////////////////////////////
 spiderCore.prototype.getUrlQueue = function(){
-    var url = 'http://ju.taobao.com/?spm=1.6659421.754904973.2.ALtBmk';
-    var script = "jsexec_result = $.map($('.category li a span'),function(n,i) {return $(n).text();});";
-    this.emit('new_url_queue',{"url":url,"type":"branch","referer":"http://www.taobao.com","jshandle":true,"inject_jquery":true,"script":script,"navigate_rules":[]});
+    var urlinfo = {
+        "url":"http://spu.taobao.com/spu/3c/spulist.htm?spm=1.6659421.a21471x.1.W5LzVD&cat=50035191",
+        "type":"branch",
+        "referer":"http://www.taobao.com",
+        "cookie":require('./taobao-cookie-simple.json'),
+        "jshandle":true,
+        "inject_jquery":false,
+        "drill_rules":[".vm-page-next",".general a"],
+        "script":["jsexec_result = document.getElementById('pageJumpto').value;","jsexec_result=document.querySelector('.user-nick').text"],//["jsexec_result = $.map($('.category li a span'),function(n,i) {return $(n).text();});"],//["jsexec_result=document.querySelector('.user-nick').text;"]
+        "navigate_rule":[".vm-page-next"],
+        "stoppage":3
+    }
+    this.emit('new_url_queue',urlinfo);
 }
 
 ////start///////////////////////////////////////////////

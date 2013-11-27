@@ -2,5 +2,5 @@
     "url_info_redis_db":["localhost",6379],
     "drilling_info_redis_db":["localhost",6379],
     "proxy_info_redis_db":["localhost",6379,3],
-    "proxyRouter":"http://localhost:2013"
+    "proxy_router":"localhost:2013"
 }

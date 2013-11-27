@@ -31,6 +31,7 @@
         "dependencies": {
         	"log4js": "0.6.9",
         	"optimist": "0.6.0",
-        	"redis" : "0.9.0"
+        	"redis" : "0.9.0",
+            "cheerio" : "0.12.4"
         }
 }
