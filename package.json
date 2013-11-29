@@ -31,6 +31,9 @@
         "dependencies": {
         	"log4js": "0.6.9",
         	"optimist": "0.6.0",
-        	"redis" : "0.9.0"
+        	"redis" : "0.9.0",
+            "ejs" : "0.8.5",
+            "express" : "3.3.4",
+            "stylus" : "0.40.3"
         }
 }
