@@ -1,0 +1,129 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+  
+  <meta charset="utf-8" content="text/html; charset=ISO-8859-1" http-equiv="content-type">
+  <title>detail</title>
+  <link rel="stylesheet" href="/stylesheets/main.css">
+</head>
+
+<body>
+
+<h1>Edit <%= rule.domain %></h1>
+
+<hr><a href="/rule">Return</a>
+
+<form method="post" action="/rule/<%= rule.id %>" id="form">
+  <table>
+    <tbody>
+      <tr>
+        <th>ID</th>
+        <td><%=rule.id %></td>
+      </tr>    
+      <tr>
+        <th>Domain</th>
+        <td><input name="domain" id="domain" value="<%=rule.domain %>" size="30" type="text"></td>
+      </tr>
+     <tr>
+        <th>url pattern</th>
+        <td><input name="url_pattern" id="url_pattern" value="<%=rule.url_pattern %>" size="30" type="text"></td>
+      </tr>      
+      <tr>
+        <th>Alias</th>
+        <td><input name="alias" value="<%=rule.alias %>" size="20" type="text"></td>
+      </tr>
+      <tr>
+        <th>encoding</th>
+        <td> <label><input name="encoding" value="UTF8" type="radio" <%if(rule.encoding === 'UTF8'){%> checked <%}%> >UTF8</label>&nbsp;&nbsp; <label><input name="encoding" value="GB2312" type="radio" <%if(rule.encoding === 'GB2312'){%> checked <%}%>>GB2312</label> 
+        </td>          
+      </tr>
+      <tr>
+        <th>type</th>
+        <td> <label><input name="type" value="branch" type="radio" <%if(rule.type === 'branch'){%> checked <%}%> >branch</label>&nbsp;&nbsp; <label><input name="type" value="node" type="radio" <%if(rule.type === 'node'){%> checked <%}%>>node</label> 
+        </td>         
+      </tr>      
+      <tr>
+        <th>Extract content<br>
+        </th>
+        <td> <label><input name="save_page" value="Y" type="radio" <%if(rule.save_page === 'Y'){%> checked <%}%> >Yes</label>&nbsp;&nbsp; <label><input name="save_page" value="N" type="radio" <%if(rule.save_page === 'N'){%> checked <%}%>>No</label> 
+        </td>         
+      </tr>
+      <tr>
+        <th>jshandle<br>
+        </th>
+        <td> <label><input name="jshandle" value="Y" type="radio" <%if(rule.jshandle === 'Y'){%> checked <%}%> >Yes</label>&nbsp;&nbsp; <label><input name="jshandle" value="N" type="radio" <%if(rule.jshandle === 'N'){%> checked <%}%>>No</label> 
+        </td> 
+
+      </tr>
+      <tr>
+        <th>cookie</th>
+        <td> <textarea id="cookie" name="cookie" cols="130" rows="5">
+        <%= rule.cookie%>
+        </textarea></td> 
+      </tr>
+      <tr>
+        <th>Inject jquery</th>
+        <td> <label><input name="inject_jquery" value="Y" type="radio" <%if(rule.inject_jquery === 'Y'){%> checked <%}%> >Yes</label>&nbsp;&nbsp; <label><input name="inject_jquery" value="N" type="radio" <%if(rule.inject_jquery === 'N'){%> checked <%}%>>No</label> 
+        </td>                
+      </tr>  
+      <tr>
+        <th>Load img</th>
+        <td> <label><input name="load_img" value="Y" type="radio" <%if(rule.load_img === 'Y'){%> checked <%}%> >Yes</label>&nbsp;&nbsp; <label><input name="load_img" value="N" type="radio" <%if(rule.load_img === 'N'){%> checked <%}%>>No</label> 
+        </td>               
+      </tr>  
+      <tr>
+        <th>Drill rules</th>
+        <td> <textarea id="drill_rules" name="drill_rules" cols="130" rows="10">
+        <%= rule.drill_rules%>
+        </textarea></td>      
+      </tr>  
+      <tr>
+        <th>script</th>
+         <td> <textarea id="script" name="script" cols="130" rows="5">
+         <%= rule.script%>
+        </textarea></td> 
+      </tr>
+      <tr>
+        <th>navigate rule</th>
+        <td> <textarea id="navigate_rule" name="navigate_rule" cols="130" rows="5">
+        <%= rule.navigate_rule%>
+        </textarea></td> 
+      </tr>  
+      <tr>
+        <th>stop page</th>
+        <td> <input name="stoppage" id="stoppage" value="<%=rule.stoppage%>" size="30" type="text"></td>
+      </tr> 
+      <tr>
+        <th>priority</th>
+        <td> <input name="priority" id="priority" value="<%=rule.priority%>" size="30" type="text"></td> 
+      </tr>  
+      <tr>
+        <th>weight</th>
+        <td> <input name="weight" id="weight" value="<%=rule.weight%>" size="30" type="text"></td>
+      </tr>  
+      <tr>
+        <th>schedule interval </th>
+        <td> <input name="schedule_interval" id="schedule_interval" value="<%=rule.schedule_interval%>" size="30" type="text"></td>
+      </tr>  
+      <tr>
+        <th>active</th>
+        <td> <label><input name="active" value="Y" type="radio" <%if(rule.active === 'Y'){%> checked <%}%> >Yes</label>&nbsp;&nbsp; <label><input name="active" value="N" type="radio" <%if(rule.active === 'N'){%> checked <%}%>>No</label> </td>  
+      </tr>  
+	  <tr>
+        <th>seed</th>
+        <td> <input name="seed" id="seed" value="<%=rule.seed%>" size="30" type="text"></td>
+      </tr> 
+      <tr>
+        <th>schedule rule </th>
+        <td> <input name="schedule_rule" id="schedule_rule" value="<%=rule.schedule_rule%>" size="30" type="text"></td>
+      </tr> 
+    </tbody>
+  </table>
+<input type="hidden" value="put" name="_method" />
+<br>
+<input type="submit" name="submit" id="submit" value="Submit"/>
+<input type="reset" name="reset" id="reset" value="Reset"/>  
+</form>
+<br>
+<br>
+<br>
+</body></html>

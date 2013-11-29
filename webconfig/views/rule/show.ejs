@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+ <meta charset="utf-8" />
+ <title><%= title %></title>
+</head>
+<body>
+<h1><%= rule.domain %></h1>
+<ul>
+<li>ID: <%= rule.id %></li>
+<li>URL pattern: <%= rule.url_pattern %></li>
+<li>encoding: <%= rule.encoding %></li>
+</ul>
+<form method="POST" action="/rule/<%= rule.id %>"
+enctype="application/x-www-form-urlencoded">
+
+ <input type="hidden" value="delete" name="_method" />
+
+ <input type="submit" name="submit" id="submit" value="Delete Rule"/>
+</form>
+
+</body>

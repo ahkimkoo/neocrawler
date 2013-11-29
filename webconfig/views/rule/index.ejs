@@ -1,0 +1,55 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+<meta charset="utf-8" />
+  <title>Drilling Rules</title>
+  <link rel="stylesheet" href="/stylesheets/main.css">
+  <script type="text/javascript">
+<!--
+
+//-->
+</script>
+  </head>
+<body>
+<h1>Drilling Rules</h1>
+<hr>
+<form method="post" action="/rule/search" id="form" enctype="application/x-www-form-urlencoded">
+ Domain: <input name="domain" id="domain" value="" size="30" type="text">
+<input type="submit" value="Filter">&nbsp;&nbsp;<a href="/rule/new">Add</a><br>
+</form>
+<hr><br>
+
+
+<% if(rules.length) {%>
+<table>
+  <tbody>
+    <tr>
+      <th>ID</th>
+      <th>domain</th>
+      <th>alias</th>
+      <th>active</th>
+      <th>extract content</th>
+      <th>type</th>
+      <th>priority</th>
+      <th>weight</th>
+      <th>action</th>
+    </tr>
+    <% rules.forEach(function(rule){ %>
+       <tr>
+       <td><%= rule.id %></td>
+       <td><%= rule.domain %></td>
+       <td><%= rule.alias %></td>
+       <td><%= rule.active %></td>
+       <td><%= rule.save_page %></td>
+       <td><%= rule.type %></td>
+       <td><%= rule.priority %></td>
+       <td><%= rule.weight %></td>
+       <td><a href="/rule/<%= rule.id %>/edit">Edit</a>&nbsp;
+          <a href="/rule/<%= rule.id %>">Delete</a></td>
+       </tr>
+    <% }) %>
+  </tbody>
+</table>
+<% } %>
+<br>
+
+</body></html>
