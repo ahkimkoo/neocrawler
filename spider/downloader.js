@@ -7,6 +7,8 @@ var events = require('events');
 var child_process = require('child_process');
 var path = require('path');
 var http = require('http');
+var iconv = require('iconv-lite');
+var BufferHelper = require('bufferhelper');
 var logger;
 
 var downloader = function(spiderCore){
@@ -18,6 +20,7 @@ var downloader = function(spiderCore){
 String.prototype.endsWith = function(suffix) {
     return this.indexOf(suffix, this.length - suffix.length) !== -1;
 };
+
 String.prototype.trim= function(){
     return this.replace(/(^\s*)|(\s*$)/g, "");
 }
@@ -34,26 +37,58 @@ downloader.prototype.download = function (urlinfo){
     if(urlinfo['jshandle'])this.browseIt(urlinfo);
     else this.downloadIt(urlinfo);
 }
+
+downloader.prototype.transCookieKvPair = function(json){
+    var kvarray = [];
+    for(var i=0; i<json.length; i++){
+        kvarray.push(json[i]['name']+'='+json[i]['value']);
+    }
+    return kvarray.join(';');
+}
+/**
+ * just download html stream
+ * @param urlinfo
+ */
 downloader.prototype.downloadIt = function(urlinfo){
+    var spiderCore = this.spiderCore;
     var proxyRouter = this.spiderCore.settings['proxy_router'].split(':');
-    var dataarray = [];
+    var startTime = new Date();
     var options = {
-        hostname: proxyRouter[0],
-        port: proxyRouter[1],
-        path: urlinfo['url'],
-        method: 'GET',
-        headers: {
+        'host': proxyRouter[0],
+        'port': proxyRouter[1],
+        'path': urlinfo['url'],
+        'method': 'GET',
+        'headers': {
             "User-Agent":"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36",
+            "Accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+//            "Accept-Encoding":"gzip,deflate,sdch",
+            "Accept-Language":"zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4",
             "Referer":urlinfo['referer'],
-            "Cookie":"key1=value1; key2=value2"
+            "Cookie":this.transCookieKvPair(urlinfo['cookie'])
         }
     };
+
     var req = http.request(options, function(res) {
-        console.log('STATUS: ' + res.statusCode);
-        console.log('HEADERS: ' + JSON.stringify(res.headers));
-        res.setEncoding('utf8');
+        var result = {
+            "remote_proxy":res.headers['remoteproxy'],
+            "drill_count":0,
+            "cookie":res.headers['Cookie'],
+            "url":res.req.path,
+            "status":res.statusCode,
+            "origin":urlinfo
+        };
+
+        var bufferHelper = new BufferHelper();
+//        res.setEncoding('utf8');
+
         res.on('data', function (chunk) {
-            console.log('BODY: ' + chunk);
+            bufferHelper.concat(chunk);
+        });
+
+        res.on('end', function (chunk) {
+            result["content"] = iconv.decode(bufferHelper.toBuffer(),'GBK');
+            result["cost"] = (new Date()) - startTime;
+            spiderCore.emit('crawled',result);
         });
     });
 
@@ -62,9 +97,14 @@ downloader.prototype.downloadIt = function(urlinfo){
     });
     req.end();
 }
+/**
+ * browser simulated
+ * @param urlinfo
+ */
 downloader.prototype.browseIt = function(urlinfo){
+    var spiderCore = this.spiderCore;
     var phantomjs = child_process.spawn('phantomjs', [
-        '--proxy', this.spiderCore.settings['proxyRouter'],
+        '--proxy', this.spiderCore.settings['proxy_router'],
         '--load-images', 'false',
         '--local-to-remote-url-access','true',
         //'--cookies-file',path.join(__dirname,'..', 'instance',this.spiderCore.settings['instance'],'logs','cookies.log'),
@@ -93,7 +133,7 @@ downloader.prototype.browseIt = function(urlinfo){
         var feedback = JSON.parse(data);//data.toString('utf8')
         switch(feedback['signal']){
             case CMD_SIGNAL_CRAWL_SUCCESS:
-                logger.debug(feedback.url+' crawled, status: '+feedback.status);
+                spiderCore.emit('crawled',feedback);
                 break;
             case CMD_SIGNAL_CRAWL_FAIL:
                 logger.error(feedback.url+' crawled fail');

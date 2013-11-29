@@ -4,6 +4,7 @@
 var http = require('http');
 var util = require('util');
 var events = require('events');
+var url =  require("url");
 var logger;
 
 var proxyRouter = function(settings){
@@ -59,7 +60,8 @@ proxyRouter.prototype.start = function(){
             if(route){
                 var proxy_request = http.request({'host':remoteProxyHost,'port':remoteProxyPort,'method':request.method,'path':request.url,'headers':request.headers});
             }else{
-                var proxy_request = http.request({'host':request.headers['host'],'port':request.headers['port'],'method':request.method,'path':request.url,'headers':request.headers});
+                var urlobj = url.parse(request.url);
+                var proxy_request = http.request({'host':urlobj['host'],'port':urlobj['port'],'method':request.method,'path':request.url,'headers':request.headers});
             }
 
 			var timer_start = (new Date()).getTime();
@@ -80,14 +82,14 @@ proxyRouter.prototype.start = function(){
 					logger.debug('Write data to client finish');
 				});
 				
-				proxy_response.headers['remoteProxy'] = util.format('%s:%d',remoteProxyHost,remoteProxyPort)
+				proxy_response.headers['remoteproxy'] = util.format('%s:%d',remoteProxyHost,remoteProxyPort)
 				response.writeHead(proxy_response.statusCode, proxy_response.headers);
 				//response.write(util.format('<!--%s:%d-->',remoteProxyHost,remoteProxyPort), 'binary');
 				logger.debug(util.format('Remote proxy response, %d, length: %s, cost: %dms',proxy_response.statusCode,proxy_response.headers['Content-Length'],(new Date()).getTime()-timer_start));
 			});
 			
 			proxy_request.addListener('error', function(err,socket) {
-				response.end();
+                response.end();
 				logger.error('Remote proxy error: '+err);
 			});
 	
