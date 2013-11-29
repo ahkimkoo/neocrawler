@@ -7,7 +7,7 @@ var port  = 6379;
 var host = 'localhost';	
 
 var client = redis.createClient(port, host);
-client.select(1);
+client.select(0);
 
 var drillingRule = {
 	
