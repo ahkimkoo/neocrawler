@@ -44,7 +44,7 @@ var crawling = function(){
 var proxyService = function(){
 	var logger = logging.getLogger('config-service',options['i'],'DEBUG');
 	settings['logger'] = logger;
-    settings['instance'] = options['i'];
+	settings['instance'] = options['i'];
 	settings['port'] = parseInt(options['p']);
 	var proxyRouter = new (require('./proxyrouter'))(settings);
 	
@@ -52,7 +52,12 @@ var proxyService = function(){
 }
 ////config service////////////////////////////////////////////////////////////
 var configService = function(){
+	var logger = logging.getLogger('config-service',options['i'],'DEBUG');
+	settings['logger'] = logger;
+	settings['instance'] = options['i'];
+	var webConfig = new(require('./webconfig'))(settings);
 	
+	webConfig.start();	
 }
 ////route/////////////////////////////////////////////////////////////////////
 switch(options['a']){
@@ -63,7 +68,8 @@ case 'proxy':
 	proxyService();
 	break;
 case 'config':
-	configService()
+	configService();
+	console.log("config");
 	break;
 default:
 	userArgv.showHelp();

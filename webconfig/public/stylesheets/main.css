@@ -1,0 +1,46 @@
+body {
+  margin: 50px;
+}
+table {
+  width: 80%;
+  border-collapse: collapse;
+  border: 2;
+}
+table,
+td,
+th,
+caption {
+  border: 2px solid #000;
+  align: left;
+}
+tbody {
+  color: #008000;
+}
+td {
+  padding: 10px;
+  align: left;
+}
+caption {
+  font-size: larger;
+  background-color: #ff0;
+  padding: 10px;
+}
+h1 {
+  font: 1.5em Georgia, serif;
+}
+ul {
+  list-style-type: none;
+}
+form {
+  margin: 20px;
+  padding: 20px;
+}
+hr {
+  width: 100%;
+  height: 2px;
+}
+th {
+  vertical-align: center;
+  background-color: #666;
+  color: #fff;
+}
