@@ -45,6 +45,7 @@ downloader.prototype.transCookieKvPair = function(json){
     }
     return kvarray.join(';');
 }
+
 /**
  * just download html stream
  * @param urlinfo
@@ -78,6 +79,22 @@ downloader.prototype.downloadIt = function(urlinfo){
             "origin":urlinfo
         };
 
+        var page_encoding =
+        (function(header){
+            var page_encoding = 'UTF-8';
+            //get the encoding from header
+            if(header['content-type']!=undefined){
+                var contentType = res.headers['content-type'];
+                var patt = new RegExp("^.*?charset\=(.+)$","ig");
+                var mts = patt.exec(contentType);
+                if (mts != null)
+                {
+                    page_encoding = mts[1];
+                }
+            }
+            return page_encoding;
+        })(res.headers)
+
         var bufferHelper = new BufferHelper();
 //        res.setEncoding('utf8');
 
@@ -86,7 +103,7 @@ downloader.prototype.downloadIt = function(urlinfo){
         });
 
         res.on('end', function (chunk) {
-            result["content"] = iconv.decode(bufferHelper.toBuffer(),'GBK');
+            result["content"] = iconv.decode(bufferHelper.toBuffer(),page_encoding);
             result["cost"] = (new Date()) - startTime;
             spiderCore.emit('crawled',result);
         });

@@ -61,27 +61,23 @@ pipeline.prototype.save_links = function(page_url,linkobjs){
 pipeline.prototype.save_content = function(pageurl,content){
     var url_hash = crypto.createHash('md5').update(pageurl+'').digest('hex');
     var spider = os.hostname()+'-'+process.pid;
-    this.hbase_table.create('basic', function(err, success){
-        this
+    this.hbase_table
             .getRow(url_hash)
             .put('basic:spider',spider,function(err,success){
                       console.log('insert one column '+url_hash+', basic:spider, '+spider);
                   });
-    });
-    this.hbase_table.create('basic', function(err, success){
-        this
+
+    this.hbase_table
             .getRow(url_hash)
             .put('basic:url',pageurl,function(err,success){
                 console.log('insert one column '+url_hash+', basic:url, '+pageurl);
             });
-    });
-    this.hbase_table.create('basic', function(err, success){
-        this
+
+    this.hbase_table
             .getRow(url_hash)
             .put('basic:content',content,function(err,success){
                 console.log('insert one column '+url_hash+', basic:content, '+content);
             });
-    });
 }
 
 pipeline.prototype.save =function(extracted_info){
