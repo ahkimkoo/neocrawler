@@ -57,7 +57,7 @@ webconfig.prototype.launch = function(){
 	app.get('/', routes.index);
 
 	//app.get('/', routes.index);
-	var prefixes = ['rule'];
+	var prefixes = ['rule','proxy'];
 
 	// map route to controller
 	prefixes.forEach(function(prefix) {

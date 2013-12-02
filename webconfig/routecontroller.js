@@ -6,7 +6,7 @@ exports.mapRoute = function(app, prefix) {
 	// index
 	app.get(prefix, prefixObj.index);
 	// search
-	app.post(prefix + '/search', prefixObj.search);	
+	app.post(prefix + '/list', prefixObj.search);	
 	// add
 	app.get(prefix + '/new', prefixObj.new);
 	// show
