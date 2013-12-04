@@ -285,6 +285,9 @@ spiderCore.prototype.test = function(link){
     this.once('driller_reules_loaded',function(rules){
         var linkobj = this.extractor.arrange_link([link]);
         this.pipeline.save_links(link,linkobj);
+    });
+
+    this.once('append_link',function(){
         this.getTestUrlQueue(link);
     });
 

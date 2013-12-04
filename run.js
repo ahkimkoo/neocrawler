@@ -71,6 +71,7 @@ var testUrl = function(){
         var logger = logging.getLogger('crawling-testing',options['i'],'DEBUG');
         settings['logger'] = logger;
         settings['instance'] = options['i'];
+        settings['test'] = true;
         var spider = new (require('./spider'))(settings);
 
         spider.test(options['l']);

@@ -47,6 +47,7 @@ pipeline.prototype.save_links = function(page_url,linkobjs){
                             client1.hmset(kk,vv,function(err, value){
                                 if (err) throw(err);
                                 logger.debug(' save url info: '+link);
+                                if(spiderCore.settings['test'])spiderCore.emit('append_link',link);
                                 client1.quit();
                             });
                                 client0.quit();
@@ -78,8 +79,23 @@ pipeline.prototype.save_content = function(pageurl,content){
 }
 
 pipeline.prototype.save =function(extracted_info){
-    if(extracted_info['drill_link'])this.save_links(extracted_info['url'],extracted_info['drill_link']);
-    if(extracted_info['origin']['save_page'])this.save_content(extracted_info['url'],extracted_info['content']);
+    if(this.spiderCore.settings['test']){
+        var fs = require('fs');
+        var path = require('path');
+        var htmlfile = path.join(__dirname,'..', 'instance',this.spiderCore.settings['instance'],'logs','page.html');
+        var resultfile = path.join(__dirname,'..', 'instance',this.spiderCore.settings['instance'],'logs','result.json');
+        fs.writeFile(htmlfile,extracted_info['content'], function (err) {
+            if (err)throw err;
+            logger.debug('Content saved, '+htmlfile);
+        });
+        fs.writeFile(resultfile,JSON.stringify(extracted_info), function (err) {
+            if (err)throw err;
+            logger.debug('Crawling result saved, '+resultfile);
+        });
+    }else{
+        if(extracted_info['drill_link'])this.save_links(extracted_info['url'],extracted_info['drill_link']);
+        if(extracted_info['origin']['save_page'])this.save_content(extracted_info['url'],extracted_info['content']);
+    }
 }
 
 module.exports = pipeline;
