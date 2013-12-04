@@ -37,14 +37,16 @@ pipeline.prototype.save_links = function(page_url,linkobjs){
                             var kk = crypto.createHash('md5').update(link+'').digest('hex');
                             var vv = {
                                 'url':link,
+                                'trace':alias,
                                 'referer':pageurl,
                                 'create':(new Date()).getTime(),
                                 'records':JSON.stringify([]),
+                                'last':(new Date()).getTime(),
                                 'status':'hit'
                             }
                             client1.hmset(kk,vv,function(err, value){
                                 if (err) throw(err);
-                                console.log(' save url info: '+link);
+                                logger.debug(' save url info: '+link);
                                 client1.quit();
                             });
                                 client0.quit();
@@ -61,23 +63,18 @@ pipeline.prototype.save_links = function(page_url,linkobjs){
 pipeline.prototype.save_content = function(pageurl,content){
     var url_hash = crypto.createHash('md5').update(pageurl+'').digest('hex');
     var spider = os.hostname()+'-'+process.pid;
-    this.hbase_table
-            .getRow(url_hash)
-            .put('basic:spider',spider,function(err,success){
-                      console.log('insert one column '+url_hash+', basic:spider, '+spider);
+
+    var cells = [
+                { column:'basic:spider',timestamp:Date.now(),$:spider},
+                { column:'basic:url',timestamp:Date.now(),$:pageurl},
+                { column:'basic:content',timestamp:Date.now(),$:content}
+                ];
+
+    var row = this.hbase_table.getRow(url_hash);
+
+    row.put(cells,function(err,success){
+                      logger.debug('insert data extracted from '+pageurl);
                   });
-
-    this.hbase_table
-            .getRow(url_hash)
-            .put('basic:url',pageurl,function(err,success){
-                console.log('insert one column '+url_hash+', basic:url, '+pageurl);
-            });
-
-    this.hbase_table
-            .getRow(url_hash)
-            .put('basic:content',content,function(err,success){
-                console.log('insert one column '+url_hash+', basic:content, '+content);
-            });
 }
 
 pipeline.prototype.save =function(extracted_info){

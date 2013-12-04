@@ -5,7 +5,7 @@
 var logging = require('./lib/logging.js'); 
 ////arguments parse///////////////////////////////////////////////////////////////
 var userArgv = require('optimist')
-.usage('Usage: $0 -i [instance name] -a [crawl|test|config|proxy]  -p [num] -h')
+.usage('Usage: $0 -i [instance name] -a [crawl|test|config|proxy]  -p [num] -l[url] -h')
 .options('i', {
         'alias' : 'instance',
         'default' : 'spaceux',
@@ -23,6 +23,11 @@ var userArgv = require('optimist')
         'default' : 2013,
         'describe' : 'Specify a service port, for config service and proxy router'
     })
+.options('l', {
+    'alias' : 'link',
+    'default' : '',
+    'describe' : 'Specify a url to test crawling'
+})
 .options('h', {
         'alias' : 'help',
         'describe' : 'Help infomation'
@@ -60,6 +65,17 @@ var configService = function(){
 	
 	webConfig.start();	
 }
+////test url/////////////////////////////////////////////////////////////////
+var testUrl = function(){
+    if(options['l']!=''){
+        var logger = logging.getLogger('crawling-testing',options['i'],'DEBUG');
+        settings['logger'] = logger;
+        settings['instance'] = options['i'];
+        var spider = new (require('./spider'))(settings);
+
+        spider.test(options['l']);
+    }
+}
 ////route/////////////////////////////////////////////////////////////////////
 switch(options['a']){
 case 'crawl':
@@ -70,8 +86,10 @@ case 'proxy':
 	break;
 case 'config':
 	configService();
-	console.log("config");
 	break;
+case 'test':
+    testUrl();
+    break;
 default:
 	userArgv.showHelp();
 }

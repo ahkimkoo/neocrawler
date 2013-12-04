@@ -104,5 +104,27 @@ var fake_url_lib = function(){
         //client0.quit();
     });
 }
-fake_drill_rules();
+
+var stupid_schedule =  function(){
+    var redis = require("redis");
+    client0 = redis.createClient(6379,'127.0.0.1');
+    client0.select(0, function(err, value) {
+        if (err)throw(err);
+        client0.lrange('urllib:driller:amazon.cn:bestsellers',0,-1,function(err, values){
+            if (err)throw(err);
+            for(var i=0;i<values.length;i++){
+                (function(v){
+                    client0.rpush('queue:scheduled:all',v,function(err, value){
+                        if(!err)console.log('move '+v);
+                    });
+                })(values[i]);
+            }
+            client0.quit();
+        });
+    });
+}
+
+//fake_drill_rules();
 //fake_url_lib();
+
+stupid_schedule();

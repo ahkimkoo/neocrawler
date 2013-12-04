@@ -4,11 +4,13 @@
 var util = require('util');
 var events = require('events');
 var redis = require("redis");
+var crypto = require('crypto');
 var logger;
 ////spider core/////////////////////////////////////////
 var spiderCore = function(settings){
     events.EventEmitter.call(this);//eventemitter inherits
     this.settings = settings;
+    this.queue_length = 0;
     this.driller_rules_updated = 0;
     this.driller_rules = {};
     this.downloader = new(require('./downloader.js'))(this);
@@ -78,36 +80,212 @@ spiderCore.prototype.getUrlQueue = function(){
     }
     */
 
-    var urlinfo = {
-        "url":"http://www.amazon.cn/gp/bestsellers",
-        "type":"branch",
-        "referer":"http://www.amazon.cn/",
-        "save_page":true,
-        "cookie":[],
-        "jshandle":false,
-        "inject_jquery":false,
-        "drill_rules":["#zg_browseRoot a"],
-        "script":[],
-        "navigate_rule":[],
-        "stoppage":-1
-    }
+    var spiderCore = this;
+    var redis_driller_db = redis.createClient(this.settings['driller_info_redis_db'][1],this.settings['driller_info_redis_db'][0]);
+    var redis_urlinfo_db = redis.createClient(spiderCore.settings['url_info_redis_db'][1],spiderCore.settings['url_info_redis_db'][0]);
+    redis_driller_db.select(spiderCore.settings['driller_info_redis_db'][2], function(err, signal) {
+        //1-------------------------------------------------------------------------------------------
+        if(err)throw(err);
+        redis_driller_db.lpop('queue:scheduled:all',function(err, link){
+            //2----------------------------------------------------------------------------------------
+            if(err)throw(err);
+            if(!link){
+                logger.debug('No queue~');
+                redis_driller_db.quit();
+                redis_urlinfo_db.quit();
+                return;
+            };//no queue
+            redis_urlinfo_db.select(spiderCore.settings['url_info_redis_db'][2], function(err, signal) {
+                //3-------------------------------------------------------------------------------------
+                if(err)throw(err);
+                var linkhash = crypto.createHash('md5').update(link).digest('hex');
+                redis_urlinfo_db.hgetall(linkhash,function(err, link_info){
+                    //4---------------------------------------------------------------------------------
+                    if(err)throw(err);
+                    if(!link_info){
+                        logger.warn(link+' has no url info, '+linkhash);
+                        redis_driller_db.quit();
+                        redis_urlinfo_db.quit();
+                        spiderCore.getUrlQueue();
+                    }else{
+                        if(!link_info['trace']){
+                            logger.warn(link+', url info is incomplete');
+                            redis_driller_db.quit();
+                            redis_urlinfo_db.quit();
+                            spiderCore.getUrlQueue();
+                        }else{
+                            redis_driller_db.hgetall(link_info['trace'].slice(link_info['trace'].indexOf(':')+1),function(err, drillerinfo){
+                                //5---------------------------------------------------------------------
+                                if(err)throw(err);
+                                if(drillerinfo==null){
+                                    logger.warn(link+', has no driller info!');
+                                    redis_driller_db.quit();
+                                    redis_urlinfo_db.quit();
+                                    spiderCore.getUrlQueue();
+                                }else{
+                                    var urlinfo = {
+                                        "url":link,
+                                        "type":drillerinfo['type'],
+                                        "referer":link_info['referer'],
+                                        "save_page":JSON.parse(drillerinfo['save_page']),
+                                        "cookie":JSON.parse(drillerinfo['save_page']),
+                                        "jshandle":JSON.parse(drillerinfo['jshandle']),
+                                        "inject_jquery":JSON.parse(drillerinfo['inject_jquery']),
+                                        "drill_rules":JSON.parse(drillerinfo['drill_rules']),
+                                        "script":JSON.parse(drillerinfo['script']),
+                                        "navigate_rule":JSON.parse(drillerinfo['navigate_rule']),
+                                        "stoppage":parseInt(drillerinfo['stoppage'])
+                                    }
+                                    logger.debug('new url: '+link);
+                                    spiderCore.queue_length++;
+                                    spiderCore.emit('new_url_queue',urlinfo);
+                                    redis_driller_db.quit();
+                                    redis_urlinfo_db.quit();
+                                }
+                                //5----------------------------------------------------------------------
+                            });
+                        }
+                    }
+                    //4-----------------------------------------------------------------------------------
+                });
+                //3---------------------------------------------------------------------------------------
+            });
+            //2-------------------------------------------------------------------------------------------
+        });
+    //1---------------------------------------------------------------------------------------------------
+    });
 
-    this.emit('new_url_queue',urlinfo);
+}
+
+spiderCore.prototype.__checkQueue = function(spiderCore){
+    logger.debug('Check queue, length: '+spiderCore.queue_length);
+    var slide_count = spiderCore.settings['spider_concurrency'] - spiderCore.queue_length;
+    for(var i=0;i<slide_count;i++){
+        spiderCore.getUrlQueue();
+    }
+}
+//get test url queue
+spiderCore.prototype.getTestUrlQueue = function(link){
+    var spiderCore = this;
+    var redis_driller_db = redis.createClient(this.settings['driller_info_redis_db'][1],this.settings['driller_info_redis_db'][0]);
+    var redis_urlinfo_db = redis.createClient(spiderCore.settings['url_info_redis_db'][1],spiderCore.settings['url_info_redis_db'][0]);
+    redis_driller_db.select(spiderCore.settings['driller_info_redis_db'][2], function(err, signal) {
+        //1-------------------------------------------------------------------------------------------
+        if(err)throw(err);
+
+            if(err)throw(err);
+            if(!link){
+                logger.debug('No queue~');
+                redis_driller_db.quit();
+                redis_urlinfo_db.quit();
+                return;
+            };//no queue
+            redis_urlinfo_db.select(spiderCore.settings['url_info_redis_db'][2], function(err, signal) {
+                //3-------------------------------------------------------------------------------------
+                if(err)throw(err);
+                var linkhash = crypto.createHash('md5').update(link).digest('hex');
+                redis_urlinfo_db.hgetall(linkhash,function(err, link_info){
+                    //4---------------------------------------------------------------------------------
+                    if(err)throw(err);
+                    if(!link_info){
+                        logger.warn(link+' has no url info, '+linkhash);
+                        redis_driller_db.quit();
+                        redis_urlinfo_db.quit();
+                        spiderCore.getUrlQueue();
+                    }else{
+                        if(!link_info['trace']){
+                            logger.warn(link+', url info is incomplete');
+                            redis_driller_db.quit();
+                            redis_urlinfo_db.quit();
+                            spiderCore.getUrlQueue();
+                        }else{
+                            redis_driller_db.hgetall(link_info['trace'].slice(link_info['trace'].indexOf(':')+1),function(err, drillerinfo){
+                                //5---------------------------------------------------------------------
+                                if(err)throw(err);
+                                if(drillerinfo==null){
+                                    logger.warn(link+', has no driller info!');
+                                    redis_driller_db.quit();
+                                    redis_urlinfo_db.quit();
+                                    spiderCore.getUrlQueue();
+                                }else{
+                                    var urlinfo = {
+                                        "url":link,
+                                        "type":drillerinfo['type'],
+                                        "referer":link_info['referer'],
+                                        "save_page":JSON.parse(drillerinfo['save_page']),
+                                        "cookie":JSON.parse(drillerinfo['save_page']),
+                                        "jshandle":JSON.parse(drillerinfo['jshandle']),
+                                        "inject_jquery":JSON.parse(drillerinfo['inject_jquery']),
+                                        "drill_rules":JSON.parse(drillerinfo['drill_rules']),
+                                        "script":JSON.parse(drillerinfo['script']),
+                                        "navigate_rule":JSON.parse(drillerinfo['navigate_rule']),
+                                        "stoppage":parseInt(drillerinfo['stoppage'])
+                                    }
+                                    logger.debug('new url: '+JSON.stringify(urlinfo));
+                                    spiderCore.queue_length++;
+                                    spiderCore.emit('new_url_queue',urlinfo);
+                                    redis_driller_db.quit();
+                                    redis_urlinfo_db.quit();
+                                }
+                                //5----------------------------------------------------------------------
+                            });
+                        }
+                    }
+                    //4-----------------------------------------------------------------------------------
+                });
+                //3---------------------------------------------------------------------------------------
+            });
+
+        //1---------------------------------------------------------------------------------------------------
+    });
+
 }
 
 ////start///////////////////////////////////////////////
 spiderCore.prototype.start = function(){
-    this.once('driller_reules_loaded',function(rules){
-        this.getUrlQueue();
-    });
-
     this.on('new_url_queue',function(urlinfo){
         this.downloader.download(urlinfo);
     });
 
     this.on('crawled',function(crawled_info){
+        logger.debug('crawl '+crawled_info['url']+' finish');
         var extracted_info = this.extractor.extract(crawled_info);
         this.pipeline.save(extracted_info);
+        this.emit('slide_queue');
+    });
+
+    this.on('slide_queue',function(){
+        if(this.queue_length>0)this.queue_length--;
+        this.__checkQueue(this);
+    });
+
+    this.once('driller_reules_loaded',function(rules){
+        this.emit('slide_queue');
+        spiderCore = this;
+        setInterval(function(){spiderCore.__checkQueue(spiderCore);},120000);
+    });
+
+    //trigger
+    this.refreshDrillerRules();
+}
+
+//test url//////////////////////////////////////////////
+spiderCore.prototype.test = function(link){
+    this.on('new_url_queue',function(urlinfo){
+        this.downloader.download(urlinfo);
+        logger.debug('download url :'+urlinfo['url']);
+    });
+
+    this.on('crawled',function(crawled_info){
+        logger.debug('crawl '+crawled_info['url']+' finish');
+        var extracted_info = this.extractor.extract(crawled_info);
+        this.pipeline.save(extracted_info);
+    });
+
+    this.once('driller_reules_loaded',function(rules){
+        var linkobj = this.extractor.arrange_link([link]);
+        this.pipeline.save_links(link,linkobj);
+        this.getTestUrlQueue(link);
     });
 
     //trigger

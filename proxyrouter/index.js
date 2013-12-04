@@ -7,6 +7,7 @@ var events = require('events');
 var url =  require("url");
 var logger;
 
+/////////////////////////////////////////////////////////////////
 var proxyRouter = function(settings){
 	events.EventEmitter.call(this);//eventemitter inherits
 	this.settings = settings;
@@ -64,6 +65,13 @@ proxyRouter.prototype.start = function(){
                 var proxy_request = http.request({'host':urlobj['host'],'port':urlobj['port'],'method':request.method,'path':request.url,'headers':request.headers});
             }
 
+            //proxy_request.setSocketKeepAlive(false);
+            proxy_request.setTimeout(120000,function(){
+                logger.error('Remote request timeout.');
+                proxy_request.abort();
+                response.end();
+            });
+
 			var timer_start = (new Date()).getTime();
 			logger.debug(util.format('Request Forward to remote proxy server %s:%s',remoteProxyHost,remoteProxyPort));
 			proxy_request.addListener('response', function (proxy_response) {
@@ -87,7 +95,12 @@ proxyRouter.prototype.start = function(){
 				//response.write(util.format('<!--%s:%d-->',remoteProxyHost,remoteProxyPort), 'binary');
 				logger.debug(util.format('Remote proxy response, %d, length: %s, cost: %dms',proxy_response.statusCode,proxy_response.headers['Content-Length'],(new Date()).getTime()-timer_start));
 			});
-			
+
+            proxy_request.addListener('timeout', function() {
+                response.end();
+                logger.error('Remote proxy timeout: ');
+            });
+
 			proxy_request.addListener('error', function(err,socket) {
                 response.end();
 				logger.error('Remote proxy error: '+err);
