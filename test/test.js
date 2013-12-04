@@ -49,7 +49,7 @@ var fake_drill_rules = function(){
         'schedule_rule':"FIFO"
     }
 
-    client = redis.createClient(6379,'127.0.0.1');
+    var client = redis.createClient(6379,'127.0.0.1');
     client.select(0, function(err, value) {
         client.hmset(k,v,function(err, value){
             if (err) throw(err);
@@ -57,6 +57,40 @@ var fake_drill_rules = function(){
         });
         client.quit();
     });
+
+    var k = 'driller:taobao.com:tshirt';
+    var v = {
+        'domain':'taobao.com',
+        'alias':'tshirt',
+        'url_pattern':encodeURIComponent('^http://item.taobao.com/item.htm.*$'),
+        'encoding':'UTF-8',
+        'type':'node',
+        'save_page':true,
+        'jshandle':true,
+        'cookie':JSON.stringify([]),
+        'inject_jquery':false,
+        'load_img':false,
+        'drill_rules':JSON.stringify(['.page-next']),
+        'script':JSON.stringify([]),
+        'navigate_rule':JSON.stringify([]),
+        'stoppage':-1,
+        'priority':1,
+        'weight':10,
+        'schedule_interval':3600,
+        'active':true,
+        'seed':JSON.stringify(['http://item.taobao.com/item.htm?spm=a2106.m874.1000384.8.hH4QDT&id=20286601124&scm=1029.newlist-0.searchParam1.162104&ppath=&sku=&ug=']),
+        'schedule_rule':"LIFO"
+    }
+
+    var client = redis.createClient(6379,'127.0.0.1');
+    client.select(0, function(err, value) {
+        client.hmset(k,v,function(err, value){
+            if (err) throw(err);
+            console.log('faked rules inserted.');
+        });
+        client.quit();
+    });
+
 }
 
 var fake_url_lib = function(){
@@ -124,7 +158,7 @@ var stupid_schedule =  function(){
     });
 }
 
-//fake_drill_rules();
+fake_drill_rules();
 //fake_url_lib();
 
-stupid_schedule();
+//stupid_schedule();

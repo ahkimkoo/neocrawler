@@ -43,7 +43,7 @@ spiderCore.prototype.refreshDrillerRules = function(){
                                 spiderCore.tmp_driller_rules_length--;
                                 if(spiderCore.tmp_driller_rules_length<=0){
                                     spiderCore.driller_rules = spiderCore.tmp_driller_rules;
-                                    spiderCore.driller_rules_updated = (new Date()).getTime();
+                                    //spiderCore.driller_rules_updated = (new Date()).getTime();
                                     spiderCore.emit('driller_reules_loaded',spiderCore.driller_rules);
                                     setTimeout(function(){spiderCore.refreshDrillerRules();},spiderCore.settings['check_driller_rules_interval']);
                                     redis_cli.quit();
