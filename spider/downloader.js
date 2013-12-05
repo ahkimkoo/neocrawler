@@ -7,9 +7,15 @@ var events = require('events');
 var child_process = require('child_process');
 var path = require('path');
 var http = require('http');
+require('../lib/jsextend.js');
 var iconv = require('iconv-lite');
 var BufferHelper = require('bufferhelper');
 var logger;
+
+//command signal defined
+var CMD_SIGNAL_CRAWL_SUCCESS = 1;
+var CMD_SIGNAL_CRAWL_FAIL = 3;
+var CMD_SIGNAL_NAVIGATE_EXCEPTION = 2;
 
 var downloader = function(spiderCore){
     events.EventEmitter.call(this);//eventemitter inherits
@@ -17,20 +23,12 @@ var downloader = function(spiderCore){
     logger = spiderCore.settings.logger;
 }
 
-String.prototype.endsWith = function(suffix) {
-    return this.indexOf(suffix, this.length - suffix.length) !== -1;
-};
-
-String.prototype.trim= function(){
-    return this.replace(/(^\s*)|(\s*$)/g, "");
-}
-
-//command signal defined
-var CMD_SIGNAL_CRAWL_SUCCESS = 1;
-var CMD_SIGNAL_CRAWL_FAIL = 3;
-var CMD_SIGNAL_NAVIGATE_EXCEPTION = 2;
-
 util.inherits(downloader, events.EventEmitter);//eventemitter inherits
+
+////report to spidercore standby////////////////////////
+downloader.prototype.assembly = function(){
+    this.spiderCore.emit('standby','downloader');
+}
 
 ////download action/////////////////////
 downloader.prototype.download = function (urlinfo){
@@ -120,6 +118,10 @@ downloader.prototype.downloadIt = function(urlinfo){
  */
 downloader.prototype.browseIt = function(urlinfo){
     var spiderCore = this.spiderCore;
+    if(this.spiderCore.settings['test']){
+        urlinfo['test'] = true;
+        urlinfo['ipath'] = path.join(__dirname,'..', 'instance',this.spiderCore.settings['instance'],'logs');
+    }
     var phantomjs = child_process.spawn('phantomjs', [
         '--proxy', this.spiderCore.settings['proxy_router'],
         '--load-images', 'false',

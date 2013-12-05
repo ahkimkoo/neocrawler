@@ -8,19 +8,18 @@
  */
 var cheerio = require('cheerio')
 var url =  require("url");
-
-String.prototype.trim= function(){
-    return this.replace(/(^\s*)|(\s*$)/g, "");
-}
-
-String.prototype.startsWith = function(suffix) {
-    return this.indexOf(suffix,0) !== -1;
-};
+require('../lib/jsextend.js');
 
 var extractor = function(spiderCore){
     this.spiderCore = spiderCore;
     logger = spiderCore.settings.logger;
 }
+
+////report to spidercore standby////////////////////////
+extractor.prototype.assembly = function(){
+    this.spiderCore.emit('standby','extractor');
+}
+
 /**
  * According rules extracting all links from html string
  * @param content
@@ -74,8 +73,8 @@ extractor.prototype.arrange_link = function(links){
         var link = links[i];
         var urlobj = url.parse(link);
         var domain = this.__getTopLevelDomain(urlobj['hostname']);
-        if(this.spiderCore.driller_rules[domain]!=undefined){
-            var alias = this.spiderCore.driller_rules[domain];
+        if(this.spiderCore.spider.driller_rules[domain]!=undefined){
+            var alias = this.spiderCore.spider.driller_rules[domain];
             for(a in alias){
                 var url_pattern  = decodeURIComponent(alias[a]['url_pattern']);
                 var patt = new RegExp(url_pattern);

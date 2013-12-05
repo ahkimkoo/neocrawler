@@ -47,7 +47,7 @@ var crawling = function(){
 }
 ////proxy Service////////////////////////////////////////////////////////////
 var proxyService = function(){
-	var logger = logging.getLogger('config-service',options['i'],'DEBUG');
+	var logger = logging.getLogger('proxy-service',options['i'],'DEBUG');
 	settings['logger'] = logger;
 	settings['instance'] = options['i'];
 	settings['port'] = parseInt(options['p']);
