@@ -56,7 +56,7 @@ proxyRouter.prototype.start = function(){
 		  	var choseProxy = proxylist['public_3s'][Math.floor(Math.random() * proxylist['public_3s'].length)].split(':');
 			var remoteProxyHost = choseProxy[0];
 			var remoteProxyPort = choseProxy[1];
-            var route = false;
+            var route = true;
 
             if(route){
                 var proxy_request = http.request({'host':remoteProxyHost,'port':remoteProxyPort,'method':request.method,'path':request.url,'headers':request.headers});
