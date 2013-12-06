@@ -3,7 +3,9 @@
 
 var redis = require('redis');
 var async = require('async');
-var settings = require('../../instance/webconfig/settings.json');
+//var settings = require('../../instance/webconfig/settings.json');
+
+var settings = global.settings;
 
 var client = redis.createClient(settings['driller_info_redis_db'][1],settings['driller_info_redis_db'][0]);
 
