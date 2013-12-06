@@ -1,0 +1,52 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+  
+  <meta charset="utf-8" content="text/html; charset=ISO-8859-1" http-equiv="content-type">
+  <title>Edit Proxy Manually</title>
+  <link rel="stylesheet" href="/stylesheets/main.css">
+</head>
+
+<body>
+
+<h1>Edit Proxy Manually</h1>
+
+<hr><a href="/proxy">Return</a>
+
+<form method="post" action="/proxy/create" id="form">
+  <table>
+    <tbody>   
+      <tr>
+        <th>address</th>
+        <td><input name="address" id="address" value="" size="30" type="text"></td>
+      </tr>
+     <tr>
+        <th>authorize</th>
+        <td><input name="authorize" id="authorize" value="" size="30" type="text"></td>
+      </tr>      
+      <tr>
+        <th>group</th>
+        <td>  
+        <select name="group">
+          <option value="p1s">public 1s</option>
+          <option value="p3s">public 3s</option>
+          <option value="p5s">public 5s</option>
+          <option value="p8s">public 8s</option>
+          <option value="p12s">public 12s</option>
+          <option value="p20s">public 20s</option>
+          <option value="v1s">Vip 1s</option>
+          <option value="v3s">Vip 3s</option>
+          <option value="v8s">Vip 8s</option>
+          <option value="v15s">Vip 15s</option>
+        </select> 
+      </td>
+      </tr>
+    </tbody>
+  </table>
+<br>
+<input type="submit" name="submit" id="submit" value="Submit"/>
+<input type="reset" name="reset" id="reset" value="Reset"/>  
+</form>
+<br>
+<br>
+<br>
+</body></html>

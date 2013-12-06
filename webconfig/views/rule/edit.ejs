@@ -4,6 +4,176 @@
   <meta charset="utf-8" content="text/html; charset=ISO-8859-1" http-equiv="content-type">
   <title>detail</title>
   <link rel="stylesheet" href="/stylesheets/main.css">
+  <link rel="stylesheet" href="/stylesheets/FlexiJsonEditor/jsoneditor.css"/>
+
+  <script type="text/javascript" src="../scripts/jquery-1.9.1.js"></script>
+  <script src="../scripts/jquery.min.js"></script>
+  <script src="../scripts/jquery.jsoneditor.js"></script>
+
+<script type="text/javascript">
+
+ $(function(){
+        //cookie editor
+        $('#cookie').change(function() {
+
+        var  val = $('#cookie').val();
+
+          if (val) {
+              try { jsonTest = JSON.parse(val); }
+              catch (e) { alert('Error in parsing json. ' + e); }
+          } else {
+                  jsonTest = {};
+                }
+        var  opt = { 
+              change: function(jsonTest) { 
+                $('#cookie').val(JSON.stringify(jsonTest));
+              }
+          };        
+          $('#cookieEditor').jsonEditor(jsonTest,opt);
+        });
+
+        //drilling rule editor
+        $('#drill_rules').change(function() {
+
+        var  val = $('#drill_rules').val();
+
+          if (val) {
+              try { jsonTest = JSON.parse(val); }
+              catch (e) { alert('Error in parsing json. ' + e); }
+          } else {
+                  jsonTest = {};
+                }
+        var  opt = { 
+              change: function(jsonTest) { 
+                $('#drill_rules').val(JSON.stringify(jsonTest));
+              }
+          };        
+          $('#ruleEditor').jsonEditor(jsonTest,opt);
+        });
+
+        // script editor render
+        $('#script').change(function() {
+
+          val = $('#script').val();
+
+          if (val) {
+              try { scriptJsonTest = JSON.parse(val); }
+              catch (e) { alert('Error in parsing json. ' + e); }
+          } else {
+                  scriptJsonTest = {};
+                }
+          opt = { 
+              change: function(scriptJsonTest) { 
+                $('#script').val(JSON.stringify(scriptJsonTest));
+              }
+          };        
+          $('#scriptEditor').jsonEditor(scriptJsonTest,opt);
+        });
+
+        //navigation rule editor render
+        $('#navigate_rule').change(function() {
+
+          var val = $('#navigate_rule').val();
+
+          if (val) {
+              try { jsonTest = JSON.parse(val); }
+              catch (e) { alert('Error in parsing json. ' + e); }
+          } else {
+                  jsonTest = {};
+                }
+          var opt = { 
+              change: function(jsonTest) { 
+                $('#navigate_rule').val(JSON.stringify(jsonTest));
+              }
+          };        
+          $('#naviEditor').jsonEditor(jsonTest,opt);
+        }); 
+
+        //seed editor
+        $('#seed').change(function() {
+
+        var  val = $('#seed').val();
+
+          if (val) {
+              try { jsonTest = JSON.parse(val); }
+              catch (e) { alert('Error in parsing json. ' + e); }
+          } else {
+                  jsonTest = {};
+                }
+        var  opt = { 
+              change: function(jsonTest) { 
+                $('#seed').val(JSON.stringify(jsonTest));
+              }
+          };        
+          $('#seedEditor').jsonEditor(jsonTest,opt);
+        });
+
+/////////////////////////////////////////////////////
+
+        var cookie = $.parseJSON($("#cookie").val());
+        var  optCookie = { 
+              change: function(cookie) { 
+                $('#cookie').val(JSON.stringify(cookie));
+              }
+          }; 
+
+        $('#cookieEditor').jsonEditor(cookie,optCookie); 
+/////////////////////////////////////////////////////
+
+        var drillRules = $.parseJSON($("#drill_rules").val());
+        var  optRule = { 
+              change: function(drillRules) { 
+                $('#drill_rules').val(JSON.stringify(drillRules));
+              }
+          }; 
+
+        $('#ruleEditor').jsonEditor(drillRules,optRule);  
+
+/////////////////////////////////////////////////////
+
+           var  scriptJson = JSON.parse($("#script").val());
+           alert($("#script").val());
+           var   optJS = { 
+                  change: function(scriptJson) { 
+                    $('#script').val(JSON.stringify(scriptJson));
+                  }
+              };  
+
+            $('#scriptEditor').jsonEditor(scriptJson,optJS); 
+
+/////////////////////////////////////////////////////             
+
+           var naviRule = JSON.parse($("#navigate_rule").val());
+           alert($("#navigate_rule").val());
+           var optNavi = { 
+                  change: function(naviRule) { 
+                    $('#navigate_rule').val(JSON.stringify(naviRule));
+                  }
+              };  
+
+            $('#naviEditor').jsonEditor(naviRule,optNavi);         
+ /////////////////////////////////////////////////////
+
+        var seed = $.parseJSON($("#seed").val());
+        var  optSeed = { 
+              change: function(seed) { 
+                $('#seed').val(JSON.stringify(seed));
+              }
+          }; 
+
+        $('#seedEditor').jsonEditor(seed,optSeed); 
+
+/////////////////////////////////////////////////////        
+        $('#form').submit(function(){
+          
+          $('#drill_rules').val(JSON.stringify(drillRules));
+          $('#scriptJson').val(JSON.stringify(scriptJson)); 
+          $('#navigate_rule').val(JSON.stringify(naviRule));       
+        });      
+
+  });
+</script>
+
 </head>
 
 <body>
@@ -12,13 +182,9 @@
 
 <hr><a href="/rule">Return</a>
 
-<form method="post" action="/rule/<%= rule.id %>" id="form">
+<form method="post" action="/rule/upsert" id="form">
   <table>
-    <tbody>
-      <tr>
-        <th>ID</th>
-        <td><%=rule.id %></td>
-      </tr>    
+    <tbody> 
       <tr>
         <th>Domain</th>
         <td><input name="domain" id="domain" value="<%=rule.domain %>" size="30" type="text"></td>
@@ -29,7 +195,7 @@
       </tr>      
       <tr>
         <th>Alias</th>
-        <td><input name="alias" value="<%=rule.alias %>" size="20" type="text"></td>
+        <td><input name="alias" id="alias" value="<%=rule.alias %>" size="20" type="text"></td>
       </tr>
       <tr>
         <th>encoding</th>
@@ -56,9 +222,11 @@
       </tr>
       <tr>
         <th>cookie</th>
-        <td> <textarea id="cookie" name="cookie" cols="130" rows="5">
-        <%= rule.cookie%>
-        </textarea></td> 
+        <td> 
+        <div id="cookieEditor" class="json-editor"></div>
+         <div id="cookieJson">
+          <textarea id="cookie" name="cookie" cols="130" rows="5"><%=rule.cookie%></textarea>
+        </div>
       </tr>
       <tr>
         <th>Inject jquery</th>
@@ -69,25 +237,37 @@
         <th>Load img</th>
         <td> <label><input name="load_img" value="Y" type="radio" <%if(rule.load_img === 'Y'){%> checked <%}%> >Yes</label>&nbsp;&nbsp; <label><input name="load_img" value="N" type="radio" <%if(rule.load_img === 'N'){%> checked <%}%>>No</label> 
         </td>               
-      </tr>  
+      </tr> 
+
       <tr>
         <th>Drill rules</th>
-        <td> <textarea id="drill_rules" name="drill_rules" cols="130" rows="10">
-        <%= rule.drill_rules%>
-        </textarea></td>      
-      </tr>  
+        <td>
+        <div id="ruleEditor" class="json-editor"></div>
+         <div id="ruleJson">
+          <textarea id="drill_rules" name="drill_rules" cols="130" rows="5"><%=rule.drill_rules%></textarea>
+        </div>
+        </td>      
+      </tr> 
+
       <tr>
         <th>script</th>
-         <td> <textarea id="script" name="script" cols="130" rows="5">
-         <%= rule.script%>
-        </textarea></td> 
-      </tr>
+        <td>
+        <div id="scriptEditor" class="json-editor"></div>
+         <div id="scriptJsonDiv">
+          <textarea id="script" name="script" cols="130" rows="5"><%=rule.script%></textarea>
+        </div>
+        </td>      
+      </tr> 
+
       <tr>
         <th>navigate rule</th>
-        <td> <textarea id="navigate_rule" name="navigate_rule" cols="130" rows="5">
-        <%= rule.navigate_rule%>
-        </textarea></td> 
-      </tr>  
+        <td>
+        <div id="naviEditor" class="json-editor"></div>
+         <div id="naviJson">
+          <textarea id="navigate_rule" name="navigate_rule" cols="130" rows="5"><%=rule.navigate_rule%></textarea>
+        </div>
+        </td>      
+      </tr> 
       <tr>
         <th>stop page</th>
         <td> <input name="stoppage" id="stoppage" value="<%=rule.stoppage%>" size="30" type="text"></td>
@@ -110,12 +290,18 @@
       </tr>  
 	  <tr>
         <th>seed</th>
-        <td> <input name="seed" id="seed" value="<%=rule.seed%>" size="30" type="text"></td>
+        <td> 
+        <div id="seedEditor" class="json-editor"></div>
+         <div id="seedJson">
+          <textarea id="seed" name="seed" cols="130" rows="5"><%=rule.seed%></textarea>
+        </div>
       </tr> 
       <tr>
-        <th>schedule rule </th>
-        <td> <input name="schedule_rule" id="schedule_rule" value="<%=rule.schedule_rule%>" size="30" type="text"></td>
-      </tr> 
+        <th>schedule rule</th>
+        <td>
+        <label><input name="schedule_rule" value="FIFO" type="radio" <%if(rule.schedule_rule === 'FIFO'){%> checked <%}%> >FIFO</label>&nbsp;&nbsp; <label><input name="schedule_rule" value="LIFO" type="radio" <%if(rule.schedule_rule === 'LIFO'){%> checked <%}%>>LIFO</label>
+        </td>
+      </tr>
     </tbody>
   </table>
 <input type="hidden" value="put" name="_method" />

@@ -3,11 +3,13 @@
 
 var redis = require('redis');
 var async = require('async');
-var port  = 6379;
-var host = 'localhost';	
+var settings = require('../../instance/webconfig/settings.json');
 
-var client = redis.createClient(port, host);
-client.select(0);
+var client = redis.createClient(settings['driller_info_redis_db'][1],settings['driller_info_redis_db'][0]);
+
+client.select(settings['driller_info_redis_db'][2]);
+
+var UPDATED_TIME = "updated:driller:rule";
 
 var drillingRule = {
 	
@@ -126,6 +128,9 @@ var drillingRule = {
 				console.log(err);
 				return fn(err);
 			}
+			client.set(UPDATED_TIME, new Date().getTime(), function(err, result){
+
+			});
 			console.log("rule ", key, " was updated.");
 			return fn(err, result);
 		});

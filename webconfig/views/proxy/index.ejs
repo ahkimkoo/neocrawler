@@ -1,0 +1,118 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+  <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
+  <title>Available Proxy List</title>
+  <link rel="stylesheet" href="/stylesheets/main.css">
+</head><body>
+<h1>Available Proxy List</h1>
+<a href="/">Config Home</a>  &nbsp;<a href="/proxy/new">Add</a>
+<hr>
+<div class="container">
+	<div class="proxy">
+	<p>public proxy available within 1s.</p>
+	<%if (proxyList[0] != null && proxyList[0].list.length > 0) {%>
+	<ul>
+		<% proxyList[0].list.forEach(function(p){%>
+			<li> <%= p%> &nbsp; <a href="/proxy/<%=p%>/<%=proxyList[0].key%>">Delete</a></li>
+			<%})%>
+	</ul>
+	<%}%>
+</div>
+<div class="proxy">
+<p>public proxy available within 3s.</p>
+	<%if (proxyList[1] != null && proxyList[1].list.length > 0) {%>
+	<ul>
+		<% proxyList[1].list.forEach(function(p){%>
+			<li> <%= p%> &nbsp; <a href="/proxy/<%=p%>/<%=proxyList[1].key%>">Delete</a></li>
+			<%})%>
+	</ul>
+	<%}%>
+</div>
+<div class="proxy">
+<p>public proxy available within 5s.</p>
+	<%if (proxyList[2] != null && proxyList[2].list.length > 0) {%>
+	<ul>
+		<% proxyList[2].list.forEach(function(p){%>
+			<li> <%= p%> &nbsp; <a href="/proxy/<%=p%>/<%=proxyList[2].key%>">Delete</a></li>
+			<%})%>
+	</ul>
+	<%}%>
+</div>
+<div class="proxy">
+<p>public proxy available within 8s.</p>
+	<%if (proxyList[3] != null && proxyList[3].list.length > 0) {%>
+	<ul>
+		<% proxyList[3].list.forEach(function(p){%>
+			<li> <%= p%> &nbsp; <a href="/proxy/<%=p%>/<%=proxyList[3].key%>">Delete</a></li>
+			<%})%>
+	</ul>
+	<%}%>
+</div>
+<div class="proxy">
+<p>public proxy available within 12s.</p>
+	<%if (proxyList[4] != null && proxyList[4].list.length > 0) {%>
+	<ul>
+		<% proxyList[4].list.forEach(function(p){%>
+			<li> <%= p%> &nbsp; <a href="/proxy/<%=p%>/<%=proxyList[4].key%>">Delete</a></li>
+			<%})%>
+	</ul>
+	<%}%>
+</div>
+
+<div class="proxy">
+<p>public proxy available within 20s.</p>
+	<%if (proxyList[5] != null && proxyList[5].list.length > 0) {%>
+	<ul>
+		<% proxyList[5].list.forEach(function(p){%>
+			<li> <%= p%> &nbsp; <a href="/proxy/<%=p%>/<%=proxyList[5].key%>">Delete</a></li>
+			<%})%>
+	</ul>
+	<%}%>
+</div>
+</div>
+
+<div class="container">
+	<div class="proxy">
+	<p>VIP proxy available within 1s.</p>
+	<%if ( proxyList[6] != null && proxyList[6].list.length > 0) {%>
+	<ul>
+		<% proxyList[6].list.forEach(function(p){%>
+			<li> <%= p%> &nbsp; <a href="/proxy/<%=p%>/<%=proxyList[6].key%>">Delete</a></li>
+			<%})%>
+	</ul>
+	<%}%>
+</div>
+
+<div class="proxy">
+<p>VIP proxy available within 3s.</p>
+	<%if (proxyList[7] != null && proxyList[7].list.length > 0) {%>
+	<ul>
+		<% proxyList[7].list.forEach(function(p){%>
+			<li> <%= p%> &nbsp; <a href="/proxy/<%= p %>/<%=proxyList[7].key%>">Delete</a></li>
+			<%})%>
+	</ul>
+	<%}%>
+</div>
+<div class="proxy">
+<p>VIP proxy available within 8s.</p>
+	<%if (proxyList[8] != null && proxyList[8].list.length > 0) {%>
+	<ul>
+		<% proxyList[8].list.forEach(function(p){%>
+			<li> <%= p%> &nbsp; <a href="/proxy/<%= p %>/<%=proxyList[8].key%>">Delete</a></li>
+			<%})%>
+	</ul>
+	<%}%>
+</div>
+<div class="proxy">
+<p>VIP proxy available within 15s.</p>
+	<%if (proxyList[9] != null && proxyList[9].list.length > 0) {%>
+	<ul>
+		<% proxyList[9].list.forEach(function(p){%>
+			<li> <%= p%> &nbsp; <a href="/proxy/<%= p %>/<%=proxyList[9].key%>">Delete</a></li>
+			<%})%>
+	</ul>
+	<%}%>
+</div>
+</div>
+<br>
+</body></html>

@@ -44,3 +44,16 @@ th {
   background-color: #666;
   color: #fff;
 }
+div.container {
+  margin: 15px;
+  height: 400px;
+  width: 1800px;
+  background-color: #fff;
+}
+div.proxy {
+  float: left;
+  padding: 10px;
+  height: 400px;
+  overflow-y: scroll;
+  background-color: #fff;
+}

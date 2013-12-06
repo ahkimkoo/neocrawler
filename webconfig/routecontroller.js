@@ -1,22 +1,41 @@
 // map request with request handler 
 
-exports.mapRoute = function(app, prefix) {
-	prefix = '/' + prefix;
-	var prefixObj = require('./controllers' + prefix);
+exports.mapRoute = function(app) {
+	//prefix = '/' + prefix;
+
+	prefix_rule = '/rule';
+	prefix_proxy = '/proxy';
+
+	var prefixRuleObj = require('./controllers' + prefix_rule);
+	var prefixProxyObj = require('./controllers' + prefix_proxy);
+
 	// index
-	app.get(prefix, prefixObj.index);
+	app.get(prefix_rule, prefixRuleObj.index);
+	
 	// search
-	app.post(prefix + '/list', prefixObj.search);	
+	app.post(prefix_rule + '/search', prefixRuleObj.search);	
 	// add
-	app.get(prefix + '/new', prefixObj.new);
+	app.get(prefix_rule + '/new', prefixRuleObj.new);
 	// show
-	app.get(prefix + '/:id', prefixObj.show);
+	app.get(prefix_rule + '/:id', prefixRuleObj.show);
 	// create
-	app.post(prefix + '/create', prefixObj.create);
+	app.post(prefix_rule + '/create', prefixRuleObj.create);
 	// edit
-	app.get(prefix + '/:id/edit', prefixObj.edit);
+	app.get(prefix_rule + '/:id/edit', prefixRuleObj.edit);
 	// update
-	app.put(prefix + '/:id', prefixObj.update);
+	app.put(prefix_rule + '/upsert', prefixRuleObj.update);
 	// destroy
-	app.del(prefix + '/:id', prefixObj.destroy);
+	app.del(prefix_rule + '/:id', prefixRuleObj.destroy);
+	
+/////////////////////////////////////////////////////////////////////
+	// Proxy index 
+	app.get(prefix_proxy, prefixProxyObj.index);
+	// Proxy index 
+	app.get(prefix_proxy + '/index', prefixProxyObj.index);	
+	// Proxy edit 
+	app.get(prefix_proxy + "/new", prefixProxyObj.new);
+	// Proxy create 
+	app.post(prefix_proxy + "/create", prefixProxyObj.create);
+	// Proxy destroy 
+	app.get(prefix_proxy + "/:host/:key", prefixProxyObj.destroy);	
 };

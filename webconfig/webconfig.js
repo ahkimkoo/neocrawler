@@ -55,15 +55,17 @@ webconfig.prototype.launch = function(){
 	}
 
 	app.get('/', routes.index);
+	controller.mapRoute(app);
 
+/*
 	//app.get('/', routes.index);
-	var prefixes = ['rule','proxy'];
+	var prefixes = ['rule', 'proxy'];
 
 	// map route to controller
 	prefixes.forEach(function(prefix) {
 	  controller.mapRoute(app, prefix);
 	});	
-
+*/
 	console.log('create server.');
 	http.createServer(app).listen(app.get('port'), function(){
 		console.log('webconfig server listening on port ' + app.get('port'));

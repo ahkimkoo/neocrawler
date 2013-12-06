@@ -1,27 +1,28 @@
 var rule = require('../models/drillingRule.js');
 
+//default
 var template =  {
         id:'',
         domain: '',
         url_pattern: '',
         alias: '',
-        encoding: '',
-        type: '', //branch or node
-        save_page: '',
-        jshandle: '',
-        cookie: '',
-        inject_jquery: '',
-        load_img: '',
-        drill_rules: '',
-        script: '',
-        navigate_rule: '',
-        stoppage: 0,
-        priority: 0,
-        weight: 0,
-        schedule_interval: 0,
-        active: '',
-        seed:'',
-        schedule_rule:''}; // FIFO  or LIFO
+        encoding: 'UTF8',
+        type: 'node', //branch or node
+        save_page: 'N',
+        jshandle: 'N',
+        cookie: '[]',
+        inject_jquery: 'N',
+        load_img: 'N',
+        drill_rules: '[]',
+        script: '[]',
+        navigate_rule: '[]',
+        stoppage: -1,
+        priority: 1,
+        weight: 10,
+        schedule_interval: 86400,
+        active: 'Y',
+        seed:'[]',
+        schedule_rule:'FIFO'}; // FIFO  or LIFO
 
 var rules = [];
 
@@ -40,6 +41,9 @@ exports.index = function(req, res) {
 
 // search
 exports.search = function(req, res) {
+
+  res.cookie("domain",req.body.domain, { maxAge: 900000, httpOnly: true });
+
     var domain = req.body.domain;
     console.log('search:', domain);
    rule.getRulesByCondition(domain,function(err, result){
@@ -134,18 +138,20 @@ exports.edit = function(req, res) {
   var id = req.params.id;
   console.log("id:", id);
    rule.displayOne(id, function(err, obj){
-      obj['id'] = id;
-      console.log("obj:", obj);
-      res.render('rule/edit', {title : 'Edit rule', rule:obj});
+      if(obj){
+        obj['id'] = id;
+        console.log("obj:", obj);
+        res.render('rule/edit', {title : 'Edit rule', rule:obj});        
+      }else{
+        res.render('rule/edit', {title : 'Edit rule', rule:template});        
+      }
    });
 };
 
-// update a widget
+// upsert a rule
 exports.update = function(req,res) {
-   var id = req.params.id;
-
-    // update rule
-    // add rule
+    var id = "driller:" + req.body.domain + ":" + req.body.alias;
+    // upsert rule
     template['domain'] = req.body.domain;
     template['url_pattern'] = req.body.url_pattern;
     template['alias'] = req.body.alias;
@@ -168,13 +174,15 @@ exports.update = function(req,res) {
     template['schedule_rule'] = req.body.schedule_rule;   
     template['id'] = id;
 
+    console.log("edit update:", req.body.drill_rules);
+
    rule.update(id, template, function(err, result){
       if(!err){
                      
           rule.getDrillingRules(function(err, result){
             rules = result; 
             //res.render('rule/index', {title : 'Drilling rule', rules:result});
-            console.log('Rule', req.params.id, 'updated.'); 
+            console.log('Rule', id, 'updated.'); 
             res.redirect('rule');
       });
     }

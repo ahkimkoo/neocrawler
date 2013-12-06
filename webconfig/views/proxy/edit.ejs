@@ -1,0 +1,40 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html><head>
+  
+  <meta charset="utf-8" content="text/html; charset=ISO-8859-1" http-equiv="content-type">
+  <title>Edit Proxy Manually</title>
+  <link rel="stylesheet" href="/stylesheets/main.css">
+</head>
+
+<body>
+
+<h1>Edit Proxy Manually</h1>
+
+<hr><a href="/proxy">Return</a>
+
+<form method="post" action="/proxy/create" id="form">
+  <table>
+    <tbody>   
+      <tr>
+        <th>address</th>
+        <td><input name="address" id="address" value="" size="30" type="text"></td>
+      </tr>
+     <tr>
+        <th>authorize</th>
+        <td><input name="authorize" id="authorize" value="" size="30" type="text"></td>
+      </tr>      
+      <tr>
+        <th>group</th>
+        <td><input name="group" value="" size="20" type="text"></td>
+      </tr>
+    </tbody>
+  </table>
+<input type="hidden" value="put" name="_method" />
+<br>
+<input type="submit" name="submit" id="submit" value="Submit"/>
+<input type="reset" name="reset" id="reset" value="Reset"/>  
+</form>
+<br>
+<br>
+<br>
+</body></html>
