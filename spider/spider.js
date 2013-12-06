@@ -4,6 +4,7 @@
  */
 var redis = require("redis");
 var crypto = require('crypto');
+var url =  require("url");
 
 var spider = function(spiderCore){
     this.spiderCore = spiderCore;
@@ -15,20 +16,25 @@ var spider = function(spiderCore){
 
 ////report to spidercore standby////////////////////////
 spider.prototype.assembly = function(){
-    this.spiderCore.emit('standby','spider');
+    this.redis_cli0 = redis.createClient(this.spiderCore.settings['driller_info_redis_db'][1],this.spiderCore.settings['driller_info_redis_db'][0]);
+    this.redis_cli1 = redis.createClient(this.spiderCore.settings['url_info_redis_db'][1],this.spiderCore.settings['url_info_redis_db'][0]);
+    var spider = this;
+    var spiderCore = this.spiderCore;
+    this.redis_cli0.select(this.spiderCore.settings['driller_info_redis_db'][2], function(err,value) {
+        spider.redis_cli1.select(spiderCore.settings['url_info_redis_db'][2], function(err,value) {
+            spiderCore.emit('standby','spider');
+        });
+    });
 }
 
 //refresh the driller rules//////////////////////////////
 spider.prototype.refreshDrillerRules = function(){
     var spider = this;
-    var redis_cli = redis.createClient(spider.spiderCore.settings['driller_info_redis_db'][1],spider.spiderCore.settings['driller_info_redis_db'][0]);
-    redis_cli.select(spider.spiderCore.settings['driller_info_redis_db'][2], function(err, value) {
-        if (err)throw(err);
+    var redis_cli = this.redis_cli0;
         redis_cli.get('updated:driller:rule',function(err,value){
             if (err)throw(err);
             if(this.driller_rules_updated!==parseInt(value)){//driller is changed
                 logger.debug('driller rules is changed');
-
                 redis_cli.keys('driller:*',function(err,values){
                     if (err)throw(err);
                     spider.tmp_driller_rules = {};
@@ -45,7 +51,6 @@ spider.prototype.refreshDrillerRules = function(){
                                     //spider.driller_rules_updated = (new Date()).getTime();
                                     spider.spiderCore.emit('driller_reules_loaded',spider.driller_rules);
                                     setTimeout(function(){spider.refreshDrillerRules();},spider.spiderCore.settings['check_driller_rules_interval']);
-                                    redis_cli.quit();
                                 }
                             });
                         })(values[i],spider);
@@ -55,11 +60,8 @@ spider.prototype.refreshDrillerRules = function(){
             }else{
                 logger.debug('driller rules is not changed');
                 setTimeout(function(){spider.refreshDrillerRules();},spider.spiderCore.settings['check_driller_rules_interval']);
-                redis_cli.quit();
             }
         })
-
-    });
 }
 ////get url////////////////////////////////////////////
 spider.prototype.getUrlQueue = function(){
@@ -80,37 +82,29 @@ spider.prototype.getUrlQueue = function(){
      */
 
     var spider = this;
-    var redis_driller_db = redis.createClient(spider.spiderCore.settings['driller_info_redis_db'][1],spider.spiderCore.settings['driller_info_redis_db'][0]);
-    var redis_urlinfo_db = redis.createClient(spider.spiderCore.settings['url_info_redis_db'][1],spider.spiderCore.settings['url_info_redis_db'][0]);
-    redis_driller_db.select(spider.spiderCore.settings['driller_info_redis_db'][2], function(err, signal) {
-        //1-------------------------------------------------------------------------------------------
-        if(err)throw(err);
+    var redis_driller_db = this.redis_cli0;
+    var redis_urlinfo_db = this.redis_cli1;
         redis_driller_db.lpop('queue:scheduled:all',function(err, link){
             //2----------------------------------------------------------------------------------------
-            if(err)throw(err);
             if(!link){
                 logger.debug('No queue~');
-                redis_driller_db.quit();
-                redis_urlinfo_db.quit();
                 return;
             };//no queue
-            redis_urlinfo_db.select(spider.spiderCore.settings['url_info_redis_db'][2], function(err, signal) {
-                //3-------------------------------------------------------------------------------------
-                if(err)throw(err);
                 var linkhash = crypto.createHash('md5').update(link).digest('hex');
                 redis_urlinfo_db.hgetall(linkhash,function(err, link_info){
                     //4---------------------------------------------------------------------------------
                     if(err)throw(err);
                     if(!link_info){
-                        logger.warn(link+' has no url info, '+linkhash);
-                        redis_driller_db.quit();
-                        redis_urlinfo_db.quit();
-                        spider.getUrlQueue();
+                        logger.warn(link+' has no url info, '+linkhash+', we try to match it');
+                        var urlinfo = spider.wrapLink(link);
+                        if(urlinfo!=null)spider.spiderCore.emit('new_url_queue',urlinfo);
+                        else{
+                            logger.error(link+' can not match any driller rule, ignore it.');
+                            spider.getUrlQueue();
+                        }
                     }else{
                         if(!link_info['trace']){
                             logger.warn(link+', url info is incomplete');
-                            redis_driller_db.quit();
-                            redis_urlinfo_db.quit();
                             spider.getUrlQueue();
                         }else{
                             redis_driller_db.hgetall(link_info['trace'].slice(link_info['trace'].indexOf(':')+1),function(err, drillerinfo){
@@ -118,8 +112,6 @@ spider.prototype.getUrlQueue = function(){
                                 if(err)throw(err);
                                 if(drillerinfo==null){
                                     logger.warn(link+', has no driller info!');
-                                    redis_driller_db.quit();
-                                    redis_urlinfo_db.quit();
                                     spider.getUrlQueue();
                                 }else{
                                     var urlinfo = {
@@ -138,8 +130,6 @@ spider.prototype.getUrlQueue = function(){
                                     logger.debug('new url: '+link);
                                     spider.queue_length++;
                                     spider.spiderCore.emit('new_url_queue',urlinfo);
-                                    redis_driller_db.quit();
-                                    redis_urlinfo_db.quit();
                                 }
                                 //5----------------------------------------------------------------------
                             });
@@ -148,12 +138,7 @@ spider.prototype.getUrlQueue = function(){
                     //4-----------------------------------------------------------------------------------
                 });
                 //3---------------------------------------------------------------------------------------
-            });
-            //2-------------------------------------------------------------------------------------------
         });
-        //1---------------------------------------------------------------------------------------------------
-    });
-
 }
 
 spider.prototype.checkQueue = function(spider){
@@ -163,80 +148,95 @@ spider.prototype.checkQueue = function(spider){
         spider.getUrlQueue();
     }
 }
-//get test url queue
-spider.prototype.getTestUrlQueue = function(link){
-    var spider = this;
-    var redis_driller_db = redis.createClient(spider.spiderCore.settings['driller_info_redis_db'][1],spider.spiderCore.settings['driller_info_redis_db'][0]);
-    var redis_urlinfo_db = redis.createClient(spider.spiderCore.settings['url_info_redis_db'][1],spider.spiderCore.settings['url_info_redis_db'][0]);
-    redis_driller_db.select(spider.spiderCore.settings['driller_info_redis_db'][2], function(err, signal) {
-        //1-------------------------------------------------------------------------------------------
-        if(err)throw(err);
 
-        if(err)throw(err);
-        if(!link){
-            logger.debug('No queue~');
-            redis_driller_db.quit();
-            redis_urlinfo_db.quit();
-            return;
-        };//no queue
-        redis_urlinfo_db.select(spider.spiderCore.settings['url_info_redis_db'][2], function(err, signal) {
-            //3-------------------------------------------------------------------------------------
-            if(err)throw(err);
-            var linkhash = crypto.createHash('md5').update(link).digest('hex');
-            redis_urlinfo_db.hgetall(linkhash,function(err, link_info){
-                //4---------------------------------------------------------------------------------
-                if(err)throw(err);
-                if(!link_info){
-                    logger.warn(link+' has no url info, '+linkhash);
-                    redis_driller_db.quit();
-                    redis_urlinfo_db.quit();
-                    spider.getUrlQueue();
-                }else{
-                    if(!link_info['trace']){
-                        logger.warn(link+', url info is incomplete');
-                        redis_driller_db.quit();
-                        redis_urlinfo_db.quit();
-                        spider.getUrlQueue();
-                    }else{
-                        redis_driller_db.hgetall(link_info['trace'].slice(link_info['trace'].indexOf(':')+1),function(err, drillerinfo){
-                            //5---------------------------------------------------------------------
-                            if(err)throw(err);
-                            if(drillerinfo==null){
-                                logger.warn(link+', has no driller info!');
-                                redis_driller_db.quit();
-                                redis_urlinfo_db.quit();
-                                spider.getUrlQueue();
-                            }else{
-                                var urlinfo = {
-                                    "url":link,
-                                    "type":drillerinfo['type'],
-                                    "referer":link_info['referer'],
-                                    "save_page":JSON.parse(drillerinfo['save_page']),
-                                    "cookie":JSON.parse(drillerinfo['cookie']),
-                                    "jshandle":JSON.parse(drillerinfo['jshandle']),
-                                    "inject_jquery":JSON.parse(drillerinfo['inject_jquery']),
-                                    "drill_rules":JSON.parse(drillerinfo['drill_rules']),
-                                    "script":JSON.parse(drillerinfo['script']),
-                                    "navigate_rule":JSON.parse(drillerinfo['navigate_rule']),
-                                    "stoppage":parseInt(drillerinfo['stoppage'])
-                                }
-                                logger.debug('new url: '+JSON.stringify(urlinfo));
-                                spider.queue_length++;
-                                spider.spiderCore.emit('new_url_queue',urlinfo);
-                                redis_driller_db.quit();
-                                redis_urlinfo_db.quit();
-                            }
-                            //5----------------------------------------------------------------------
-                        });
-                    }
-                }
-                //4-----------------------------------------------------------------------------------
-            });
-            //3---------------------------------------------------------------------------------------
-        });
-
-        //1---------------------------------------------------------------------------------------------------
-    });
-
+spider.prototype.__getTopLevelDomain = function(domain){
+    var arr = domain.split('.');
+    if(arr.length<=2)return domain;
+    else return arr.slice(1).join('.');
 }
+
+spider.prototype.detectLink = function(link){
+    var urlobj = url.parse(link);
+    var result = '';
+    var domain = this.__getTopLevelDomain(urlobj['hostname']);
+    if(this.driller_rules[domain]!=undefined){
+        var alias = this.driller_rules[domain];
+        for(a in alias){
+            var url_pattern  = decodeURIComponent(alias[a]['url_pattern']);
+            var patt = new RegExp(url_pattern);
+            if(patt.test(link)){
+                result = 'driller:'+domain+':'+a;
+                break;
+            }
+        }
+
+    }
+    return result;
+}
+
+spider.prototype.wrapLink = function(link){
+    var linkinfo = null;
+    var driller = this.detectLink(link);
+    if(driller!=''){
+        var driller_arr = driller.split(':');
+        var drillerinfo = this.driller_rules[driller_arr[1]][driller_arr[2]];
+        linkinfo = {
+            "url":link,
+            "type":drillerinfo['type'],
+            "referer":'',
+            "save_page":JSON.parse(drillerinfo['save_page']),
+            "cookie":JSON.parse(drillerinfo['cookie']),
+            "jshandle":JSON.parse(drillerinfo['jshandle']),
+            "inject_jquery":JSON.parse(drillerinfo['inject_jquery']),
+            "drill_rules":JSON.parse(drillerinfo['drill_rules']),
+            "script":JSON.parse(drillerinfo['script']),
+            "navigate_rule":JSON.parse(drillerinfo['navigate_rule']),
+            "stoppage":parseInt(drillerinfo['stoppage'])
+        }
+    }
+    return linkinfo;
+}
+
+spider.prototype.updateLinkState = function(link,state){
+    var spider = this;
+    var urlhash = crypto.createHash('md5').update(link+'').digest('hex');
+    this.redis_cli1.hgetall(urlhash,function(err,link_info){
+        if(err){logger.error('get state of link('+link+') fail: '+err);return;}
+        if(link_info){
+            var t_record = link_info['records'];
+            var records = [];
+            if(t_record!=''&&t_record!='[]'){
+                try{
+                    records = JSON.parse(t_record);
+                }catch(e){
+                    logger.error(t_record+' JSON parse error: '+e);
+                }
+            }
+            records.push(state);
+            spider.redis_cli1.hmset(urlhash,{'records':JSON.stringify(records),'last':(new Date()).getTime(),'status':state},function(err,link_info){
+                if(err)logger.error('update state of link('+link+') fail: '+err);
+                else logger.debug('update state of link('+link+') success: '+state);
+            });
+        }else{
+            var trace = this.detectLink(link);
+            if(trace!=''){
+                trace = 'urllib:' + trace;
+                var urlinfo = {
+                    'url':link,
+                    'trace':trace,
+                    'referer':'',
+                    'create':(new Date()).getTime(),
+                    'records':JSON.stringify([]),
+                    'last':(new Date()).getTime(),
+                    'status':state
+                }
+                this.redis_cli1.hmset(urlhash,urlinfo,function(err, value){
+                    if (err) throw(err);
+                    logger.debug('save new url info: '+link);
+                });
+            }else logger.error(link+' can not match any rules, ignore updating.');
+        }
+    });
+}
+
 module.exports = spider;

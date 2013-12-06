@@ -67,25 +67,35 @@ extractor.prototype.wash_link = function(pageurl,links){
     return cleaned_link;
 }
 
+extractor.prototype.detectLink = function(link){
+    var urlobj = url.parse(link);
+    var result = '';
+    var domain = this.__getTopLevelDomain(urlobj['hostname']);
+    if(this.spiderCore.spider.driller_rules[domain]!=undefined){
+        var alias = this.spiderCore.spider.driller_rules[domain];
+        for(a in alias){
+            var url_pattern  = decodeURIComponent(alias[a]['url_pattern']);
+            var patt = new RegExp(url_pattern);
+            if(patt.test(link)){
+                result = 'driller:'+domain+':'+a;
+                break;
+            }
+        }
+
+    }
+    return result;
+}
+
+
 extractor.prototype.arrange_link = function(links){
     var linkobj = {};
     for(var i=0;i<links.length;i++){
         var link = links[i];
-        var urlobj = url.parse(link);
-        var domain = this.__getTopLevelDomain(urlobj['hostname']);
-        if(this.spiderCore.spider.driller_rules[domain]!=undefined){
-            var alias = this.spiderCore.spider.driller_rules[domain];
-            for(a in alias){
-                var url_pattern  = decodeURIComponent(alias[a]['url_pattern']);
-                var patt = new RegExp(url_pattern);
-                if(patt.test(link)){
-                    var k = 'urllib:driller:'+domain+':'+a;
-                    if(linkobj[k]==undefined)linkobj[k]=[];
-                    linkobj[k].push(link);
-                    break;
-                }
-            }
-
+        var matched_driller = this.detectLink(link);
+        if(matched_driller!=''){
+            matched_driller = 'urllib:' + matched_driller;
+            if(linkobj[matched_driller]==undefined)linkobj[matched_driller]=[];
+            linkobj[matched_driller].push(link);
         }
     }
     return linkobj;

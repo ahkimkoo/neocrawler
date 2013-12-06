@@ -6,7 +6,6 @@
     "crawled_hbase_db":["192.168.1.244",8080,"crawled"],
     "check_driller_rules_interval":120000,
     "spider_concurrency":5,
-    "schedule_interval":120,
-    "schedule_period_quantity":500,
+    "schedule_interval":60,
     "schedule_quantity_limitation":2000
 }

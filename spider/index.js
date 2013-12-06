@@ -45,6 +45,7 @@ spiderCore.prototype.start = function(){
     });
 
     this.on('new_url_queue',function(urlinfo){
+        this.spider.updateLinkState(urlinfo['url'],'crawling');
         this.downloader.download(urlinfo);
     });
 
@@ -52,6 +53,7 @@ spiderCore.prototype.start = function(){
         logger.debug('crawl '+crawled_info['url']+' finish');
         var extracted_info = this.extractor.extract(crawled_info);
         this.pipeline.save(extracted_info);
+        this.spider.updateLinkState(crawled_info['url'],'crawled_finish');
         this.emit('slide_queue');
     });
 
@@ -84,11 +86,6 @@ spiderCore.prototype.test = function(link){
         }
     });
 
-    this.on('new_url_queue',function(urlinfo){
-        this.downloader.download(urlinfo);
-        logger.debug('download url :'+urlinfo['url']);
-    });
-
     this.on('crawled',function(crawled_info){
         logger.debug('crawl '+crawled_info['url']+' finish');
         var extracted_info = this.extractor.extract(crawled_info);
@@ -96,12 +93,9 @@ spiderCore.prototype.test = function(link){
     });
 
     this.once('driller_reules_loaded',function(rules){
-        var linkobj = this.extractor.arrange_link([link]);
-        this.pipeline.save_links(link,linkobj);
-    });
-
-    this.once('append_link',function(){
-        this.spider.getTestUrlQueue(link);
+        var urlinfo = this.spider.wrapLink(link);
+        if(urlinfo!=null)this.downloader.download(urlinfo);
+        else logger.error('no related rules in configure!, '+link);
     });
 
     //trigger

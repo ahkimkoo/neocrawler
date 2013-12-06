@@ -90,8 +90,9 @@ scheduler.prototype.refreshPriotities  = function(){
                                         'rate':rate,
                                         'rule':value['schedule_rule'],
                                         'interval':parseInt(value['schedule_interval']),
-                                        'first_schedule':value['first_schedule']!=undefined?value['first_schedule']:0,
-                                        'last_schedule':value['last_schedule']!=undefined?value['last_schedule']:0
+                                        'first_schedule':value['first_schedule']!=undefined?parseInt(value['first_schedule']):0,
+                                        'last_schedule':value['last_schedule']!=undefined?parseInt(value['last_schedule']):0,
+                                        'seed':JSON.parse(value['seed'])
                                     });
                                 }
                                 scheduler.tmp_priotites_length--;
@@ -112,7 +113,7 @@ scheduler.prototype.refreshPriotities  = function(){
                 this.priotities_updated=parseInt(value);
             }else{
                 logger.debug('driller rules is not changed');
-                setTimeout(function(){scheduler.refreshDrillerRules();},scheduler.settings['check_driller_rules_interval']);
+                setTimeout(function(){scheduler.refreshPriotities();},scheduler.settings['check_driller_rules_interval']);
             }
         });
 }
@@ -129,9 +130,23 @@ scheduler.prototype.doSchedule = function(){
         });
 }
 
+scheduler.prototype.reSchedule = function(driller){
+    logger.debug('reschedule '+driller['key']);
+    for(var i=0;i<driller['seed'].length;i++){
+        (function(link){
+            this.redis_cli0.rpush('queue:scheduled:all',link,function(err, value){
+                logger.debug('reschedule url: '+link);
+            });
+        })(driller['seed'][i])
+    }
+}
+
 scheduler.prototype.doScheduleExt = function(index,avg_rate,more){
     var scheduler = this;
     var xdriller = this.priotity_list[index];
+    //--check reschedule-------------
+    if((new Date()).getTime()-xdriller['first_schedule']>=xdriller['schedule_interval']*1000)this.reSchedule(xdriller);
+    //-------------------------------
     var redis_cli0 = this.redis_cli0;
         redis_cli0.llen('urllib:'+xdriller['key'],function(err, queue_length) {
             var ct = Math.ceil(avg_rate * xdriller['rate'])+more;
@@ -182,7 +197,9 @@ scheduler.prototype.start = function(){
 
     this.on('schedule_circle',function(index,avg_rate,more){
         if(index<this.priotity_list.length-1)this.doScheduleExt(++index,avg_rate,more);
-        else setTimeout(function(){scheduler.doSchedule()},this.settings['schedule_interval']*1000);
+        else {
+            setTimeout(function(){scheduler.doSchedule()},this.settings['schedule_interval']*1000);
+        }
     });
 
     this.on('priotities_loaded',function(priotities){
