@@ -55,6 +55,7 @@ var configService = function(){
 	var logger = logging.getLogger('config-service',options['i'],'DEBUG');
 	settings['logger'] = logger;
 	settings['instance'] = options['i'];
+	settings['port'] = parseInt(options['p']);
 	var webConfig = new(require('./webconfig'))(settings);
 	
 	webConfig.start();	

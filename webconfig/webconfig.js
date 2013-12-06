@@ -21,10 +21,9 @@ var webconfig = function(webconfigCore){
 
 webconfig.prototype.launch = function(settings){
 
-	this.settings = settings;
 	var app = express();
 	// all environments
-	app.set('port', 3000);
+	app.set('port', settings['port']);
 
 
 	app.configure(function(){
