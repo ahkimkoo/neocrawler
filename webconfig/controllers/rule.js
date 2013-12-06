@@ -8,11 +8,11 @@ var template =  {
         alias: '',
         encoding: 'UTF8',
         type: 'node', //branch or node
-        save_page: 'N',
-        jshandle: 'N',
+        save_page: 'true',
+        jshandle: 'false',
         cookie: '[]',
-        inject_jquery: 'N',
-        load_img: 'N',
+        inject_jquery: 'false',
+        load_img: 'false',
         drill_rules: '[]',
         script: '[]',
         navigate_rule: '[]',
@@ -20,7 +20,7 @@ var template =  {
         priority: 1,
         weight: 10,
         schedule_interval: 86400,
-        active: 'Y',
+        active: 'true',
         seed:'[]',
         schedule_rule:'FIFO'}; // FIFO  or LIFO
 

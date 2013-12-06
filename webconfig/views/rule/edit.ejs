@@ -4,11 +4,11 @@
   <meta charset="utf-8" content="text/html; charset=ISO-8859-1" http-equiv="content-type">
   <title>detail</title>
   <link rel="stylesheet" href="/stylesheets/main.css">
-  <link rel="stylesheet" href="/stylesheets/FlexiJsonEditor/jsoneditor.css"/>
+  <link rel="stylesheet" href="/stylesheets/FlexiJsonEditor/jsoneditor.css"/> 
 
-  <script type="text/javascript" src="../scripts/jquery-1.9.1.js"></script>
-  <script src="../scripts/jquery.min.js"></script>
-  <script src="../scripts/jquery.jsoneditor.js"></script>
+    <script type="text/javascript" src="/javascripts/json2.js"></script>
+  <script type="text/javascript" src="/javascripts/jquery.min.js"></script>
+  <script type="text/javascript" src="/javascripts/jquery.jsoneditor.js"></script>
 
 <script type="text/javascript">
 
@@ -210,13 +210,13 @@
       <tr>
         <th>Extract content<br>
         </th>
-        <td> <label><input name="save_page" value="Y" type="radio" <%if(rule.save_page === 'Y'){%> checked <%}%> >Yes</label>&nbsp;&nbsp; <label><input name="save_page" value="N" type="radio" <%if(rule.save_page === 'N'){%> checked <%}%>>No</label> 
+        <td> <label><input name="save_page" value="true" type="radio" <%if(rule.save_page === 'true'){%> checked <%}%> >Yes</label>&nbsp;&nbsp; <label><input name="save_page" value="false" type="radio" <%if(rule.save_page === 'false'){%> checked <%}%>>No</label> 
         </td>         
       </tr>
       <tr>
         <th>jshandle<br>
         </th>
-        <td> <label><input name="jshandle" value="Y" type="radio" <%if(rule.jshandle === 'Y'){%> checked <%}%> >Yes</label>&nbsp;&nbsp; <label><input name="jshandle" value="N" type="radio" <%if(rule.jshandle === 'N'){%> checked <%}%>>No</label> 
+        <td> <label><input name="jshandle" value="true" type="radio" <%if(rule.jshandle === 'true'){%> checked <%}%> >Yes</label>&nbsp;&nbsp; <label><input name="jshandle" value="false" type="radio" <%if(rule.jshandle === 'false'){%> checked <%}%>>No</label> 
         </td> 
 
       </tr>
@@ -286,7 +286,7 @@
       </tr>  
       <tr>
         <th>active</th>
-        <td> <label><input name="active" value="Y" type="radio" <%if(rule.active === 'Y'){%> checked <%}%> >Yes</label>&nbsp;&nbsp; <label><input name="active" value="N" type="radio" <%if(rule.active === 'N'){%> checked <%}%>>No</label> </td>  
+        <td> <label><input name="active" value="true" type="radio" <%if(rule.active === 'true'){%> checked <%}%> >Yes</label>&nbsp;&nbsp; <label><input name="active" value="false" type="radio" <%if(rule.active === 'false'){%> checked <%}%>>No</label> </td>  
       </tr>  
 	  <tr>
         <th>seed</th>
