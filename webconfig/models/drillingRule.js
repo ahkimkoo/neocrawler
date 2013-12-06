@@ -151,5 +151,4 @@ var drillingRule = {
 	}
 
 }
-
 module.exports = drillingRule;

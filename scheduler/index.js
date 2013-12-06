@@ -102,7 +102,7 @@ scheduler.prototype.refreshPriotities  = function(){
                                     scheduler.priotity_list = scheduler.tmp_priority_list;
                                     scheduler.total_rates = scheduler.tmp_total_rates;
                                     //scheduler.priotities_updated = (new Date()).getTime();
-                                    logger.debug('priotities_loaded');
+                                    logger.debug('priotities loaded finish');
                                     scheduler.emit('priotities_loaded',scheduler.priotities);
                                     setTimeout(function(){scheduler.refreshPriotities();},scheduler.settings['check_driller_rules_interval']);
                                 }
@@ -130,22 +130,29 @@ scheduler.prototype.doSchedule = function(){
         });
 }
 
-scheduler.prototype.reSchedule = function(driller){
+scheduler.prototype.reSchedule = function(driller,index){
+    var scheduler = this;
     logger.debug('reschedule '+driller['key']);
     for(var i=0;i<driller['seed'].length;i++){
         (function(link){
-            this.redis_cli0.rpush('queue:scheduled:all',link,function(err, value){
+            scheduler.redis_cli0.rpush('queue:scheduled:all',link,function(err, value){
                 logger.debug('reschedule url: '+link);
             });
         })(driller['seed'][i])
     }
+    var ntime = (new Date()).getTime();
+    this.priotity_list[index]['first_schedule'] = ntime;
+    this.redis_cli0.hset(driller['key'],'first_schedule',ntime,function(err,value){
+        if(err)logger.error('update first schedule time for '+driller['key']+' failure');
+        else logger.debug('update first schedule time for '+driller['key']+' successful');
+    });
 }
 
 scheduler.prototype.doScheduleExt = function(index,avg_rate,more){
     var scheduler = this;
     var xdriller = this.priotity_list[index];
     //--check reschedule-------------
-    if((new Date()).getTime()-xdriller['first_schedule']>=xdriller['schedule_interval']*1000)this.reSchedule(xdriller);
+    if((new Date()).getTime()-xdriller['first_schedule']>=xdriller['interval']*1000)this.reSchedule(xdriller,index);
     //-------------------------------
     var redis_cli0 = this.redis_cli0;
         redis_cli0.llen('urllib:'+xdriller['key'],function(err, queue_length) {

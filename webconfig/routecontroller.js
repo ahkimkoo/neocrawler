@@ -1,5 +1,4 @@
-// map request with request handler 
-
+// map request with request handler
 exports.mapRoute = function(app) {
 	//prefix = '/' + prefix;
 
@@ -38,4 +37,5 @@ exports.mapRoute = function(app) {
 	app.post(prefix_proxy + "/create", prefixProxyObj.create);
 	// Proxy destroy 
 	app.get(prefix_proxy + "/:host/:key", prefixProxyObj.destroy);	
+
 };

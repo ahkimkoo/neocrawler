@@ -218,7 +218,7 @@ spider.prototype.updateLinkState = function(link,state){
                 else logger.debug('update state of link('+link+') success: '+state);
             });
         }else{
-            var trace = this.detectLink(link);
+            var trace = spider.detectLink(link);
             if(trace!=''){
                 trace = 'urllib:' + trace;
                 var urlinfo = {
@@ -230,7 +230,7 @@ spider.prototype.updateLinkState = function(link,state){
                     'last':(new Date()).getTime(),
                     'status':state
                 }
-                this.redis_cli1.hmset(urlhash,urlinfo,function(err, value){
+                spider.redis_cli1.hmset(urlhash,urlinfo,function(err, value){
                     if (err) throw(err);
                     logger.debug('save new url info: '+link);
                 });

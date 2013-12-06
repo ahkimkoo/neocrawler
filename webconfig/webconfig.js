@@ -1,4 +1,3 @@
-
 /**
  * Module dependencies.
  */
@@ -65,5 +64,3 @@ webconfig.prototype.launch = function(settings){
 }
 ////////////////////////////////////////
 module.exports = webconfig;
-
-
