@@ -57,6 +57,13 @@ spiderCore.prototype.start = function(){
         this.emit('slide_queue');
     });
 
+    this.on('crawling_failure',function(url,err_msg){
+        logger.warn(util.format('Crawling failure: %s, reason: %s',url,err_msg));
+        this.spider.updateLinkState(url,'crawled_failure');
+        this.emit('slide_queue');
+    });
+
+
     this.on('slide_queue',function(){
         if(this.spider.queue_length>0)this.spider.queue_length--;
         this.spider.checkQueue(this.spider);

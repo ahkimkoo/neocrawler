@@ -77,7 +77,7 @@ proxyRouter.prototype.start = function(){
 			proxy_request.addListener('response', function (proxy_response) {
 	
 				proxy_response.addListener('data', function(chunk) {
-					logger.debug('Write data to client');
+					//logger.debug('Write data to client');
 					if(!response.socket||response.socket.destroyed){
 						   logger.error('client socket closed,oop!');
 						   return response.end();
@@ -87,7 +87,7 @@ proxyRouter.prototype.start = function(){
 	
 				proxy_response.addListener('end', function() {
 					response.end();
-					logger.debug('Write data to client finish');
+					logger.debug(util.format('Write data to client(%s) finish',request.socket.remoteAddress));
 				});
 				
 				proxy_response.headers['remoteproxy'] = util.format('%s:%d',remoteProxyHost,remoteProxyPort)

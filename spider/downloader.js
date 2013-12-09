@@ -109,6 +109,7 @@ downloader.prototype.downloadIt = function(urlinfo){
 
     req.on('error', function(e) {
         logger.error('problem with request: ' + e.message+', url:'+urlinfo['url']);
+        spiderCore.emit('crawling_failure',urlinfo['url'],e.message);
     });
     req.end();
 }
