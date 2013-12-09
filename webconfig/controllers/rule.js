@@ -10,18 +10,18 @@ var template =  {
         type: 'node', //branch or node
         save_page: 'true',
         jshandle: 'false',
-        cookie: '[]',
+        cookie: '[""]',
         inject_jquery: 'false',
         load_img: 'false',
-        drill_rules: '[]',
-        script: '[]',
-        navigate_rule: '[]',
+        drill_rules: '[""]',
+        script: '[""]',
+        navigate_rule: '[""]',
         stoppage: -1,
         priority: 1,
         weight: 10,
         schedule_interval: 86400,
         active: 'true',
-        seed:'[]',
+        seed:'[""]',
         schedule_rule:'FIFO'}; // FIFO  or LIFO
 
 var rules = [];

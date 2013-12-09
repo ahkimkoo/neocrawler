@@ -1,7 +1,7 @@
 // Simple yet flexible JSON editor plugin.
 // Turns any element into a stylable interactive JSON editor.
 
-// Copyright (c) 2013 David Durman
+// Copyright (c) 2011 David Durman
 
 // Licensed under the MIT license (http://www.opensource.org/licenses/mit-license.php).
 
@@ -22,30 +22,26 @@
 
     $.fn.jsonEditor = function(json, options) {
         options = options || {};
-        // Make sure functions or other non-JSON data types are stripped down.
-        json = parse(stringify(json));
-        
-        var K = function() {};
-        var onchange = options.change || K;
-        var onpropertyclick = options.propertyclick || K;
+
+        var K = function() {},
+            onchange = options.change || K;
 
         return this.each(function() {
-            JSONEditor($(this), json, onchange, onpropertyclick, options.propertyElement, options.valueElement);
+            JSONEditor($(this), json, onchange, options.propertyElement, options.valueElement);
         });
         
     };
     
-    function JSONEditor(target, json, onchange, onpropertyclick, propertyElement, valueElement) {
+    function JSONEditor(target, json, onchange, propertyElement, valueElement) {
         var opt = {
             target: target,
             onchange: onchange,
-            onpropertyclick: onpropertyclick,
             original: json,
             propertyElement: propertyElement,
             valueElement: valueElement
         };
         construct(opt, json, opt.target);
-        $(opt.target).on('blur focus', '.property, .value', function() {
+        $('.property, .value', opt.target).live('blur focus', function() {
             $(this).toggleClass('editing');
         });
     }
@@ -119,45 +115,10 @@
             item.prepend(expander);
         }
     }
-
-    function addListAppender(item, handler) {
-        var appender = $('<div>', { 'class': 'item appender' }),
-            btn      = $('<button></button>', { 'class': 'property' });
-
-        btn.text('Add New Value');
-
-        appender.append(btn);
-        item.append(appender);
-
-        btn.click(handler);
-
-        return appender;
-    }
-
-    function addNewValue(json) {
-        if (isArray(json)) {
-            json.push(null);
-            return true;
-        }
-
-        if (isObject(json)) {
-            var i = 1, newName = "newKey";
-
-            while (json.hasOwnProperty(newName)) {
-                newName = "newKey" + i;
-                i++;
-            }
-
-            json[newName] = null;
-            return true;
-        }
-
-        return false;
-    }
     
     function construct(opt, json, root, path) {
         path = path || '';
-        
+
         root.children('.item').remove();
         
         for (var key in json) {
@@ -182,19 +143,10 @@
 
             property.change(propertyChanged(opt));
             value.change(valueChanged(opt));
-            property.click(propertyClicked(opt));
             
             if (isObject(json[key]) || isArray(json[key])) {
                 construct(opt, json[key], item, (path ? path + '.' : '') + key);
             }
-        }
-
-        if (isObject(json) || isArray(json)) {
-            addListAppender(root, function () {
-                addNewValue(json);
-                construct(opt, json, root, path);
-                opt.onchange(parse(stringify(opt.original)));
-            })
         }
     }
 
@@ -207,17 +159,6 @@
         });
     }
 
-    function propertyClicked(opt) {
-        return function() {
-            var path = $(this).parent().data('path');            
-            var key = $(this).attr('title');
-
-            var safePath = path ? path.split('.').concat([key]).join('\'][\'') : key;
-            
-            opt.onpropertyclick('[\'' + safePath + '\']');
-        };
-    }
-    
     function propertyChanged(opt) {
         return function() {
             var path = $(this).parent().data('path'),
@@ -234,7 +175,7 @@
 
             if (!newKey) $(this).parent().remove();
             
-            opt.onchange(parse(stringify(opt.original)));
+            opt.onchange();
         };
     }
 
@@ -257,7 +198,7 @@
 
             updateParents(this, opt);
             
-            opt.onchange(parse(stringify(opt.original)));
+            opt.onchange();
         };
     }
     
