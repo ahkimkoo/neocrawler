@@ -2,4 +2,5 @@
 .project
 .idea
 *.log
+*.log*
 node_modules/*

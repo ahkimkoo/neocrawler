@@ -58,7 +58,7 @@ spider.prototype.refreshDrillerRules = function(){
                 });
                 this.driller_rules_updated=parseInt(value);
             }else{
-                logger.debug('driller rules is not changed');
+                logger.debug('driller rules is not changed, queue length: '+this.queue_length);
                 setTimeout(function(){spider.refreshDrillerRules();},spider.spiderCore.settings['check_driller_rules_interval']);
             }
         })
