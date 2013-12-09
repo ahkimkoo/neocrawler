@@ -13,6 +13,7 @@ var proxyRouter = function(settings){
 	this.settings = settings;
 	logger = settings['logger'];
 	this.proxyList = {
+            'public_1s':[],
 			'public_3s':[],
 			'public_8s':[]
 	}
@@ -33,13 +34,13 @@ proxyRouter.prototype.__getProxyList = function(){
 	var proxyRouterObj = this;
 	
 	client.select(this.settings['proxy_info_redis_db'][2], function() {
-		client.lrange("proxy:public:available:3s",0,-1, function (err, obj) {
+		client.lrange("proxy:public:available:1s",0,-1, function (err, obj) {
 			if (err) throw err;
 		    for(x in obj){
 		    	proxylist.push(obj[x]);
 		    }
 		    client.quit();
-		    proxyRouterObj.proxyList['public_3s'] = proxylist;
+		    proxyRouterObj.proxyList['public_1s'] = proxylist;
 		    proxyRouterObj.emit("proxyListChanged", proxyRouterObj.proxyList);
 		});
 	});
@@ -50,10 +51,11 @@ proxyRouter.prototype.start = function(){
 	this.__getProxyList();
 	this.once('proxyListChanged',function (proxylist){
 		var httpProxyServer = http.createServer(function(request, response) {
+            var startTime = (new Date()).getTime();
 		  	logger.debug(util.format('Request %s from %s',request.url,request.socket.remoteAddress));
 			//var proxy = http.createClient(80, request.headers['host']);
 			//var proxy_request = proxy.request(request.method, request.url, request.headers);//202.171.253.98:80
-		  	var choseProxy = proxylist['public_3s'][Math.floor(Math.random() * proxylist['public_3s'].length)].split(':');
+		  	var choseProxy = proxylist['public_1s'][Math.floor(Math.random() * proxylist['public_3s'].length)].split(':');
 			var remoteProxyHost = choseProxy[0];
 			var remoteProxyPort = choseProxy[1];
             var route = true;
@@ -87,7 +89,7 @@ proxyRouter.prototype.start = function(){
 	
 				proxy_response.addListener('end', function() {
 					response.end();
-					logger.debug(util.format('Write data to client(%s) finish',request.socket.remoteAddress));
+					logger.debug(util.format('Write data to client(%s) finish, used proxy: %s, cost: %s ms',request.socket.remoteAddress,choseProxy.join(':'),(new Date()).getTime()-startTime));
 				});
 				
 				proxy_response.headers['remoteproxy'] = util.format('%s:%d',remoteProxyHost,remoteProxyPort)
@@ -98,7 +100,7 @@ proxyRouter.prototype.start = function(){
 
             proxy_request.addListener('timeout', function() {
                 response.end();
-                logger.error('Remote proxy timeout: ');
+                logger.error('Remote proxy timeout ');
             });
 
 			proxy_request.addListener('error', function(err,socket) {

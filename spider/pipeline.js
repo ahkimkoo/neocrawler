@@ -71,24 +71,21 @@ pipeline.prototype.save_content = function(pageurl,content){
     var url_hash = crypto.createHash('md5').update(pageurl+'').digest('hex');
     var spider = os.hostname()+'-'+process.pid;
 
-    var val_cells = [
-                { 'column':'basic:spider','timestamp':Date.now(),'$':spider},
-                { 'column':'basic:url','timestamp':Date.now(),'$':pageurl},
-                { 'column':'basic:content','timestamp':Date.now(),'$':content}
-                ];
-
 //    var val_cells = [
-//        { column:'basic:spider',timestamp:Date.now(),$:'spidername'},
-//        { column:'basic:url',timestamp:Date.now(),$:'http://domain/uri'},
-//        { column:'basic:content',timestamp:Date.now(),$:'html content'}
-//    ]
-    
-    var row = this.hbase_table.getRow(url_hash);
-
+//                { "column":"basic:spider","timestamp":Date.now(),"$":spider},
+//                { "column":"basic:url","timestamp":Date.now(),"$":pageurl},
+//                { "column":"basic:content","timestamp":Date.now(),"$":content}
+//                ];
+        var keylist = ['basic:spider','basic:url','basic:content'];
+        var valuelist = [spider,pageurl,content];
+        var row = this.hbase_table.getRow(url_hash);
     try{
-        row.put(val_cells,function(err,success){
+        row.put(keylist,valuelist,function(err,success){
                       logger.debug('insert content extracted from '+pageurl);
                   });
+//        row.put(['basic:spider','basic:url','basic:content'],[spider,pageurl,content],function(err,success){
+//            logger.debug('insert content extracted from '+pageurl);
+//        });
     }catch(e){
         logger.error('use bench mode insert data , err: '+e);
         row.put('basic:spider',spider,function(err, success){
@@ -107,15 +104,12 @@ pipeline.prototype.save_jsresult = function(pageurl,content){
     var url_hash = crypto.createHash('md5').update(pageurl+'').digest('hex');
     var spider = os.hostname()+'-'+process.pid;
 
-    var cells = [
-        { column:'basic:spider',timestamp:Date.now(),$:spider},
-        { column:'basic:url',timestamp:Date.now(),$:pageurl},
-        { column:'basic:jsresult',timestamp:Date.now(),$:content}
-    ];
+    var keylist = ['basic:spider','basic:url','basic:jsresult'];
+    var valuelist = [spider,pageurl,content];
 
     var row = this.hbase_table.getRow(url_hash);
     try{
-        row.put(cells,function(err,success){
+        row.put(keylist,valuelist,function(err,success){
             logger.debug('insert js result extracted from '+pageurl);
         });
     }catch(e){

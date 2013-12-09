@@ -125,7 +125,8 @@ spider.prototype.getUrlQueue = function(){
                                         "drill_rules":JSON.parse(drillerinfo['drill_rules']),
                                         "script":JSON.parse(drillerinfo['script']),
                                         "navigate_rule":JSON.parse(drillerinfo['navigate_rule']),
-                                        "stoppage":parseInt(drillerinfo['stoppage'])
+                                        "stoppage":parseInt(drillerinfo['stoppage']),
+                                        "start_time":(new Date()).getTime()
                                     }
                                     logger.debug('new url: '+link);
                                     spider.queue_length++;

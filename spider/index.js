@@ -50,7 +50,7 @@ spiderCore.prototype.start = function(){
     });
 
     this.on('crawled',function(crawled_info){
-        logger.debug('crawl '+crawled_info['url']+' finish');
+        logger.debug('crawl '+crawled_info['url']+' finish, cost:'+((new Date()).getTime() - parseInt(crawled_info['origin']['start_time']))+'ms');
         var extracted_info = this.extractor.extract(crawled_info);
         this.pipeline.save(extracted_info);
         this.spider.updateLinkState(crawled_info['url'],'crawled_finish');

@@ -175,6 +175,10 @@ scheduler.prototype.doScheduleExt = function(index,avg_rate,more){
 }
 
 scheduler.prototype.checkURL = function(url,interval){
+    if(typeof(url)!=='string'){
+        logger.error(util.format('Invalidate url: %s',url));
+        return;
+    }
     var redis_cli0 = this.redis_cli0;
     var redis_cli1 = this.redis_cli1;
     var kk = crypto.createHash('md5').update(url).digest('hex');
