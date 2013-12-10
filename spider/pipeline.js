@@ -67,7 +67,7 @@ pipeline.prototype.save_links = function(page_url,linkobjs){
             }
 }
 
-pipeline.prototype.save_content = function(pageurl,content){
+pipeline.prototype.save_content = function(pageurl,content,referer){
     var url_hash = crypto.createHash('md5').update(pageurl+'').digest('hex');
     var spider = os.hostname()+'-'+process.pid;
 
@@ -76,8 +76,8 @@ pipeline.prototype.save_content = function(pageurl,content){
 //                { "column":"basic:url","timestamp":Date.now(),"$":pageurl},
 //                { "column":"basic:content","timestamp":Date.now(),"$":content}
 //                ];
-        var keylist = ['basic:spider','basic:url','basic:content'];
-        var valuelist = [spider,pageurl,content];
+        var keylist = ['basic:spider','basic:url','basic:content','basic:referer'];
+        var valuelist = [spider,pageurl,content,referer];
         var row = this.hbase_table.getRow(url_hash);
     try{
         row.put(keylist,valuelist,function(err,success){
@@ -97,15 +97,18 @@ pipeline.prototype.save_content = function(pageurl,content){
         row.put('basic:content',content,function(err, success){
             logger.debug(pageurl+' update basic:content ');
         });
+        row.put('basic:referer',referer,function(err, success){
+            logger.debug(pageurl+' update basic:referer ');
+        });
     }
 }
 
-pipeline.prototype.save_jsresult = function(pageurl,content){
+pipeline.prototype.save_jsresult = function(pageurl,content,referer){
     var url_hash = crypto.createHash('md5').update(pageurl+'').digest('hex');
     var spider = os.hostname()+'-'+process.pid;
 
-    var keylist = ['basic:spider','basic:url','basic:jsresult'];
-    var valuelist = [spider,pageurl,content];
+    var keylist = ['basic:spider','basic:url','basic:jsresult','basic:referer'];
+    var valuelist = [spider,pageurl,content,referer];
 
     var row = this.hbase_table.getRow(url_hash);
     try{
@@ -123,6 +126,9 @@ pipeline.prototype.save_jsresult = function(pageurl,content){
         row.put('basic:jsresult',content,function(err, success){
             logger.debug(pageurl+' update basic:jsresult ');
         });
+        row.put('basic:referer',referer,function(err, success){
+            logger.debug(pageurl+' update basic:referer ');
+        });
     }
 }
 
@@ -136,13 +142,13 @@ pipeline.prototype.save =function(extracted_info){
             if (err)throw err;
             logger.debug('Content saved, '+htmlfile);
         });
-        fs.writeFile(resultfile,JSON.stringify(extracted_info),'utf8',function (err) {
+        fs.writeFile(resultfile,JSON.stringify(extracted_info),'utf8',function(err){
             if (err)throw err;
             logger.debug('Crawling result saved, '+resultfile);
         });
     }else{
         if(extracted_info['drill_link'])this.save_links(extracted_info['url'],extracted_info['drill_link']);
-        if(extracted_info['origin']['save_page'])this.save_content(extracted_info['url'],extracted_info['content']);
+        if(extracted_info['origin']['save_page'])this.save_content(extracted_info['url'],extracted_info['content'],extracted_info['origin']['referer']);
         if(extracted_info['js_result'])this.save_jsresult(extracted_info['url'],extracted_info['js_result']);
     }
 }
