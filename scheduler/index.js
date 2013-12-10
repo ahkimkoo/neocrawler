@@ -11,35 +11,17 @@ var scheduler = function(settings){
     this.settings = settings;
     logger = settings.logger;
     this.priotities_updated = 0;
-    /*
-    {
-        items:{
-            1:
-            {
-              volume:150,
-              items:{
-                driller:blabla:
-                   {
-                   type:'FIFO',
-                   weight:50,
-                   first_schedule:238947329847832,
-                   last_schedule:238947329847832
-                   }
-              }
-            }
-        }
-        nums:[]
-    }
-     */
-    this.priotities = {'items':{},'nums':[]};
-    this.priotity_list = [];
+    this.priotity_list = [];//[{"key":"...","rate":"...","rule":"...","interval":"...","first_schedule":"...","last_schedule":"...","seed":"..."}]
+    this.max_weight = 100;
     this.total_rates = 0;
-    this.driller_rules = {};
+    this.driller_rules = {};//{"domain":{"alias":{"rules":"..."}}}
     this.redis_cli0 = redis.createClient(this.settings['driller_info_redis_db'][1],this.settings['driller_info_redis_db'][0]);
     this.redis_cli1 = redis.createClient(this.settings['url_info_redis_db'][1],this.settings['url_info_redis_db'][0]);
 }
 util.inherits(scheduler, events.EventEmitter);//eventemitter inherits
-
+/**
+ * assembly: initializing
+ */
 scheduler.prototype.assembly = function(){
     var scheduler = this;
     scheduler.redis_cli0.select(this.settings['driller_info_redis_db'][2], function(err,value) {
@@ -48,7 +30,9 @@ scheduler.prototype.assembly = function(){
         });
     });
 }
-
+/**
+ * refresh driller rules periodically
+ */
 scheduler.prototype.refreshPriotities  = function(){
     var scheduler = this;
     var redis_cli = this.redis_cli0;
@@ -59,7 +43,6 @@ scheduler.prototype.refreshPriotities  = function(){
                 redis_cli.keys('driller:*',function(err,values){
                     if (err)throw(err);
                     scheduler.tmp_driller_rules = {};
-                    scheduler.tmp_priotities = {'items':{},nums:[]};
                     scheduler.tmp_priority_list = [];
                     scheduler.tmp_total_rates = 0;
                     scheduler.tmp_priotites_length = values.length;
@@ -69,21 +52,12 @@ scheduler.prototype.refreshPriotities  = function(){
                                 if(scheduler.tmp_priotities==undefined)scheduler.tmp_priotities = {'items':{},nums:[]};
                                 var isActive = JSON.parse(value['active']);
                                 if(isActive){
-                                    ////for priority
-                                    if(scheduler.tmp_priotities['items'][value['priority']]==undefined)scheduler.tmp_priotities['items'][value['priority']]={'volume':0,'items':{}};
-                                    scheduler.tmp_priotities['items'][value['priority']]['volume'] += parseInt(value['weight']);
-                                    scheduler.tmp_priotities['items'][value['priority']]['items'][key]={
-                                        'type':value['schedule_rule'],
-                                        'weight':parseInt(value['weight']),
-                                        'first_schedule':value['first_schedule']!=undefined?value['first_schedule']:0,
-                                        'last_schedule':value['last_schedule']!=undefined?value['last_schedule']:0
-                                    };
                                     ////for drill_rules
                                     if(scheduler.tmp_driller_rules==undefined)scheduler.tmp_driller_rules = {};
                                     if(scheduler.tmp_driller_rules[value['domain']]==undefined)scheduler.tmp_driller_rules[value['domain']]={};
                                     scheduler.tmp_driller_rules[value['domain']][value['alias']] = value;
                                     ///for priority list
-                                    var rate = parseFloat(value['weight'])/parseFloat(value['priority'])
+                                    var rate = (scheduler.max_weight + parseFloat(value['weight']))/parseFloat(value['priority'])
                                     scheduler.tmp_total_rates += rate;
                                     scheduler.tmp_priority_list.push({
                                         'key':key,
@@ -97,13 +71,12 @@ scheduler.prototype.refreshPriotities  = function(){
                                 }
                                 scheduler.tmp_priotites_length--;
                                 if(scheduler.tmp_priotites_length<=0){
-                                    scheduler.priotities = scheduler.tmp_priotities;
                                     scheduler.driller_rules = scheduler.tmp_driller_rules;
                                     scheduler.priotity_list = scheduler.tmp_priority_list;
                                     scheduler.total_rates = scheduler.tmp_total_rates;
                                     //scheduler.priotities_updated = (new Date()).getTime();
-                                    logger.debug('priotities loaded finish');
-                                    scheduler.emit('priotities_loaded',scheduler.priotities);
+                                    logger.debug('priorities loaded finish');
+                                    scheduler.emit('priorities_loaded',scheduler.priotity_list);
                                     setTimeout(function(){scheduler.refreshPriotities();},scheduler.settings['check_driller_rules_interval']);
                                 }
                             });
@@ -117,7 +90,9 @@ scheduler.prototype.refreshPriotities  = function(){
             }
         });
 }
-
+/**
+ * schedule wrapper
+ */
 scheduler.prototype.doSchedule = function(){
     var scheduler =  this;
     var redis_cli = scheduler.redis_cli0;
@@ -129,7 +104,11 @@ scheduler.prototype.doSchedule = function(){
             scheduler.emit('schedule_circle',-1,avg_rate,0);
         });
 }
-
+/**
+ * re-schedule: periodically append seeds to queue
+ * @param driller
+ * @param index
+ */
 scheduler.prototype.reSchedule = function(driller,index){
     var scheduler = this;
     logger.debug('reschedule '+driller['key']);
@@ -147,7 +126,12 @@ scheduler.prototype.reSchedule = function(driller,index){
         else logger.debug('update first schedule time for '+driller['key']+' successful');
     });
 }
-
+/**
+ * Actually do schedule in this method
+ * @param index
+ * @param avg_rate
+ * @param more
+ */
 scheduler.prototype.doScheduleExt = function(index,avg_rate,more){
     var scheduler = this;
     var xdriller = this.priotity_list[index];
@@ -158,7 +142,7 @@ scheduler.prototype.doScheduleExt = function(index,avg_rate,more){
         redis_cli0.llen('urllib:'+xdriller['key'],function(err, queue_length) {
             var ct = Math.ceil(avg_rate * xdriller['rate'])+more;
             var act = queue_length>=ct?ct:queue_length;
-            logger.debug(xdriller['key']+' queue length: '+queue_length+', actual quantity: '+act);
+            logger.debug(util.format('%s, rate:%d, queue length:%d, actual quantity:%d',xdriller['key'],xdriller['rate'],queue_length,act));
             for(var i=0;i<act;i++){
                 if(xdriller['rule']=='LIFO'){
                     redis_cli0.rpop('urllib:'+xdriller['key'],function(err, url){
@@ -173,7 +157,11 @@ scheduler.prototype.doScheduleExt = function(index,avg_rate,more){
             scheduler.emit('schedule_circle',index,avg_rate,ct-act);
         });
 }
-
+/**
+ * check the url, whether insert to urllib
+ * @param url
+ * @param interval
+ */
 scheduler.prototype.checkURL = function(url,interval){
     if(typeof(url)!=='string'){
         logger.error(util.format('Invalidate url: %s',url));
@@ -197,35 +185,32 @@ scheduler.prototype.checkURL = function(url,interval){
         }
     });
 }
-
+/**
+ * entrance, other module feel free to call this method
+ */
 scheduler.prototype.start = function(){
     var scheduler = this;
-
+    //after module initial
     this.once('standby',function(middleware){
         logger.debug(middleware+' stand by');
         this.refreshPriotities();
     });
-
+    //pass schedule info one by one
     this.on('schedule_circle',function(index,avg_rate,more){
         if(index<this.priotity_list.length-1)this.doScheduleExt(++index,avg_rate,more);
         else {
             setTimeout(function(){scheduler.doSchedule()},this.settings['schedule_interval']*1000);
         }
     });
-
-    this.on('priotities_loaded',function(priotities){
-        this.priotities['nums'] = [];
-        for(var i in this.priotities['items']){
-            this.priotities['nums'].push(i);
-        }
-        this.priotities['nums'].sort();
-
+    //when refresh priority list finished
+    this.on('priorities_loaded',function(priotity_list){
         this.priotity_list.sort(function(a,b){
             return b['rate'] - a['rate'];
         });
 
         this.doSchedule();
     });
+
     //trigger//////////////
     this.assembly();
 }
