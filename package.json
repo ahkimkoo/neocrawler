@@ -39,6 +39,9 @@
           "ejs" : "0.8.5",
           "express" : "3.3.4",
           "stylus" : "0.40.3",
-          "async" : "0.2.9"
+          "async" : "0.2.9",
+          "line-reader" : "0.2.3",
+          "moment" : "2.4.0",
+          "crawler": "0.2.5" 
         }
 }

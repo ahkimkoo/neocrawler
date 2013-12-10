@@ -87,6 +87,18 @@ var testUrl = function(){
         spider.test(options['l']);
     }
 }
+
+////proxy collector////////////////////////////////////////////////////////////
+var proxyCollectorService = function(){
+    var logger = logging.getLogger('proxyCollector-service',options['i'],'DEBUG');
+    settings['logger'] = logger;
+    settings['instance'] = options['i'];
+    settings['port'] = parseInt(options['p']);
+    var proxyCollector = new(require('./proxyCollector'))(settings);
+    
+    proxyCollector.start();  
+}
+
 ////route/////////////////////////////////////////////////////////////////////
 switch(options['a']){
 case 'crawl':
@@ -104,6 +116,9 @@ case 'schedule':
 case 'test':
     testUrl();
     break;
+case 'proxyCollector':
+    proxyCollectorService();
+    break;     
 default:
 	userArgv.showHelp();
 }
