@@ -10,6 +10,7 @@ var template =  {
         type: 'node', //branch or node
         save_page: 'true',
         jshandle: 'false',
+        extract_rule:'{"alias":"","productname":{"rule":""},"reviews":{"rule":"","sub":{"rule":""}}}',
         cookie: '[""]',
         inject_jquery: 'false',
         load_img: 'false',
@@ -79,6 +80,7 @@ exports.create = function(req, res) {
     template['type'] = req.body.type;
     template['save_page'] = req.body.save_page;
     template['jshandle'] = req.body.jshandle;
+    template['extract_rule'] = req.body.extract_rule;
     template['cookie'] = req.body.cookie;
     template['inject_jquery'] = req.body.inject_jquery;
     template['load_img'] = req.body.load_img;
@@ -159,7 +161,8 @@ exports.update = function(req,res) {
     template['type'] = req.body.type;
     template['save_page'] = req.body.save_page;
     template['jshandle'] = req.body.jshandle;
-    template['cookie'] = req.body.cookie;
+    template['extract_rule'] = req.body.extract_rule;
+    template['cookie'] = req.body.cookie; 
     template['inject_jquery'] = req.body.inject_jquery;
     template['load_img'] = req.body.load_img;
     template['drill_rules'] = req.body.drill_rules;

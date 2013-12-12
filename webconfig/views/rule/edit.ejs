@@ -13,162 +13,142 @@
 <script type="text/javascript">
 
  $(function(){
-        //cookie editor
+
+        /////////////extract rule
+        var extractRule = $.parseJSON($("#extract_rule").val());
+        $('#extract_rule').change(function() {
+
+        var  val = $('#extract_rule').val();
+
+          if (val) {
+              try { extractRule = JSON.parse(val); }
+              catch (e) { alert('Error in parsing json. ' + e); }
+          } else {
+                  extractRule = {};
+                }
+            $('#extractEditor').jsonEditor(extractRule, { change: function(){
+                $('#extract_rule').val(JSON.stringify(extractRule));
+            }});        
+        });
+            $('#extractEditor').jsonEditor(extractRule, { change: function(){
+                $('#extract_rule').val(JSON.stringify(extractRule));
+            }});           
+
+        /////////////cookie editor
+        var cookie = $.parseJSON($("#cookie").val());
+
         $('#cookie').change(function() {
 
         var  val = $('#cookie').val();
 
           if (val) {
-              try { jsonTest = JSON.parse(val); }
+              try { cookie = JSON.parse(val); }
               catch (e) { alert('Error in parsing json. ' + e); }
           } else {
-                  jsonTest = {};
+                  cookie = {};
                 }
-        var  opt = { 
-              change: function(jsonTest) { 
-                $('#cookie').val(JSON.stringify(jsonTest));
-              }
-          };        
-          $('#cookieEditor').jsonEditor(jsonTest,opt);
+       
+            $('#cookieEditor').jsonEditor(cookie, { change: function(){
+                $('#cookie').val(JSON.stringify(cookie));
+            }}); 
         });
 
-        //drilling rule editor
+        $('#cookieEditor').jsonEditor(cookie, { change: function(){
+                $('#cookie').val(JSON.stringify(cookie));
+        }});               
+
+        /////////////drilling rule editor
+        var drillRules = $.parseJSON($("#drill_rules").val());
         $('#drill_rules').change(function() {
 
         var  val = $('#drill_rules').val();
 
           if (val) {
-              try { jsonTest = JSON.parse(val); }
+              try { drillRules = JSON.parse(val); }
               catch (e) { alert('Error in parsing json. ' + e); }
           } else {
-                  jsonTest = {};
+                  drillRules = {};
                 }
-        var  opt = { 
-              change: function(jsonTest) { 
-                $('#drill_rules').val(JSON.stringify(jsonTest));
-              }
-          };        
-          $('#ruleEditor').jsonEditor(jsonTest,opt);
+            $('#ruleEditor').jsonEditor(drillRules, { change: function(){
+                $('#drill_rules').val(JSON.stringify(drillRules));
+            }});
         });
 
-        // script editor render
+            $('#ruleEditor').jsonEditor(drillRules, { change: function(){
+                $('#drill_rules').val(JSON.stringify(drillRules));
+            }}); 
+
+        /////////////script rule editor
+        var  scriptJson = $.parseJSON($("#script").val());
+
         $('#script').change(function() {
 
           val = $('#script').val();
 
           if (val) {
-              try { scriptJsonTest = JSON.parse(val); }
+              try { scriptJson = JSON.parse(val); }
               catch (e) { alert('Error in parsing json. ' + e); }
           } else {
-                  scriptJsonTest = {};
+                  scriptJson = {};
                 }
-          opt = { 
-              change: function(scriptJsonTest) { 
-                $('#script').val(JSON.stringify(scriptJsonTest));
-              }
-          };        
-          $('#scriptEditor').jsonEditor(scriptJsonTest,opt);
-        });
 
-        //navigation rule editor render
+            $('#scriptEditor').jsonEditor(scriptJson, { change: function(){
+                $('#script').val(JSON.stringify(scriptJson));
+            }});          
+        });
+            $('#scriptEditor').jsonEditor(scriptJson, { change: function(){
+                $('#script').val(JSON.stringify(scriptJson));
+            }});       
+
+        /////////////navigation rule editor
+
+        var naviRule = $.parseJSON($("#navigate_rule").val());
+
         $('#navigate_rule').change(function() {
 
           var val = $('#navigate_rule').val();
 
           if (val) {
-              try { jsonTest = JSON.parse(val); }
+              try { naviRule = JSON.parse(val); }
               catch (e) { alert('Error in parsing json. ' + e); }
           } else {
-                  jsonTest = {};
+                  naviRule = {};
                 }
-          var opt = { 
-              change: function(jsonTest) { 
-                $('#navigate_rule').val(JSON.stringify(jsonTest));
-              }
-          };        
-          $('#naviEditor').jsonEditor(jsonTest,opt);
+            $('#naviEditor').jsonEditor(naviRule, { change: function(){
+                $('#navigate_rule').val(JSON.stringify(naviRule));
+            }});       
         }); 
+            $('#naviEditor').jsonEditor(naviRule, { change: function(){
+                $('#navigate_rule').val(JSON.stringify(naviRule));
+            }});
 
-        //seed editor
+        /////////////seed editor
+        var seed = $.parseJSON($("#seed").val());
         $('#seed').change(function() {
 
         var  val = $('#seed').val();
 
           if (val) {
-              try { jsonTest = JSON.parse(val); }
+              try { seed = JSON.parse(val); }
               catch (e) { alert('Error in parsing json. ' + e); }
           } else {
-                  jsonTest = {};
+                  seed = {};
                 }
-        var  opt = { 
-              change: function(jsonTest) { 
-                $('#seed').val(JSON.stringify(jsonTest));
-              }
-          };        
-          $('#seedEditor').jsonEditor(jsonTest,opt);
+            $('#seedEditor').jsonEditor(seed, { change: function(){
+                $('#navigate_rule').val(JSON.stringify(seed));
+            }});        
         });
-
-/////////////////////////////////////////////////////
-
-        var cookie = JSON.parse($("#cookie").val());
-        var  optCookie = { 
-              change: function(cookie) { 
-                $('#cookie').val(JSON.stringify(cookie));
-              }
-          }; 
-
-        $('#cookieEditor').jsonEditor(cookie,optCookie); 
-/////////////////////////////////////////////////////
-
-        var drillRules = JSON.parse($("#drill_rules").val());
-        var  optRule = { 
-              change: function(drillRules) { 
-                $('#drill_rules').val(JSON.stringify(drillRules));
-              }
-          }; 
-
-        $('#ruleEditor').jsonEditor(drillRules,optRule);  
-
-/////////////////////////////////////////////////////
-
-           var  scriptJson = JSON.parse($("#script").val());
-           
-           var   optJS = { 
-                  change: function(scriptJson) { 
-                    $('#script').val(JSON.stringify(scriptJson));
-                  }
-              };  
-
-            $('#scriptEditor').jsonEditor(scriptJson,optJS); 
-
-/////////////////////////////////////////////////////             
-
-           var naviRule = JSON.parse($("#navigate_rule").val());
-
-           var optNavi = { 
-                  change: function(naviRule) { 
-                    $('#navigate_rule').val(JSON.stringify(naviRule));
-                  }
-              };  
-
-            $('#naviEditor').jsonEditor(naviRule,optNavi);         
- /////////////////////////////////////////////////////
-
-        var seed = $.parseJSON($("#seed").val());
-        var  optSeed = { 
-              change: function(seed) { 
-                $('#seed').val(JSON.stringify(seed));
-              }
-          }; 
-
-        $('#seedEditor').jsonEditor(seed,optSeed); 
-
+            $('#seedEditor').jsonEditor(seed, { change: function(){
+                $('#navigate_rule').val(JSON.stringify(seed));
+            }});           
 /////////////////////////////////////////////////////        
         $('#form').submit(function(){
-          
+          $('#extract_rule').val(JSON.stringify(JSON.parse($("#extract_rule").val())));
+          $('#cookie').val(JSON.stringify(JSON.parse($("#cookie").val())));
           $('#drill_rules').val(JSON.stringify(JSON.parse($("#drill_rules").val())));
           $('#scriptJson').val(JSON.stringify(JSON.parse($("#script").val()))); 
           $('#navigate_rule').val(JSON.stringify(JSON.parse($("#navigate_rule").val())));       
+          $('#seed').val(JSON.stringify(JSON.parse($("#seed").val())));
         });      
 
   });
@@ -219,6 +199,14 @@
         <td> <label><input name="jshandle" value="true" type="radio" <%if(rule.jshandle === 'true'){%> checked <%}%> >Yes</label>&nbsp;&nbsp; <label><input name="jshandle" value="false" type="radio" <%if(rule.jshandle === 'false'){%> checked <%}%>>No</label> 
         </td> 
 
+      </tr>
+      <tr>
+        <th>Extract Rule</th>
+        <td> 
+        <div id="extractEditor" class="json-editor"></div>
+         <div id="extractRuleJson">
+          <textarea id="extract_rule" name="extract_rule" cols="130" rows="5"><%=rule.extract_rule%></textarea>
+        </div>
       </tr>
       <tr>
         <th>cookie</th>
