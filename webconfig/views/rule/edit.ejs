@@ -110,7 +110,7 @@
 
 /////////////////////////////////////////////////////
 
-        var cookie = $.parseJSON($("#cookie").val());
+        var cookie = JSON.parse($("#cookie").val());
         var  optCookie = { 
               change: function(cookie) { 
                 $('#cookie').val(JSON.stringify(cookie));
@@ -120,7 +120,7 @@
         $('#cookieEditor').jsonEditor(cookie,optCookie); 
 /////////////////////////////////////////////////////
 
-        var drillRules = $.parseJSON($("#drill_rules").val());
+        var drillRules = JSON.parse($("#drill_rules").val());
         var  optRule = { 
               change: function(drillRules) { 
                 $('#drill_rules').val(JSON.stringify(drillRules));
@@ -166,9 +166,9 @@
 /////////////////////////////////////////////////////        
         $('#form').submit(function(){
           
-          $('#drill_rules').val(JSON.stringify(drillRules));
-          $('#scriptJson').val(JSON.stringify(scriptJson)); 
-          $('#navigate_rule').val(JSON.stringify(naviRule));       
+          $('#drill_rules').val(JSON.stringify(JSON.parse($("#drill_rules").val())));
+          $('#scriptJson').val(JSON.stringify(JSON.parse($("#script").val()))); 
+          $('#navigate_rule').val(JSON.stringify(JSON.parse($("#navigate_rule").val())));       
         });      
 
   });
