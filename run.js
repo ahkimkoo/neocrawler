@@ -5,7 +5,7 @@
 var logging = require('./lib/logging.js'); 
 ////arguments parse///////////////////////////////////////////////////////////////
 var userArgv = require('optimist')
-.usage('Usage: $0 -i [instance name] -a [crawl|test|config|proxy|schedule]  -p [num] -l[url] -h')
+.usage('Usage: $0 -i [instance name] -a [crawl|test|config|proxy|schedule|proxyCollector]  -p [num] -l[url] -h')
 .options('i', {
         'alias' : 'instance',
         'default' : 'spaceux',
@@ -15,7 +15,7 @@ var userArgv = require('optimist')
 .options('a', {
         'alias' : 'action',
         'default' : 'crawl',
-        'describe' : 'Specify a action[crawl|test|config|proxy|schedule]',
+        'describe' : 'Specify a action[crawl|test|config|proxy|schedule|proxyCollector]',
         'demand' : true
     })
 .options('p', {
@@ -34,7 +34,7 @@ var userArgv = require('optimist')
     });
 
 var options = userArgv.argv;
-if(options['h'])userArgv.showHelp();
+if(options['h']){userArgv.showHelp();process.exit();}
 var settings = require('./instance/'+options['i']+'/'+'settings.json');
 ////crawling action///////////////////////////////////////////////////////////
 var crawling = function(){
