@@ -77,7 +77,7 @@ scheduler.prototype.refreshPriotities  = function(){
                                     //scheduler.priotities_updated = (new Date()).getTime();
                                     logger.debug('priorities loaded finish');
                                     scheduler.emit('priorities_loaded',scheduler.priotity_list);
-                                    setTimeout(function(){scheduler.refreshPriotities();},scheduler.settings['check_driller_rules_interval']);
+                                    setTimeout(function(){scheduler.refreshPriotities();},scheduler.settings['check_driller_rules_interval']*1000);
                                 }
                             });
                         })(values[i],scheduler);
@@ -86,7 +86,7 @@ scheduler.prototype.refreshPriotities  = function(){
                 this.priotities_updated=parseInt(value);
             }else{
                 logger.debug('driller rules is not changed');
-                setTimeout(function(){scheduler.refreshPriotities();},scheduler.settings['check_driller_rules_interval']);
+                setTimeout(function(){scheduler.refreshPriotities();},scheduler.settings['check_driller_rules_interval']*1000);
             }
         });
 }
@@ -176,13 +176,22 @@ scheduler.prototype.checkURL = function(url,interval){
         var status = values['status'];
         var records = JSON.parse(values['records']);
         var last = parseInt(values['last']);
-        if((new Date()).getTime()-last>=interval||status!='crawling'){
-            redis_cli0.rpush('queue:scheduled:all',url,function(err,value){
-                logger.debug('Append '+url+' to queue');
-            });
-        }else{
-            logger.debug('ignore '+url);
+
+        if(status!='crawled_failure'&&status!='hit'){
+            var real_interval = interval*1000;
+            if(status=='crawling'){
+                real_interval = 5*60*1000;//url request hang up or interrupted, give opportunity to crawl after 5 minutes.
+            }
+            if((new Date()).getTime()-last<real_interval){
+                logger.debug(util.format('ignore %s, last event time:%s, status:%s',url,last,status));
+                return;
+            }
         }
+
+        redis_cli0.rpush('queue:scheduled:all',url,function(err,value){
+            logger.debug('Append '+url+' to queue');
+        });
+
     });
 }
 /**

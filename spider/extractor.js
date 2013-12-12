@@ -65,7 +65,7 @@ extractor.prototype.wash_link = function(pageurl,links){
             cleaned_link.push(url.resolve(pageurl,link));
         }
     }
-    return cleaned_link;
+    return cleaned_link.unique();
 }
 
 extractor.prototype.detectLink = function(link){

@@ -50,7 +50,7 @@ spider.prototype.refreshDrillerRules = function(){
                                     spider.driller_rules = spider.tmp_driller_rules;
                                     //spider.driller_rules_updated = (new Date()).getTime();
                                     spider.spiderCore.emit('driller_reules_loaded',spider.driller_rules);
-                                    setTimeout(function(){spider.refreshDrillerRules();},spider.spiderCore.settings['check_driller_rules_interval']);
+                                    setTimeout(function(){spider.refreshDrillerRules();},spider.spiderCore.settings['check_driller_rules_interval']*1000);
                                 }
                             });
                         })(values[i],spider);
@@ -59,7 +59,7 @@ spider.prototype.refreshDrillerRules = function(){
                 this.driller_rules_updated=parseInt(value);
             }else{
                 logger.debug('driller rules is not changed, queue length: '+spider.queue_length);
-                setTimeout(function(){spider.refreshDrillerRules();},spider.spiderCore.settings['check_driller_rules_interval']);
+                setTimeout(function(){spider.refreshDrillerRules();},spider.spiderCore.settings['check_driller_rules_interval']*1000);
             }
         })
 }
