@@ -140,7 +140,7 @@ pipeline.prototype.save_jsresult = function(pageurl,content,referer,pattern){
 }
 
 pipeline.prototype.save =function(extracted_info){
-    if(!this.spiderCore.settings['test']){
+    if(this.spiderCore.settings['test']){
         var fs = require('fs');
         var path = require('path');
         var htmlfile = path.join(__dirname,'..', 'instance',this.spiderCore.settings['instance'],'logs','debug-page.html');
