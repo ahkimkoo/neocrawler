@@ -140,7 +140,7 @@ pipeline.prototype.save_jsresult = function(pageurl,content,referer,pattern){
 }
 
 pipeline.prototype.save =function(extracted_info){
-    if(this.spiderCore.settings['test']){
+    if(!this.spiderCore.settings['test']){
         var fs = require('fs');
         var path = require('path');
         var htmlfile = path.join(__dirname,'..', 'instance',this.spiderCore.settings['instance'],'logs','debug-page.html');
@@ -156,7 +156,7 @@ pipeline.prototype.save =function(extracted_info){
     }else{
         if(extracted_info['drill_link'])this.save_links(extracted_info['url'],extracted_info['drill_link']);
         if(extracted_info['origin']['save_page'])this.save_content(extracted_info['url'],extracted_info['content'],extracted_info['origin']['referer'],extracted_info['origin']['url_pattern']);
-        if(extracted_info['js_result'])this.save_jsresult(extracted_info['url'],extracted_info['js_result'],extracted_info['origin']['url_pattern']);
+        if(extracted_info['js_result'])this.save_jsresult(extracted_info['url'],extracted_info['js_result'],extracted_info['origin']['referer'],extracted_info['origin']['url_pattern']);
     }
 }
 
