@@ -85,7 +85,6 @@ spiderCore.prototype.test = function(link){
     this.on('standby',function(middleware){
         logger.debug(middleware+' stand by');
         delete this.unavailable_middlewares[middleware];
-        logger.debug(JSON.stringify(this.unavailable_middlewares));
         if(this.unavailable_middlewares.isEmpty()){
             logger.debug('All middlewares stand by');
             this.removeAllListeners('standby');

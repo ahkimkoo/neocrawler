@@ -112,12 +112,26 @@ scheduler.prototype.doSchedule = function(){
 scheduler.prototype.reSchedule = function(driller,index){
     var scheduler = this;
     logger.debug('reschedule '+driller['key']);
+    var links = [];
     for(var i=0;i<driller['seed'].length;i++){
+        var link = driller['seed'][i];
+        var link_arr = link.split('#');
+        if(link_arr.length>=5){
+            var min = parseInt(link_arr[2]);
+            var max = parseInt(link_arr[3]);
+            var scale = parseInt(link_arr[4]);
+            for(var x=min;x<=max;x+=scale){
+                links.push(link_arr[0]+x+link_arr[1]);
+            }
+        }else links.push(link);
+    }
+
+    for(var i=0;i<links.length;i++){
         (function(link){
             scheduler.redis_cli0.rpush('queue:scheduled:all',link,function(err, value){
                 logger.debug('reschedule url: '+link);
             });
-        })(driller['seed'][i])
+        })(links[i])
     }
     var ntime = (new Date()).getTime();
     this.priotity_list[index]['first_schedule'] = ntime;

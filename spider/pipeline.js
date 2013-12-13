@@ -67,7 +67,7 @@ pipeline.prototype.save_links = function(page_url,linkobjs){
             }
 }
 
-pipeline.prototype.save_content = function(pageurl,content,referer){
+pipeline.prototype.save_content = function(pageurl,content,referer,pattern){
     var url_hash = crypto.createHash('md5').update(pageurl+'').digest('hex');
     var spider = os.hostname()+'-'+process.pid;
 
@@ -76,8 +76,8 @@ pipeline.prototype.save_content = function(pageurl,content,referer){
 //                { "column":"basic:url","timestamp":Date.now(),"$":pageurl},
 //                { "column":"basic:content","timestamp":Date.now(),"$":content}
 //                ];
-        var keylist = ['basic:spider','basic:url','basic:content','basic:referer'];
-        var valuelist = [spider,pageurl,content,referer];
+        var keylist = ['basic:spider','basic:url','basic:content','basic:referer','basic:url_pattern'];
+        var valuelist = [spider,pageurl,content,referer,pattern];
         var row = this.hbase_table.getRow(url_hash);
     try{
         row.put(keylist,valuelist,function(err,success){
@@ -100,15 +100,18 @@ pipeline.prototype.save_content = function(pageurl,content,referer){
         row.put('basic:referer',referer,function(err, success){
             logger.debug(pageurl+' update basic:referer ');
         });
+        row.put('basic:url_pattern',pattern,function(err, success){
+            logger.debug(pageurl+' update basic:url_pattern ');
+        });
     }
 }
 
-pipeline.prototype.save_jsresult = function(pageurl,content,referer){
+pipeline.prototype.save_jsresult = function(pageurl,content,referer,pattern){
     var url_hash = crypto.createHash('md5').update(pageurl+'').digest('hex');
     var spider = os.hostname()+'-'+process.pid;
 
-    var keylist = ['basic:spider','basic:url','basic:jsresult','basic:referer'];
-    var valuelist = [spider,pageurl,content,referer];
+    var keylist = ['basic:spider','basic:url','basic:jsresult','basic:referer','basic:url_pattern'];
+    var valuelist = [spider,pageurl,content,referer,pattern];
 
     var row = this.hbase_table.getRow(url_hash);
     try{
@@ -117,6 +120,7 @@ pipeline.prototype.save_jsresult = function(pageurl,content,referer){
         });
     }catch(e){
         logger.error('use bench mode insert jsresult , err: '+e);
+
         row.put('basic:spider',spider,function(err, success){
             logger.debug(pageurl+' update basic:spider ');
         });
@@ -129,6 +133,9 @@ pipeline.prototype.save_jsresult = function(pageurl,content,referer){
         row.put('basic:referer',referer,function(err, success){
             logger.debug(pageurl+' update basic:referer ');
         });
+        row.put('basic:url_pattern',pattern,function(err, success){
+            logger.debug(pageurl+' update basic:url_pattern ');
+        });
     }
 }
 
@@ -136,8 +143,8 @@ pipeline.prototype.save =function(extracted_info){
     if(this.spiderCore.settings['test']){
         var fs = require('fs');
         var path = require('path');
-        var htmlfile = path.join(__dirname,'..', 'instance',this.spiderCore.settings['instance'],'logs','page.html');
-        var resultfile = path.join(__dirname,'..', 'instance',this.spiderCore.settings['instance'],'logs','result.json');
+        var htmlfile = path.join(__dirname,'..', 'instance',this.spiderCore.settings['instance'],'logs','debug-page.html');
+        var resultfile = path.join(__dirname,'..', 'instance',this.spiderCore.settings['instance'],'logs','debug-result.json');
         fs.writeFile(htmlfile,extracted_info['content'],'utf8', function (err) {
             if (err)throw err;
             logger.debug('Content saved, '+htmlfile);
@@ -148,8 +155,8 @@ pipeline.prototype.save =function(extracted_info){
         });
     }else{
         if(extracted_info['drill_link'])this.save_links(extracted_info['url'],extracted_info['drill_link']);
-        if(extracted_info['origin']['save_page'])this.save_content(extracted_info['url'],extracted_info['content'],extracted_info['origin']['referer']);
-        if(extracted_info['js_result'])this.save_jsresult(extracted_info['url'],extracted_info['js_result']);
+        if(extracted_info['origin']['save_page'])this.save_content(extracted_info['url'],extracted_info['content'],extracted_info['origin']['referer'],extracted_info['origin']['url_pattern']);
+        if(extracted_info['js_result'])this.save_jsresult(extracted_info['url'],extracted_info['js_result'],extracted_info['origin']['url_pattern']);
     }
 }
 
