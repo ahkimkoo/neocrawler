@@ -86,8 +86,8 @@ spider_extend.prototype.extract = function(extracted_info){
  * if it do nothing , comment it
  * @param extracted_info (same to extract)
  */
-spider_extend.prototype.pipeline = function(extracted_info){
-    logger.debug(JSON.stringify(extracted_info));
-}
+//spider_extend.prototype.pipeline = function(extracted_info){
+//    logger.debug(JSON.stringify(extracted_info));
+//}
 
 module.exports = spider_extend;
