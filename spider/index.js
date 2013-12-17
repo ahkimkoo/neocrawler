@@ -3,6 +3,7 @@
  */
 var util = require('util');
 var events = require('events');
+var path = require('path');
 require('../lib/jsextend.js');
 
 var logger;
@@ -14,6 +15,7 @@ var spiderCore = function(settings){
     this.downloader = new(require('./downloader.js'))(this);
     this.extractor = new(require('./extractor.js'))(this);
     this.pipeline = new(require('./pipeline.js'))(this);
+    this.spider_extend = new(require(util.format('../instance/%s/spider_extend.js',settings['instance'])))(this);
     logger = settings.logger;
 }
 util.inherits(spiderCore, events.EventEmitter);//eventemitter inherits
@@ -52,6 +54,7 @@ spiderCore.prototype.start = function(){
     this.on('crawled',function(crawled_info){
         logger.debug('crawl '+crawled_info['url']+' finish, cost:'+((new Date()).getTime() - parseInt(crawled_info['origin']['start_time']))+'ms');
         var extracted_info = this.extractor.extract(crawled_info);
+        if('extract' in this.spider_extend)extracted_info = this.spider_extend.extract(extracted_info);//spider extend
         this.pipeline.save(extracted_info);
         this.spider.updateLinkState(crawled_info['url'],'crawled_finish');
         this.emit('slide_queue');
@@ -95,6 +98,7 @@ spiderCore.prototype.test = function(link){
     this.on('crawled',function(crawled_info){
         logger.debug('crawl '+crawled_info['url']+' finish');
         var extracted_info = this.extractor.extract(crawled_info);
+        if('extract' in this.spider_extend)extracted_info = this.spider_extend.extract(extracted_info);
         this.pipeline.save(extracted_info);
     });
 

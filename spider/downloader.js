@@ -10,6 +10,7 @@ var http = require('http');
 require('../lib/jsextend.js');
 var iconv = require('iconv-lite');
 var BufferHelper = require('bufferhelper');
+try { var unzip = require('zlib').unzip } catch(e) { /* unzip not supported */ }
 var logger;
 
 //command signal defined
@@ -60,7 +61,7 @@ downloader.prototype.downloadIt = function(urlinfo){
         'headers': {
             "User-Agent":"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36",
             "Accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-//            "Accept-Encoding":"gzip,deflate,sdch",
+            "Accept-Encoding":"gzip,deflate,sdch",
             "Accept-Language":"zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4",
             "Referer":urlinfo['referer'],
             "Cookie":this.transCookieKvPair(urlinfo['cookie'])
@@ -92,6 +93,7 @@ downloader.prototype.downloadIt = function(urlinfo){
             }
             return page_encoding;
         })(res.headers)
+        var compressed = /gzip|deflate/.test(res.headers['content-encoding']);
 
         var bufferHelper = new BufferHelper();
 //        res.setEncoding('utf8');
@@ -101,9 +103,18 @@ downloader.prototype.downloadIt = function(urlinfo){
         });
 
         res.on('end', function (chunk) {
-            result["content"] = iconv.decode(bufferHelper.toBuffer(),page_encoding);
             result["cost"] = (new Date()) - startTime;
-            spiderCore.emit('crawled',result);
+            if(!compressed || typeof unzip == 'undefined'){
+                result["content"] = iconv.decode(bufferHelper.toBuffer(),page_encoding);//page_encoding
+                spiderCore.emit('crawled',result);
+            }else{
+                unzip(bufferHelper.toBuffer(), function(err, buff) {
+                    if (!err && buff) {
+                        result["content"] = iconv.decode(buff,page_encoding);
+                        spiderCore.emit('crawled',result);
+                    }
+                });
+            }
         });
     });
 

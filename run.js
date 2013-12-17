@@ -36,6 +36,7 @@ var userArgv = require('optimist')
 var options = userArgv.argv;
 if(options['h']){userArgv.showHelp();process.exit();}
 var settings = require('./instance/'+options['i']+'/'+'settings.json');
+settings['instance'] = options['i'];
 ////crawling action///////////////////////////////////////////////////////////
 var crawling = function(){
 	var logger = logging.getLogger('crawling',options['i'],'DEBUG');
@@ -49,7 +50,6 @@ var crawling = function(){
 var proxyService = function(){
 	var logger = logging.getLogger('proxy-service',options['i'],'DEBUG');
 	settings['logger'] = logger;
-	settings['instance'] = options['i'];
 	settings['port'] = parseInt(options['p']);
 	var proxyRouter = new (require('./proxyrouter'))(settings);
 	
@@ -59,7 +59,6 @@ var proxyService = function(){
 var configService = function(){
 	var logger = logging.getLogger('config-service',options['i'],'DEBUG');
 	settings['logger'] = logger;
-	settings['instance'] = options['i'];
 	settings['port'] = parseInt(options['p']);
 	var webConfig = new(require('./webconfig'))(settings);
 	
@@ -69,7 +68,6 @@ var configService = function(){
 var schedule = function(){
     var logger = logging.getLogger('schedule',options['i'],'DEBUG');
     settings['logger'] = logger;
-    settings['instance'] = options['i'];
     var scheduler = new (require('./scheduler'))(settings);
 
     scheduler.start();
@@ -80,7 +78,6 @@ var testUrl = function(){
     if(options['l']!=''){
         var logger = logging.getLogger('crawling-testing',options['i'],'DEBUG');
         settings['logger'] = logger;
-        settings['instance'] = options['i'];
         settings['test'] = true;
         var spider = new (require('./spider'))(settings);
 
@@ -92,7 +89,6 @@ var testUrl = function(){
 var proxyCollectorService = function(){
     var logger = logging.getLogger('proxyCollector-service',options['i'],'DEBUG');
     settings['logger'] = logger;
-    settings['instance'] = options['i'];
     settings['port'] = parseInt(options['p']);
     var proxyCollector = new(require('./proxyCollector'))(settings);
     

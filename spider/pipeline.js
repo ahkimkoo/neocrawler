@@ -155,8 +155,11 @@ pipeline.prototype.save =function(extracted_info){
         });
     }else{
         if(extracted_info['drill_link'])this.save_links(extracted_info['url'],extracted_info['drill_link']);
-        if(extracted_info['origin']['save_page'])this.save_content(extracted_info['url'],extracted_info['content'],extracted_info['origin']['referer'],extracted_info['origin']['url_pattern']);
-        if(extracted_info['js_result'])this.save_jsresult(extracted_info['url'],extracted_info['js_result'],extracted_info['origin']['referer'],extracted_info['origin']['url_pattern']);
+        if('pipeline' in this.spiderCore.spider_extend)this.spiderCore.spider_extend.pipeline(extracted_info);//spider extend
+        else{
+            if(extracted_info['origin']['save_page'])this.save_content(extracted_info['url'],extracted_info['content'],extracted_info['origin']['referer'],extracted_info['origin']['url_pattern']);
+            if(extracted_info['js_result'])this.save_jsresult(extracted_info['url'],extracted_info['js_result'],extracted_info['origin']['referer'],extracted_info['origin']['url_pattern']);
+        }
     }
 }
 
