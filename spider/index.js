@@ -66,6 +66,10 @@ spiderCore.prototype.start = function(){
         this.emit('slide_queue');
     });
 
+    this.on('crawling_break',function(url,err_msg){
+        logger.warn(util.format('Crawling break: %s, reason: %s',url,err_msg));
+        this.emit('slide_queue');
+    });
 
     this.on('slide_queue',function(){
         if(this.spider.queue_length>0)this.spider.queue_length--;

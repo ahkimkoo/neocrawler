@@ -165,6 +165,8 @@ downloader.prototype.browseIt = function(urlinfo){
             var feedback = JSON.parse(data);//data.toString('utf8')
         }catch(e){
             logger.error(util.format('Page content parse error: %s',data));
+            spiderCore.emit('crawling_break',urlinfo['url'],e.message);
+            phantomjs.kill();
             return;
         }
         switch(feedback['signal']){
@@ -174,9 +176,12 @@ downloader.prototype.browseIt = function(urlinfo){
             case CMD_SIGNAL_CRAWL_FAIL:
                 logger.error(feedback.url+' crawled fail');
                 phantomjs.kill();
+                if(feedback['url']==urlinfo['url'])spiderCore.emit('crawling_failure',urlinfo['url'],'phantomjs crawl failure');
+                break;
             case CMD_SIGNAL_NAVIGATE_EXCEPTION:
                 logger.error(feedback.url+' navigate fail');
                 phantomjs.kill();
+                break;
             default:
                 logger.debug('Phantomjs: '+data);
         }
