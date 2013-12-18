@@ -48,6 +48,7 @@ spider_extend.prototype.extract = function(extracted_info){
     switch(extracted_info['origin']['urllib']){
         case 'urllib:driller:taobao.com:beer_list':
             var json_content = JSON.parse(extracted_info['content']);
+            if(!json_content['itemList'])break;
             for(var i=0;i<json_content['itemList'].length;i++){
                 var itm = json_content['itemList'][i];
                 if(itm['commendHref'].startsWith('http://detail.tmall')){
@@ -69,6 +70,7 @@ spider_extend.prototype.extract = function(extracted_info){
         case 'urllib:driller:taobao.com:comments':
             var atxt = extracted_info['content'].trim().slice(1,-1);
             var json_content = JSON.parse(atxt);
+            if(!json_content['comments'])break;
             for(var i=0;i<json_content['comments'].length;i++){
                 var c = json_content['comments'][i];
                 if(c['user']['nickUrl']){
