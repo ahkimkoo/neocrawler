@@ -161,7 +161,12 @@ downloader.prototype.browseIt = function(urlinfo){
     });
 
     phantomjs.on('feedback', function(data) {
-        var feedback = JSON.parse(data);//data.toString('utf8')
+        try{
+            var feedback = JSON.parse(data);//data.toString('utf8')
+        }catch(e){
+            logger.error(util.format('Page content parse error: %s',data));
+            return;
+        }
         switch(feedback['signal']){
             case CMD_SIGNAL_CRAWL_SUCCESS:
                 spiderCore.emit('crawled',feedback);
