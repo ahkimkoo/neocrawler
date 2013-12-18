@@ -47,7 +47,11 @@ var spider_extend = function(spiderCore){
 spider_extend.prototype.extract = function(extracted_info){
     switch(extracted_info['origin']['urllib']){
         case 'urllib:driller:taobao.com:beer_list':
-            var json_content = JSON.parse(extracted_info['content']);
+            try{
+                var json_content = JSON.parse(extracted_info['content']);
+            }catch(e){
+                logger.error(util.format('Json parse error: %s',extracted_info['url']));
+            }
             if(!json_content['itemList'])break;
             for(var i=0;i<json_content['itemList'].length;i++){
                 var itm = json_content['itemList'][i];
@@ -69,7 +73,11 @@ spider_extend.prototype.extract = function(extracted_info){
 
         case 'urllib:driller:taobao.com:comments':
             var atxt = extracted_info['content'].trim().slice(1,-1);
-            var json_content = JSON.parse(atxt);
+            try{
+                var json_content = JSON.parse(atxt);
+            }catch(e){
+                logger.error(util.format('Json parse error: %s',extracted_info['url']));
+            }
             if(!json_content['comments'])break;
             for(var i=0;i<json_content['comments'].length;i++){
                 var c = json_content['comments'][i];
