@@ -3,6 +3,7 @@
  * download middleware
  */
 var util = require('util');
+var redis = require("redis");
 var events = require('events');
 var child_process = require('child_process');
 var path = require('path');
@@ -21,6 +22,7 @@ var CMD_SIGNAL_NAVIGATE_EXCEPTION = 2;
 var downloader = function(spiderCore){
     events.EventEmitter.call(this);//eventemitter inherits
     this.spiderCore = spiderCore;
+    this.proxyList = [];
     logger = spiderCore.settings.logger;
 }
 
@@ -28,7 +30,77 @@ util.inherits(downloader, events.EventEmitter);//eventemitter inherits
 
 ////report to spidercore standby////////////////////////
 downloader.prototype.assembly = function(){
+    /*
+    var downloader = this;
+    var MIN_PROXY_LENGTH = 1000;
+    downloader.on('gotProxyList',function(label,proxylist){
+        if(proxylist&&proxylist.length>0)downloader.tmp_proxyList = downloader.tmp_proxyList.concat(proxylist);
+        switch(label){
+            case 'proxy:vip:available:1s':
+                if(downloader.tmp_proxyList.length<MIN_PROXY_LENGTH)this.getProxyListFromDb('proxy:vip:available:3s');
+                else {
+                    downloader.proxyList = downloader.tmp_proxyList;
+                    downloader.emit('refreshed_proxy_list',downloader.proxyList);
+                }
+                break;
+            case 'proxy:vip:available:3s':
+                if(downloader.tmp_proxyList.length<MIN_PROXY_LENGTH)this.getProxyListFromDb('proxy:public:available:1s');
+                else {
+                    downloader.proxyList = downloader.tmp_proxyList;
+                    downloader.emit('refreshed_proxy_list',downloader.proxyList);
+                }
+                break;
+            case 'proxy:public:available:1s':
+                if(downloader.tmp_proxyList.length<MIN_PROXY_LENGTH)this.getProxyListFromDb('proxy:public:available:3s');
+                else {
+                    downloader.proxyList = downloader.tmp_proxyList;
+                    downloader.emit('refreshed_proxy_list',downloader.proxyList);
+                }
+                break;
+            case 'proxy:public:available:3s':
+                if(downloader.tmp_proxyList.length<MIN_PROXY_LENGTH)logger.warn(util.format('Only %d proxies !!!',downloader.tmp_proxyList.length));
+                if(downloader.tmp_proxyList.length<0)throw new Error('no proxy list');
+                else{
+                    downloader.proxyList = downloader.tmp_proxyList;
+                    downloader.emit('refreshed_proxy_list',downloader.proxyList);
+                }
+                break;
+        }
+    });
+    this.redis_cli3 = redis.createClient(this.spiderCore.settings['proxy_info_redis_db'][1],this.spiderCore.settings['proxy_info_redis_db'][0]);
+    if(this.spiderCore.settings['use_proxy']){
+        downloader.redis_cli3.select(downloader.spiderCore.settings['proxy_info_redis_db'][2], function(err,value) {
+             if(err)throw(err);
+             downloader.refreshProxyList(downloader);
+             downloader.on('refreshed_proxy_list',function(proxylist){
+                 downloader.spiderCore.emit('standby','downloader');
+                 setTimeout(function(){downloader.refreshProxyList(downloader)},10*60*1000);//refresh again after 10 mins
+             });
+         });
+
+    }else{
+        this.spiderCore.emit('standby','downloader');
+    }
+    */
     this.spiderCore.emit('standby','downloader');
+}
+
+downloader.prototype.refreshProxyList = function(downloader){
+    downloader.tmp_proxyList = [];
+    downloader.getProxyListFromDb('proxy:vip:available:1s');
+}
+
+/**
+ * get proxy list from redisdb, emit event
+ * @param label
+ */
+downloader.prototype.getProxyListFromDb = function(label){
+    var downloader = this;
+    logger.debug(util.format('get proxy list from :%s',label));
+    downloader.redis_cli3.lrange(label,0,-1,function(err,proxylist){
+        if(err)throw(err);
+        downloader.emit('gotProxyList',label,proxylist);
+    });
 }
 
 ////download action/////////////////////
