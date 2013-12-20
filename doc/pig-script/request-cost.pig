@@ -1,8 +1,11 @@
 logs  = LOAD 'input/*.gz' as (line:chararray);
 temp_vals = FOREACH logs GENERATE FLATTEN(REGEX_EXTRACT_ALL(line, '^.*cost:(\\d+)ms$'))  AS (cost:int);
+--temp_vals = FOREACH logs GENERATE FLATTEN(REGEX_EXTRACT_ALL(line, '^\\[(\\d{4}\\-\\d+\\-\\d+).*cost:(\\d+)ms$'))  AS (day:chararray,cost:int);
 vals = FILTER temp_vals BY NOT cost IS NULL;
 --STORE vals into 'output/costs' USING PigStorage(',');
 --vals  = LOAD 'output/costs' as (cost:int);
+--vals  = LOAD 'output/costs' USING PigStorage(',') as (day:chararray,cost:int);
 val_groups = GROUP vals ALL;
-val_avg = FOREACH val_groups GENERATE group,AVG(vals.cost) AS num;
+--val_groups = GROUP vals BY day;
+val_avg = FOREACH val_groups GENERATE group,MAX(vals.cost) AS maxval,MIN(vals.cost) AS minval,AVG(vals.cost) AS average;
 dump val_avg;

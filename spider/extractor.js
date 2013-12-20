@@ -67,7 +67,11 @@ extractor.prototype.wash_link = function(pageurl,links){
     }
     return cleaned_link.unique();
 }
-
+/**
+ * detect link which drill rule matched
+ * @param link
+ * @returns {string}
+ */
 extractor.prototype.detectLink = function(link){
     var urlobj = url.parse(link);
     var result = '';
@@ -87,7 +91,11 @@ extractor.prototype.detectLink = function(link){
     return result;
 }
 
-
+/**
+ * arrange link array.
+ * @param links
+ * @returns {{}}
+ */
 extractor.prototype.arrange_link = function(links){
     var linkobj = {};
     for(var i=0;i<links.length;i++){
@@ -101,7 +109,11 @@ extractor.prototype.arrange_link = function(links){
     }
     return linkobj;
 }
-
+/**
+ * extractor: for now , just extract links
+ * @param crawl_info
+ * @returns {*}
+ */
 extractor.prototype.extract = function(crawl_info){
     if(crawl_info['drill_link']){
         var drill_link = crawl_info['drill_link'];

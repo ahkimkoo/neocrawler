@@ -84,7 +84,10 @@ downloader.prototype.assembly = function(){
     */
     this.spiderCore.emit('standby','downloader');
 }
-
+/**
+ * refresh proxy list from redis db
+ * @param downloader
+ */
 downloader.prototype.refreshProxyList = function(downloader){
     downloader.tmp_proxyList = [];
     downloader.getProxyListFromDb('proxy:vip:available:1s');

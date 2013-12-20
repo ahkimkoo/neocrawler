@@ -19,6 +19,10 @@ var proxyRouter = function(settings){
 
 util.inherits(proxyRouter, events.EventEmitter);//eventemitter inherits
 
+/**
+ * refresh proxy list from redis db
+ * @param proxyRouter
+ */
 proxyRouter.prototype.refreshProxyList = function(proxyRouter){
     proxyRouter.tmp_proxyList = [];
     proxyRouter.getProxyListFromDb('proxy:vip:available:1s');
@@ -36,6 +40,9 @@ proxyRouter.prototype.getProxyListFromDb = function(label){
         proxyRouter.emit('gotProxyList',label,proxylist);
     });
 }
+/**
+ * trigger
+ */
 proxyRouter.prototype.start = function(){
     var proxyRouter = this;
 	this.once('proxyListChanged',function (proxylist){

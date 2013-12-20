@@ -29,7 +29,11 @@ pipeline.prototype.assembly = function(){
         });
     });
 }
-
+/**
+ * save links to redis db
+ * @param page_url
+ * @param linkobjs
+ */
 pipeline.prototype.save_links = function(page_url,linkobjs){
     var spiderCore = this.spiderCore;
     var redis_cli0 = this.redis_cli0;
@@ -66,7 +70,13 @@ pipeline.prototype.save_links = function(page_url,linkobjs){
                 }
             }
 }
-
+/**
+ * save content to hbase(default), if pipeline defined in spider_extend, it will be covered.
+ * @param pageurl
+ * @param content
+ * @param referer
+ * @param pattern
+ */
 pipeline.prototype.save_content = function(pageurl,content,referer,pattern){
     var url_hash = crypto.createHash('md5').update(pageurl+'').digest('hex');
     var spider = os.hostname()+'-'+process.pid;
@@ -105,7 +115,13 @@ pipeline.prototype.save_content = function(pageurl,content,referer,pattern){
         });
     }
 }
-
+/**
+ * save js executed result
+ * @param pageurl
+ * @param content
+ * @param referer
+ * @param pattern
+ */
 pipeline.prototype.save_jsresult = function(pageurl,content,referer,pattern){
     var url_hash = crypto.createHash('md5').update(pageurl+'').digest('hex');
     var spider = os.hostname()+'-'+process.pid;
@@ -138,7 +154,10 @@ pipeline.prototype.save_jsresult = function(pageurl,content,referer,pattern){
         });
     }
 }
-
+/**
+ * pipeline save entrance
+ * @param extracted_info
+ */
 pipeline.prototype.save =function(extracted_info){
     if(this.spiderCore.settings['test']){
         var fs = require('fs');

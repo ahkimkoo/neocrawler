@@ -49,7 +49,7 @@ spider.prototype.refreshDrillerRules = function(){
                                 if(spider.tmp_driller_rules_length<=0){
                                     spider.driller_rules = spider.tmp_driller_rules;
                                     //spider.driller_rules_updated = (new Date()).getTime();
-                                    spider.spiderCore.emit('driller_reules_loaded',spider.driller_rules);
+                                    spider.spiderCore.emit('driller_rules_loaded',spider.driller_rules);
                                     setTimeout(function(){spider.refreshDrillerRules();},spider.spiderCore.settings['check_driller_rules_interval']*1000);
                                 }
                             });
@@ -143,7 +143,10 @@ spider.prototype.getUrlQueue = function(){
                 //3---------------------------------------------------------------------------------------
         });
 }
-
+/**
+ * Check how many urls can be append to queue
+ * @param spider
+ */
 spider.prototype.checkQueue = function(spider){
     logger.debug('Check queue, length: '+spider.queue_length);
     var slide_count = this.spiderCore.settings['spider_concurrency'] - spider.queue_length;
@@ -151,13 +154,22 @@ spider.prototype.checkQueue = function(spider){
         spider.getUrlQueue();
     }
 }
-
+/**
+ * TOP Domain,e.g: www.baidu.com  -> baidu.com
+ * @param domain
+ * @returns {*}
+ * @private
+ */
 spider.prototype.__getTopLevelDomain = function(domain){
     var arr = domain.split('.');
     if(arr.length<=2)return domain;
     else return arr.slice(1).join('.');
 }
-
+/**
+ * detect link which driller rule matched
+ * @param link
+ * @returns {string}
+ */
 spider.prototype.detectLink = function(link){
     var urlobj = url.parse(link);
     var result = '';
@@ -176,7 +188,11 @@ spider.prototype.detectLink = function(link){
     }
     return result;
 }
-
+/**
+ * construct a url info
+ * @param link
+ * @returns {*}
+ */
 spider.prototype.wrapLink = function(link){
     var linkinfo = null;
     var driller = this.detectLink(link);
@@ -201,7 +217,11 @@ spider.prototype.wrapLink = function(link){
     }
     return linkinfo;
 }
-
+/**
+ * update link state to redis db
+ * @param link
+ * @param state
+ */
 spider.prototype.updateLinkState = function(link,state){
     var spider = this;
     var urlhash = crypto.createHash('md5').update(link+'').digest('hex');

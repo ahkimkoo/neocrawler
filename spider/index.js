@@ -19,7 +19,9 @@ var spiderCore = function(settings){
     logger = settings.logger;
 }
 util.inherits(spiderCore, events.EventEmitter);//eventemitter inherits
-
+/**
+ * initialization
+ */
 spiderCore.prototype.assembly = function(){
     this.unavailable_middlewares = {
         'spider':true,
@@ -35,7 +37,7 @@ spiderCore.prototype.assembly = function(){
 
 ////start///////////////////////////////////////////////
 spiderCore.prototype.start = function(){
-
+    //when every middleware is ready
     this.on('standby',function(middleware){
         logger.debug(middleware+' stand by');
         delete this.unavailable_middlewares[middleware];
@@ -45,12 +47,12 @@ spiderCore.prototype.start = function(){
             this.spider.refreshDrillerRules();
         }
     });
-
+    //when get a new url from candidate queue
     this.on('new_url_queue',function(urlinfo){
         this.spider.updateLinkState(urlinfo['url'],'crawling');
         this.downloader.download(urlinfo);
     });
-
+    //when downloading is finish
     this.on('crawled',function(crawled_info){
         logger.debug('crawl '+crawled_info['url']+' finish, cost:'+((new Date()).getTime() - parseInt(crawled_info['origin']['start_time']))+'ms');
         var extracted_info = this.extractor.extract(crawled_info);
@@ -59,24 +61,24 @@ spiderCore.prototype.start = function(){
         this.spider.updateLinkState(crawled_info['url'],'crawled_finish');
         this.emit('slide_queue');
     });
-
+    //when downloading is failure
     this.on('crawling_failure',function(url,err_msg){
         logger.warn(util.format('Crawling failure: %s, reason: %s',url,err_msg));
         this.spider.updateLinkState(url,'crawled_failure');
         this.emit('slide_queue');
     });
-
+    //when downloading is break
     this.on('crawling_break',function(url,err_msg){
         logger.warn(util.format('Crawling break: %s, reason: %s',url,err_msg));
         this.emit('slide_queue');
     });
-
+    //pop a finished url, append a new url
     this.on('slide_queue',function(){
         if(this.spider.queue_length>0)this.spider.queue_length--;
         this.spider.checkQueue(this.spider);
     });
-
-    this.once('driller_reules_loaded',function(rules){
+    //once driller reles loaded
+    this.once('driller_rules_loaded',function(rules){
         this.emit('slide_queue');
         var spiderIns = this.spider;
         setInterval(function(){spiderIns.checkQueue(spiderIns);},120000);

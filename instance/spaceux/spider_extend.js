@@ -43,7 +43,6 @@ var spider_extend = function(spiderCore){
     };
  * @returns {*}
  */
-
 spider_extend.prototype.extract = function(extracted_info){
     switch(extracted_info['origin']['urllib']){
         case 'urllib:driller:taobao.com:beer_list':
