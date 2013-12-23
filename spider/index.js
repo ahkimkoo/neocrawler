@@ -108,7 +108,7 @@ spiderCore.prototype.test = function(link){
         this.pipeline.save(extracted_info);
     });
 
-    this.once('driller_reules_loaded',function(rules){
+    this.once('driller_rules_loaded',function(rules){
         var urlinfo = this.spider.wrapLink(link);
         if(urlinfo!=null)this.downloader.download(urlinfo);
         else logger.error('no related rules in configure!, '+link);
