@@ -7,6 +7,7 @@ var events = require('events');
 var url =  require("url");
 var redis = require("redis");
 var logger;
+var CHECK_PROXY_LIST_INTERVAL = 10*60*1000;//refresh proxy list interval: 10 mins
 
 /////////////////////////////////////////////////////////////////
 var proxyRouter = function(settings){
@@ -14,6 +15,7 @@ var proxyRouter = function(settings){
 	this.settings = settings;
 	logger = settings['logger'];
     this.proxyServeMap = {};//record which browser client using which proxy ,requesting which url. e.g {'id':[url,proxy]}
+    this.proxyUpdated = -1;
     this.proxyList = [];
 }
 
@@ -25,7 +27,17 @@ util.inherits(proxyRouter, events.EventEmitter);//eventemitter inherits
  */
 proxyRouter.prototype.refreshProxyList = function(proxyRouter){
     proxyRouter.tmp_proxyList = [];
-    proxyRouter.getProxyListFromDb('proxy:vip:available:1s');
+    proxyRouter.redis_cli3.get('updated:proxy:lib',function(err,value){
+        if(proxyRouter.proxyUpdated!=value){
+            logger.debug(util.format('proxy changed, refresh. version: %d -> %d',proxyRouter.proxyUpdated,value));
+            proxyRouter.tmp_proxyUpdated = value;
+            proxyRouter.getProxyListFromDb('proxy:vip:available:1s');
+        }
+        else {
+            logger.debug('proxy no change.');
+            setTimeout(function(){proxyRouter.refreshProxyList(proxyRouter)},CHECK_PROXY_LIST_INTERVAL);//refresh again after 10 mins
+        }
+    });
 }
 
 /**
@@ -179,7 +191,8 @@ proxyRouter.prototype.assembly = function(){
     //when refreshed proxy list, set timeout//////////////////////////////////
     this.on('refreshed_proxy_list',function(proxylist){
         this.emit('proxyListChanged',proxylist);
-        setTimeout(function(){proxyRouter.refreshProxyList(proxyRouter)},30*60*1000);//refresh again after 10 mins
+        this.proxyUpdated = this.tmp_proxyUpdated;
+        setTimeout(function(){proxyRouter.refreshProxyList(proxyRouter)},CHECK_PROXY_LIST_INTERVAL);//refresh again after 10 mins
     });
     //event:gotProxyList, after getting proxy list from each redis keys
     var MIN_PROXY_LENGTH = 1000;
