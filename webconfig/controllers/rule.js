@@ -30,16 +30,25 @@ var rules = [];
 // index displaying all the drilling rules
 exports.index = function(req, res) {
 
-  req.session.searchBox = "";
-   rule.getDrillingRules(function(err, result){
-       rules = result; 
-       req.session.list = rules;
-       var totalPage = result.length / 15;
-       if(totalPage > 0) {            
-            rules = result.slice(0, 15);
-       }
-       res.render('rule/index', {title : 'Drilling rule', session:req.session, totalPage:totalPage});
-   });  
+  //req.session.searchBox = "";
+
+  if(req.session.list == null){
+    req.session.searchBox = "";
+     rule.getDrillingRules(function(err, result){
+         rules = result; 
+         req.session.list = rules;
+         var totalPage = result.length / 15;
+         if(totalPage > 0) {            
+              rules = result.slice(0, 15);
+         }
+         res.render('rule/index', {title : 'Drilling rule', session:req.session, totalPage:totalPage});
+     });     
+      
+  }else{
+      //req.session.searchBox = domain;
+      res.render('rule/index', {title : 'Drilling rule', session:req.session});
+  }
+ 
 };
 
 // search
@@ -181,7 +190,7 @@ exports.update = function(req,res) {
 
     console.log("edit update:", req.body.drill_rules);
 
-    req.session.searchBox = req.body.domain;
+    //req.session.searchBox = req.body.domain;
 
    rule.update(id, template, function(err, result){
       if(!err){
@@ -194,7 +203,7 @@ exports.update = function(req,res) {
             res.redirect('rule');
       });
 */
-    rule.getRulesByCondition(req.body.domain,function(err, result){
+    rule.getRulesByCondition(req.session.searchBox,function(err, result){
        rules = result; 
        req.session.list = rules;
        res.render('rule/index', {title : 'Drilling rule', session:req.session});
