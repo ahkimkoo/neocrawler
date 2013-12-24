@@ -30,26 +30,28 @@ var rules = [];
 // index displaying all the drilling rules
 exports.index = function(req, res) {
 
+  req.session.searchBox = "";
    rule.getDrillingRules(function(err, result){
        rules = result; 
+       req.session.list = rules;
        var totalPage = result.length / 15;
        if(totalPage > 0) {            
             rules = result.slice(0, 15);
        }
-       res.render('rule/index', {title : 'Drilling rule', rules:rules, totalPage:totalPage});
+       res.render('rule/index', {title : 'Drilling rule', session:req.session, totalPage:totalPage});
    });  
 };
 
 // search
 exports.search = function(req, res) {
 
-  res.cookie("domain",req.body.domain, { maxAge: 900000, httpOnly: true });
-
     var domain = req.body.domain;
+    req.session.searchBox = domain;
     console.log('search:', domain);
-   rule.getRulesByCondition(domain,function(err, result){
+    rule.getRulesByCondition(domain,function(err, result){
        rules = result; 
-       res.render('rule/index', {title : 'Drilling rule', rules:result});
+       req.session.list = rules;
+       res.render('rule/index', {title : 'Drilling rule', session:req.session});
    });  
 };
 
@@ -179,15 +181,25 @@ exports.update = function(req,res) {
 
     console.log("edit update:", req.body.drill_rules);
 
+    req.session.searchBox = req.body.domain;
+
    rule.update(id, template, function(err, result){
       if(!err){
-                     
+            /*         
           rule.getDrillingRules(function(err, result){
             rules = result; 
+            req.session.list = rules;
             //res.render('rule/index', {title : 'Drilling rule', rules:result});
             console.log('Rule', id, 'updated.'); 
             res.redirect('rule');
       });
+*/
+    rule.getRulesByCondition(req.body.domain,function(err, result){
+       rules = result; 
+       req.session.list = rules;
+       res.render('rule/index', {title : 'Drilling rule', session:req.session});
+   }); 
+
     }
    });  
 };

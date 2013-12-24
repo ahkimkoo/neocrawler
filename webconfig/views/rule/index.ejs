@@ -14,13 +14,13 @@
 <hr>
 <a href="/">Config Home</a> 
 <form method="post" action="/rule/search" id="form" enctype="application/x-www-form-urlencoded">
- Domain: <input name="domain" id="domain" value="" size="30" type="text">
+ Domain: <input name="domain" id="domain" value="<%=session.searchBox %>" size="30" type="text">
 <input type="submit" value="Filter">&nbsp;&nbsp;<a href="/rule/driller::/edit">Add</a><br>
 </form>
 <hr><br>
 
 
-<% if(rules.length) {%>
+<% if(session.list.length) {%>
 <table>
   <tbody>
     <tr>
@@ -34,7 +34,7 @@
       <th>weight</th>
       <th>action</th>
     </tr>
-    <% rules.forEach(function(rule){ %>
+    <% session.list.forEach(function(rule){ %>
        <tr>
        <td><%= rule.id %></td>
        <td><%= rule.domain %></td>

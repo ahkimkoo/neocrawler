@@ -30,6 +30,10 @@ webconfig.prototype.launch = function(settings){
 	  app.set('view engine', 'ejs');
 	  app.use(express.favicon());
 	  app.use(express.logger('dev'));
+	  //
+      app.use(express.cookieParser());
+	  app.use(express.session({secret: '1234567890QWERTY'}));
+ 	  //
 	  app.use(express.urlencoded());
 	  app.use(express.staticCache({maxObjects: 100, maxLength: 512}));
 	  app.use(stylus.middleware({
