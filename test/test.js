@@ -162,7 +162,31 @@ var stupid_schedule =  function(){
     });
 }
 
-fake_drill_rules();
+
+var copy_redis = function(){
+    var redis = require("redis");
+    var key = 'driller:zhenai.com:profile';
+    client0 = redis.createClient(6379,'192.168.1.245');
+    client1 = redis.createClient(6379,'localhost');
+    client0.select(0, function(err, dat) {
+        if (err)throw(err);
+        client0.hgetall(key,function(err, values){
+            if (err)throw(err);
+            client1.select(0, function(err, dat) {
+                if (err)throw(err);
+                client1.hmset(key,values,function(err, dat){
+                    if (err)throw(err);
+                    console.log('copy '+key);
+                });
+            });
+            client0.quit();
+        });
+    });
+}
+
+//fake_drill_rules();
 //fake_url_lib();
 
 //stupid_schedule();
+
+copy_redis();

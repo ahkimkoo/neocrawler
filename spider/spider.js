@@ -121,7 +121,7 @@ spider.prototype.getUrlQueue = function(){
                                         "url_pattern":drillerinfo['url_pattern'],
                                         "urllib":link_info['trace'],
                                         "save_page":JSON.parse(drillerinfo['save_page']),
-                                        "cookie":JSON.parse(drillerinfo['save_page']),
+                                        "cookie":JSON.parse(drillerinfo['cookie']),
                                         "jshandle":JSON.parse(drillerinfo['jshandle']),
                                         "inject_jquery":JSON.parse(drillerinfo['inject_jquery']),
                                         "drill_rules":JSON.parse(drillerinfo['drill_rules']),
