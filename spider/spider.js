@@ -177,7 +177,8 @@ spider.prototype.detectLink = function(link){
     if(this.driller_rules[domain]!=undefined){
         var alias = this.driller_rules[domain];
         for(a in alias){
-            var url_pattern  = decodeURIComponent(alias[a]['url_pattern']);
+            //var url_pattern  = decodeURIComponent(alias[a]['url_pattern']);
+            var url_pattern  = alias[a]['url_pattern'];
             var patt = new RegExp(url_pattern);
             if(patt.test(link)){
                 result = 'driller:'+domain+':'+a;
