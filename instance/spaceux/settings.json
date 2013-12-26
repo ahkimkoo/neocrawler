@@ -3,7 +3,7 @@
     "url_info_redis_db":["192.168.1.245",6379,1],
     "proxy_info_redis_db":["192.168.1.245",6379,3],
     "use_proxy":true,
-    "proxy_router":"192.168.1.244:2013",
+    "proxy_router":"127.0.0.1:2013",
     "crawled_hbase_db":["192.168.1.244",8080,"crawled"],
     "check_driller_rules_interval":120,
     "spider_concurrency":30,
