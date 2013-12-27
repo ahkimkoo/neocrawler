@@ -9,12 +9,14 @@ var template =  {
         encoding: 'UTF8',
         type: 'node', //branch or node
         save_page: 'true',
+        format: '0',
         jshandle: 'false',
         extract_rule:'{"alias":"","productname":{"rule":""},"reviews":{"rule":"","sub":{"rule":""}}}',
         cookie: '[""]',
         inject_jquery: 'false',
         load_img: 'false',
         drill_rules: '[""]',
+        drill_relation: '{"mode":"css|regex|value","expression":"#expression#","pick":"","index":1}',
         script: '[""]',
         navigate_rule: '[""]',
         stoppage: -1,
@@ -171,12 +173,14 @@ exports.update = function(req,res) {
     template['encoding'] = req.body.encoding;
     template['type'] = req.body.type;
     template['save_page'] = req.body.save_page;
+    template['format'] = req.body.format;
     template['jshandle'] = req.body.jshandle;
     template['extract_rule'] = req.body.extract_rule;
     template['cookie'] = req.body.cookie; 
     template['inject_jquery'] = req.body.inject_jquery;
     template['load_img'] = req.body.load_img;
     template['drill_rules'] = req.body.drill_rules;
+    template['drill_relation'] = req.body.drill_relation;
     template['script'] = req.body.script;
     template['navigate_rule'] = req.body.navigate_rule;
     template['stoppage'] = req.body.stoppage;

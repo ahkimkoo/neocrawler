@@ -78,6 +78,27 @@
                 $('#drill_rules').val(JSON.stringify(drillRules));
             }}); 
 
+        /////////////drilling rule editor
+        var drillRelation = $.parseJSON($("#drill_relation").val());
+        $('#drill_relation').change(function() {
+
+        var  val = $('#drill_relation').val();
+
+          if (val) {
+              try { drillRelation = JSON.parse(val); }
+              catch (e) { alert('Error in parsing json. ' + e); }
+          } else {
+                  drillRelation = {};
+                }
+            $('#ruleRelationEditor').jsonEditor(drillRelation, { change: function(){
+                $('#drill_relation').val(JSON.stringify(drillRelation));
+            }});
+        });
+
+            $('#ruleRelationEditor').jsonEditor(drillRelation, { change: function(){
+                $('#drill_relation').val(JSON.stringify(drillRelation));
+            }});             
+
         /////////////script rule editor
         var  scriptJson = $.parseJSON($("#script").val());
 
@@ -194,6 +215,11 @@
         </td>         
       </tr>
       <tr>
+        <th>format</th>
+        <td> <label><input name="format" value="0" type="radio" <%if(rule.format === '0'){%> checked <%}%> >html</label>&nbsp;&nbsp; <label><input name="format" value="1" type="radio" <%if(rule.format === '1'){%> checked <%}%>>json</label>&nbsp;&nbsp; <label><input name="format" value="2" type="radio" <%if(rule.format === '2'){%> checked <%}%>>binary</label>  
+        </td>         
+      </tr>        
+      <tr>
         <th>jshandle<br>
         </th>
         <td> <label><input name="jshandle" value="true" type="radio" <%if(rule.jshandle === 'true'){%> checked <%}%> >Yes</label>&nbsp;&nbsp; <label><input name="jshandle" value="false" type="radio" <%if(rule.jshandle === 'false'){%> checked <%}%>>No</label> 
@@ -236,7 +262,15 @@
         </div>
         </td>      
       </tr> 
-
+      <tr>
+        <th>Drill relation</th>
+        <td>
+        <div id="ruleRelationEditor" class="json-editor"></div>
+         <div id="ruleRelationJson">
+          <textarea id="drill_relation" name="drill_relation" cols="130" rows="5"><%=rule.drill_relation%></textarea>
+        </div>
+        </td>      
+      </tr> 
       <tr>
         <th>script</th>
         <td>
