@@ -34,7 +34,7 @@ pipeline.prototype.assembly = function(){
  * @param page_url
  * @param linkobjs
  */
-pipeline.prototype.save_links = function(page_url,linkobjs){
+pipeline.prototype.save_links = function(page_url,linkobjs,drill_relation){
     var spiderCore = this.spiderCore;
     var redis_cli0 = this.redis_cli0;
     var redis_cli1 = this.redis_cli1;
@@ -52,6 +52,7 @@ pipeline.prototype.save_links = function(page_url,linkobjs){
                                 'url':link,
                                 'trace':alias,
                                 'referer':pageurl,
+                                'drill_relation':drill_relation?drill_relation:'*',
                                 'create':(new Date()).getTime(),
                                 'records':JSON.stringify([]),
                                 'last':(new Date()).getTime(),
@@ -77,7 +78,7 @@ pipeline.prototype.save_links = function(page_url,linkobjs){
  * @param referer
  * @param pattern
  */
-pipeline.prototype.save_content = function(pageurl,content,referer,pattern){
+pipeline.prototype.save_content = function(pageurl,content,referer,pattern,drill_relation){
     var url_hash = crypto.createHash('md5').update(pageurl+'').digest('hex');
     var spider = os.hostname()+'-'+process.pid;
 
@@ -86,8 +87,8 @@ pipeline.prototype.save_content = function(pageurl,content,referer,pattern){
 //                { "column":"basic:url","timestamp":Date.now(),"$":pageurl},
 //                { "column":"basic:content","timestamp":Date.now(),"$":content}
 //                ];
-        var keylist = ['basic:spider','basic:url','basic:content','basic:referer','basic:url_pattern'];
-        var valuelist = [spider,pageurl,content,referer,pattern];
+        var keylist = ['basic:spider','basic:url','basic:content','basic:referer','basic:url_pattern','basic:drill_relation'];
+        var valuelist = [spider,pageurl,content,referer,pattern,drill_relation];
         var row = this.hbase_table.getRow(url_hash);
     try{
         row.put(keylist,valuelist,function(err,success){
@@ -113,6 +114,9 @@ pipeline.prototype.save_content = function(pageurl,content,referer,pattern){
         row.put('basic:url_pattern',pattern,function(err, success){
             logger.debug(pageurl+' update basic:url_pattern ');
         });
+        row.put('basic:drill_relation',drill_relation,function(err, success){
+            logger.debug(pageurl+' update basic:drill_relation ');
+        });
     }
 }
 /**
@@ -122,12 +126,12 @@ pipeline.prototype.save_content = function(pageurl,content,referer,pattern){
  * @param referer
  * @param pattern
  */
-pipeline.prototype.save_jsresult = function(pageurl,content,referer,pattern){
+pipeline.prototype.save_jsresult = function(pageurl,content,referer,pattern,drill_relation){
     var url_hash = crypto.createHash('md5').update(pageurl+'').digest('hex');
     var spider = os.hostname()+'-'+process.pid;
 
-    var keylist = ['basic:spider','basic:url','basic:jsresult','basic:referer','basic:url_pattern'];
-    var valuelist = [spider,pageurl,content,referer,pattern];
+    var keylist = ['basic:spider','basic:url','basic:jsresult','basic:referer','basic:url_pattern','basic:drill_relation'];
+    var valuelist = [spider,pageurl,content,referer,pattern,drill_relation];
 
     var row = this.hbase_table.getRow(url_hash);
     try{
@@ -152,6 +156,9 @@ pipeline.prototype.save_jsresult = function(pageurl,content,referer,pattern){
         row.put('basic:url_pattern',pattern,function(err, success){
             logger.debug(pageurl+' update basic:url_pattern ');
         });
+        row.put('basic:drill_relation',drill_relation,function(err, success){
+            logger.debug(pageurl+' update basic:drill_relation ');
+        });
     }
 }
 /**
@@ -173,11 +180,11 @@ pipeline.prototype.save =function(extracted_info){
             logger.debug('Crawling result saved, '+resultfile);
         });
     }else{
-        if(extracted_info['drill_link'])this.save_links(extracted_info['url'],extracted_info['drill_link']);
+        if(extracted_info['drill_link'])this.save_links(extracted_info['url'],extracted_info['drill_link'],extracted_info['drill_relation']);
         if('pipeline' in this.spiderCore.spider_extend)this.spiderCore.spider_extend.pipeline(extracted_info);//spider extend
         else{
-            if(extracted_info['origin']['save_page'])this.save_content(extracted_info['url'],extracted_info['content'],extracted_info['origin']['referer'],extracted_info['origin']['url_pattern']);
-            if(extracted_info['js_result']&&extracted_info['js_result'].length>0)this.save_jsresult(extracted_info['url'],extracted_info['js_result'],extracted_info['origin']['referer'],extracted_info['origin']['url_pattern']);
+            if(extracted_info['origin']['save_page'])this.save_content(extracted_info['url'],extracted_info['content'],extracted_info['origin']['referer'],extracted_info['origin']['url_pattern'],extracted_info['drill_relation']);
+            if(extracted_info['js_result']&&extracted_info['js_result'].length>0)this.save_jsresult(extracted_info['url'],extracted_info['js_result'],extracted_info['origin']['referer'],extracted_info['origin']['url_pattern'],extracted_info['drill_relation']);
         }
     }
 }

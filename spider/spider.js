@@ -125,6 +125,8 @@ spider.prototype.getUrlQueue = function(){
                                         "jshandle":JSON.parse(drillerinfo['jshandle']),
                                         "inject_jquery":JSON.parse(drillerinfo['inject_jquery']),
                                         "drill_rules":JSON.parse(drillerinfo['drill_rules']),
+                                        "drill_relation_rule":drillerinfo['drill_relation']?JSON.parse(drillerinfo['drill_relation']):'',
+                                        "drill_relation":link_info['drill_relation'],
                                         "script":JSON.parse(drillerinfo['script']),
                                         "navigate_rule":JSON.parse(drillerinfo['navigate_rule']),
                                         "stoppage":parseInt(drillerinfo['stoppage']),
@@ -211,6 +213,8 @@ spider.prototype.wrapLink = function(link){
             "jshandle":JSON.parse(drillerinfo['jshandle']),
             "inject_jquery":JSON.parse(drillerinfo['inject_jquery']),
             "drill_rules":JSON.parse(drillerinfo['drill_rules']),
+            "drill_relation_rule":drillerinfo['drill_relation']?JSON.parse(drillerinfo['drill_relation']):'',
+            "drill_relation":'*',
             "script":JSON.parse(drillerinfo['script']),
             "navigate_rule":JSON.parse(drillerinfo['navigate_rule']),
             "stoppage":parseInt(drillerinfo['stoppage'])

@@ -189,4 +189,5 @@ var copy_redis = function(){
 
 //stupid_schedule();
 
-copy_redis();
+//copy_redis();
+require('./extractorTest.js');

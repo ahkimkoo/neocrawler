@@ -43,5 +43,9 @@
               "line-reader" : "0.2.3",
               "moment" : "2.4.0",
               "crawler": "0.2.5"
+        },
+        "scripts" : {
+            "start" : "node run.js",
+            "test" : "node test/test.js"
         }
 }
