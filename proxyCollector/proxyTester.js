@@ -1,8 +1,13 @@
+//http://s2524.socode.info/question/51501d86e8432c042613cca3
+//http://redis.io/topics/mass-insert
+//http://stackoverflow.com/questions/18345242/redis-mass-inserts-and-counters?rq=1
+//https://github.com/mranney/node_redis
 
 var redis = require('redis');
 var lineReader = require('line-reader');
 var http = require("http");
-var moment = require('moment');	
+var moment = require('moment');
+var fs = require('fs');
 
 PROXY_KEY1S = 'proxy:public:available:1s';
 PROXY_KEY3S = 'proxy:public:available:3s';
@@ -13,8 +18,14 @@ PROXY_KEY20S = 'proxy:public:available:20s';
 
 PROXY_KEYS = [PROXY_KEY1S,PROXY_KEY3S,PROXY_KEY5S,PROXY_KEY8S,PROXY_KEY12S,PROXY_KEY20S];
 
-var client;
+var client = null;
 var PROXYS = "hosts";
+
+var line_array = new Array();
+var array_index = 0;
+
+//http://stackoverflow.com/questions/13087888/getting-the-page-title-from-a-scraped-webpage
+//var re = /(<\s*title[^>]*>(.+?)<\s*\/\s*title)>/g;
 
 http.globalAgent.maxSockets = 100;
 
@@ -48,19 +59,22 @@ proxyTester.prototype.testProxyServer =  function(){
 						  hostname: ip,
 						  port: port,
 						  path: 'http://www.douban.com',
-						  method: 'GET'
+						  method: 'GET',
+                                                  //agent: false
+                                                  //maxConnections: 5
 						};
+			var req = null;
 
-						var req = http.get(options, function(res) {					  
-						  
-						  res.setEncoding('utf8');
-						  res.on('data', function (chunk) {
-							console.log('STATUS: ' + res.statusCode);
-							console.log('HEADERS: ' + JSON.stringify(res.headers));
-							console.log("Http request: " + ip + " " + port);						  		  
-							console.log('BODY: ' + chunk);
-							//
-							if(chunk && (chunk.indexOf("all rights reserved") > -1 || chunk.indexOf("redirected") > -1 || res.statusCode === 200)){
+			req = http.get(options, function(res){				  
+				res.setEncoding('utf8');
+				res.on('data', function (chunk) {
+				   console.log('STATUS: ' + res.statusCode);
+				   console.log('HEADERS: ' + JSON.stringify(res.headers));
+				   console.log("Http request: " + ip + " " + port);						  
+				   console.log('BODY: ' + chunk);
+//if(chunk && (chunk.indexOf("all rights reserved") > -1 || chunk.indexOf("redirected") > -1 || res.statusCode === 200)){
+
+if(chunk && (chunk.indexOf("douban.com, all rights reserved") > -1 && res.statusCode === 200)){
 								var endDate = moment(new Date());
 								var secondsDiff = endDate.diff(startDate, 'seconds');
 								
@@ -85,26 +99,76 @@ proxyTester.prototype.testProxyServer =  function(){
 								
 								proxyServers = options.hostname + ":" + options.port;
 								
-								client.rpush(newkey, proxyServers, function(err, result){
-									console.log("result:", result);
-								});								
+								//LINSERT key BEFORE|AFTER pivot value
+								//RPUSH key value [value ...]
+
+								//client.rpush(newkey, proxyServers, function(err, result){
+								//	console.log("result:", result);
+								//});								
 									
-								console.log('Request took:', secondsDiff, 's');							
+								console.log('Request took:', secondsDiff, 's');
+console.log('proxyServers: ' + proxyServers);
+		
+//line_array[array_index] = line_array.push(proxyServers);
+line_array[array_index] = proxyServers;
+array_index++;
+var line_array_length = line_array.length;
+var not_duplicates = true;
+
+//console.log('1. line_array: ' + line_array.toString());
+//for (var i=0; i < line_array_length; i++) {
+//    console.log('1. line_array: ' + line_array[i]);
+//}
+
+for (i=0; i < line_array_length; i++) {
+   for (j=0; j < line_array_length; j++) {
+       if (line_array[i] === line_array[j] && (i !== j)) {
+		not_duplicates = false;
+       }
+   }
+}
+
+if (not_duplicates){
+var line = ('' + '*' + '3' + '\r\n' + '$'+ '5' + '\r\n' + "RPUSH" + '\r\n' + '$' + newkey.length  + '\r\n' + newkey + '\r\n' + '$' + proxyServers.length + '\r\n' + proxyServers + '\r\n');
+	//var line = newkey + '=' + proxyServers + '\r\n';
+
+	fs.appendFile('/home/caigen/data.txt', line, 'utf-8');
+	console.log('Append to file: ' + line);
+}
+else
+{
+        console.log('duplicate: ' + proxyServers);
+        fs.appendFile('/home/caigen/dublicate.txt', proxyServers + '\r\n', 'utf-8');
+	//line_array.pop();
+        array_index--;
+}
 							}
 
 						  });
-	  
+                                                res.on('end', function() {
+                		                   console.log("done");
+                		                   req.destroy();
+						   req = null;
+            			                });
 						}).on('error', function(e) {
 						  console.log('problem with request: ' + e.message + ". " + options.hostname + ":" + options.port);
 						});
 
-					}		
+                                               req.shouldKeepAlive = false;
+
+					}
+
+                                 
+		
 				}
+
+                              
 			});	
 
 			setTimeout(function () {
 					proxytester.testProxyServer();
-				}, 5000);	
+				}, 5000);
+                     
 }
 
 proxyTester.prototype.updateProxyList =  function(){
