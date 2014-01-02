@@ -212,4 +212,25 @@ extractor.prototype.extract = function(crawl_info){
     return crawl_info;
 }
 
+extractor.prototype.validateContent = function(crawl_info){
+    var result = true;
+    var statusCode = parseInt(crawl_info['statusCode']);
+    if(statusCode===200){
+        if(crawl_info['origin']['validation_keywords']){
+            if(crawl_info['content'].length<500)result = false;
+            for(var i =0;i<crawl_info['origin']['validation_keywords'].length;i++){
+                var keyword = crawl_info['origin']['validation_keywords'][i];
+                if(crawl_info['content'].indexOf(keyword)<0){
+                    logger.error(util.format('%s lacked keyword: %s',crawl_info['url'],keyword));
+                    result = false;break;
+                }
+            }
+        }
+    }else{
+        logger.error(util.format('url:%s, status code: %s',crawl_info['url'],statusCode));
+        if(statusCode>400)result=false;
+    }
+    return result;
+}
+
 module.exports = extractor;

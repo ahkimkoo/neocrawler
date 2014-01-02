@@ -55,23 +55,27 @@ spiderCore.prototype.start = function(){
     //when downloading is finish
     this.on('crawled',function(crawled_info){
         logger.debug('crawl '+crawled_info['url']+' finish, cost:'+((new Date()).getTime() - parseInt(crawled_info['origin']['start_time']))+'ms');
-        if(crawled_info['content'].length<500)logger.warn(util.format('Strange content, length:%s, url:%s',crawled_info['content'].length,crawled_info['url']));
-        var extracted_info = this.extractor.extract(crawled_info);
-        if('extract' in this.spider_extend)extracted_info = this.spider_extend.extract(extracted_info);//spider extend
-        this.pipeline.save(extracted_info);
-        this.spider.updateLinkState(crawled_info['url'],'crawled_finish');
-        this.emit('slide_queue');
+        if(this.extractor.validateContent(crawled_info)){
+            //if(crawled_info['content'].length<500)logger.warn(util.format('Strange content, length:%s, url:%s',crawled_info['content'].length,crawled_info['url']));
+            var extracted_info = this.extractor.extract(crawled_info);
+            if('extract' in this.spider_extend)extracted_info = this.spider_extend.extract(extracted_info);//spider extend
+            this.pipeline.save(extracted_info);
+            this.spider.updateLinkState(crawled_info['url'],'crawled_finish');
+            this.emit('slide_queue');
+        }else{
+            logger.error(util.format('invalidate content %s',crawled_info['url']));
+            this.spider.retryCrawl(crawled_info['origin']);
+        }
     });
     //when downloading is failure
-    this.on('crawling_failure',function(url,err_msg){
-        logger.warn(util.format('Crawling failure: %s, reason: %s',url,err_msg));
-        this.spider.updateLinkState(url,'crawled_failure');
-        this.emit('slide_queue');
+    this.on('crawling_failure',function(urlinfo,err_msg){
+        logger.warn(util.format('Crawling failure: %s, reason: %s',urlinfo['url'],err_msg));
+        this.spider.retryCrawl(urlinfo);
     });
     //when downloading is break
-    this.on('crawling_break',function(url,err_msg){
-        logger.warn(util.format('Crawling break: %s, reason: %s',url,err_msg));
-        this.emit('slide_queue');
+    this.on('crawling_break',function(urlinfo,err_msg){
+        logger.warn(util.format('Crawling break: %s, reason: %s',urlinfo['url'],err_msg));
+        this.spider.retryCrawl(urlinfo);
     });
     //pop a finished url, append a new url
     this.on('slide_queue',function(){

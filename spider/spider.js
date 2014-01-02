@@ -5,6 +5,7 @@
 var redis = require("redis");
 var crypto = require('crypto');
 var url =  require("url");
+var util = require('util');
 
 var spider = function(spiderCore){
     this.spiderCore = spiderCore;
@@ -125,8 +126,9 @@ spider.prototype.getUrlQueue = function(){
                                         "jshandle":JSON.parse(drillerinfo['jshandle']),
                                         "inject_jquery":JSON.parse(drillerinfo['inject_jquery']),
                                         "drill_rules":JSON.parse(drillerinfo['drill_rules']),
-                                        "drill_relation_rule":drillerinfo['drill_relation']?JSON.parse(drillerinfo['drill_relation']):'',
+                                        "drill_relation_rule":drillerinfo['drill_relation']&&drillerinfo['drill_relation']!='undefined'?JSON.parse(drillerinfo['drill_relation']):'',
                                         "drill_relation":link_info['drill_relation'],
+                                        "validation_keywords":drillerinfo['validation_keywords']&&drillerinfo['validation_keywords']!='undefined'?JSON.parse(drillerinfo['validation_keywords']):'',
                                         "script":JSON.parse(drillerinfo['script']),
                                         "navigate_rule":JSON.parse(drillerinfo['navigate_rule']),
                                         "stoppage":parseInt(drillerinfo['stoppage']),
@@ -215,6 +217,7 @@ spider.prototype.wrapLink = function(link){
             "drill_rules":JSON.parse(drillerinfo['drill_rules']),
             "drill_relation_rule":drillerinfo['drill_relation']?JSON.parse(drillerinfo['drill_relation']):'',
             "drill_relation":'*',
+            "validation_keywords":drillerinfo['validation_keywords']?JSON.parse(drillerinfo['validation_keywords']):'',
             "script":JSON.parse(drillerinfo['script']),
             "navigate_rule":JSON.parse(drillerinfo['navigate_rule']),
             "stoppage":parseInt(drillerinfo['stoppage'])
@@ -222,6 +225,29 @@ spider.prototype.wrapLink = function(link){
     }
     return linkinfo;
 }
+/**
+ * check retry
+ * @param urlinfo
+ */
+spider.prototype.retryCrawl = function(urlinfo){
+    if(urlinfo['retry']){
+        if(urlinfo['retry']<2){
+            urlinfo['retry']+=1;
+            logger.info(util.format('Retry url: %s, time: ',urlinfo['url'],urlinfo['retry']));
+            this.spiderCore.emit('new_url_queue',urlinfo);
+        }else{
+            this.updateLinkState(urlinfo['url'],'crawled_failure');
+            logger.error(util.format('after %s reties, give up crawl %s',urlinfo['retry'],urlinfo['url']));
+            this.spiderCore.emit('slide_queue');
+        }
+    }else{
+        urlinfo['retry']=1;
+        logger.info(util.format('Retry url: %s, time: ',urlinfo['url'],urlinfo['retry']));
+        this.spiderCore.emit('new_url_queue',urlinfo);
+    }
+}
+
+
 /**
  * update link state to redis db
  * @param link

@@ -12,19 +12,20 @@ var template =  {
         format: '0',
         jshandle: 'false',
         extract_rule:'{"alias":"","productname":{"rule":""},"reviews":{"rule":"","sub":{"rule":""}}}',
-        cookie: '[""]',
+        cookie: '[]',
         inject_jquery: 'false',
         load_img: 'false',
-        drill_rules: '[""]',
+        drill_rules: '[]',
         drill_relation: '{"mode":"css|regex|value","expression":"#expression#","pick":"","index":1}',
-        script: '[""]',
-        navigate_rule: '[""]',
+        validation_keywords: '[]',
+        script: '[]',
+        navigate_rule: '[]',
         stoppage: -1,
         priority: 1,
         weight: 10,
         schedule_interval: 86400,
         active: 'true',
-        seed:'[""]',
+        seed:'[]',
         schedule_rule:'FIFO'}; // FIFO  or LIFO
 
 var rules = [];
@@ -181,6 +182,7 @@ exports.update = function(req,res) {
     template['load_img'] = req.body.load_img;
     template['drill_rules'] = req.body.drill_rules;
     template['drill_relation'] = req.body.drill_relation;
+    template['validation_keywords'] = req.body.validation_keywords;
     template['script'] = req.body.script;
     template['navigate_rule'] = req.body.navigate_rule;
     template['stoppage'] = req.body.stoppage;

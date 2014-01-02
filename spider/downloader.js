@@ -179,6 +179,7 @@ downloader.prototype.downloadIt = function(urlinfo){
 
         res.on('end', function (chunk) {
             result["cost"] = (new Date()) - startTime;
+            result['statusCode'] = res.statusCode;
             if(!compressed || typeof unzip == 'undefined'){
                 result["content"] = iconv.decode(bufferHelper.toBuffer(),page_encoding);//page_encoding
                 spiderCore.emit('crawled',result);
@@ -195,7 +196,7 @@ downloader.prototype.downloadIt = function(urlinfo){
 
     req.on('error', function(e) {
         logger.error('problem with request: ' + e.message+', url:'+urlinfo['url']);
-        spiderCore.emit('crawling_failure',urlinfo['url'],e.message);
+        spiderCore.emit('crawling_failure',urlinfo,e.message);
     });
     req.end();
 }
@@ -240,7 +241,7 @@ downloader.prototype.browseIt = function(urlinfo){
             var feedback = JSON.parse(data);//data.toString('utf8')
         }catch(e){
             logger.error(util.format('Page content parse error: %s',data));
-            spiderCore.emit('crawling_break',urlinfo['url'],e.message);
+            spiderCore.emit('crawling_break',urlinfo,e.message);
             phantomjs.kill();
             return;
         }
@@ -251,7 +252,7 @@ downloader.prototype.browseIt = function(urlinfo){
             case CMD_SIGNAL_CRAWL_FAIL:
                 logger.error(feedback.url+' crawled fail');
                 phantomjs.kill();
-                if(feedback['url']==urlinfo['url'])spiderCore.emit('crawling_failure',urlinfo['url'],'phantomjs crawl failure');
+                if(feedback['url']==urlinfo['url'])spiderCore.emit('crawling_failure',urlinfo,'phantomjs crawl failure');
                 break;
             case CMD_SIGNAL_NAVIGATE_EXCEPTION:
                 logger.error(feedback.url+' navigate fail');
