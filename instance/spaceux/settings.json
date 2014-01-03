@@ -2,11 +2,12 @@
     "driller_info_redis_db":["192.168.1.245",6379,0],
     "url_info_redis_db":["192.168.1.245",6379,1],
     "proxy_info_redis_db":["192.168.1.245",6379,3],
-    "use_proxy":true,
+    "use_proxy":false,
     "proxy_router":"127.0.0.1:2013",
     "crawled_hbase_db":["192.168.1.244",8080,"crawled"],
     "check_driller_rules_interval":120,
     "spider_concurrency":30,
+    "spider_request_delay":0,
     "schedule_interval":60,
     "schedule_quantity_limitation":200
 }

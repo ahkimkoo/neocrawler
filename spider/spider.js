@@ -181,15 +181,16 @@ spider.prototype.detectLink = function(link){
     if(this.driller_rules[domain]!=undefined){
         var alias = this.driller_rules[domain];
         for(a in alias){
-            //var url_pattern  = decodeURIComponent(alias[a]['url_pattern']);
-            var url_pattern  = alias[a]['url_pattern'];
-            var patt = new RegExp(url_pattern);
-            if(patt.test(link)){
-                result = 'driller:'+domain+':'+a;
-                break;
+            if(alias.hasOwnProperty(a)){
+                //var url_pattern  = decodeURIComponent(alias[a]['url_pattern']);
+                var url_pattern  = alias[a]['url_pattern'];
+                var patt = new RegExp(url_pattern);
+                if(patt.test(link)){
+                    result = 'driller:'+domain+':'+a;
+                    break;
+                }
             }
         }
-
     }
     return result;
 }
@@ -215,9 +216,9 @@ spider.prototype.wrapLink = function(link){
             "jshandle":JSON.parse(drillerinfo['jshandle']),
             "inject_jquery":JSON.parse(drillerinfo['inject_jquery']),
             "drill_rules":JSON.parse(drillerinfo['drill_rules']),
-            "drill_relation_rule":drillerinfo['drill_relation']?JSON.parse(drillerinfo['drill_relation']):'',
+            "drill_relation_rule":drillerinfo['drill_relation']&&drillerinfo['drill_relation']!='undefined'?JSON.parse(drillerinfo['drill_relation']):'',
             "drill_relation":'*',
-            "validation_keywords":drillerinfo['validation_keywords']?JSON.parse(drillerinfo['validation_keywords']):'',
+            "validation_keywords":drillerinfo['validation_keywords']&&drillerinfo['validation_keywords']!='undefined'?JSON.parse(drillerinfo['validation_keywords']):'',
             "script":JSON.parse(drillerinfo['script']),
             "navigate_rule":JSON.parse(drillerinfo['navigate_rule']),
             "stoppage":parseInt(drillerinfo['stoppage'])
@@ -231,7 +232,7 @@ spider.prototype.wrapLink = function(link){
  */
 spider.prototype.retryCrawl = function(urlinfo){
     if(urlinfo['retry']){
-        if(urlinfo['retry']<2){
+        if(urlinfo['retry']<5){//5 time retry
             urlinfo['retry']+=1;
             logger.info(util.format('Retry url: %s, time: ',urlinfo['url'],urlinfo['retry']));
             this.spiderCore.emit('new_url_queue',urlinfo);

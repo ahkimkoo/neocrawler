@@ -118,7 +118,7 @@ extractor.prototype.arrange_link = function(links){
  * @returns {*}
  */
 extractor.prototype.cssSelector = function($,expression,pick,index){
-    logger.debug('css expression: '+expression);
+//    logger.debug('css expression: '+expression);
     if(!index)index=1;
     var real_index = parseInt(index) - 1;
     if(real_index<0)real_index=0;

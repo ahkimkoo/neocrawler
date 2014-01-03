@@ -3,6 +3,7 @@
  * download middleware
  */
 var util = require('util');
+var urlUtil =  require("url");
 var redis = require("redis");
 var events = require('events');
 var child_process = require('child_process');
@@ -126,12 +127,22 @@ downloader.prototype.transCookieKvPair = function(json){
  */
 downloader.prototype.downloadIt = function(urlinfo){
     var spiderCore = this.spiderCore;
-    var proxyRouter = this.spiderCore.settings['proxy_router'].split(':');
+    if(this.spiderCore.settings['use_proxy']===true){
+        var proxyRouter = this.spiderCore.settings['proxy_router'].split(':');
+        var __host = proxyRouter[0];
+        var __port = proxyRouter[1];
+        var __path =  urlinfo['url'];
+    }else{
+        var urlobj = urlUtil.parse(urlinfo['url']);
+        var __host = urlobj['host'];
+        var __port = urlobj['port'];
+        var __path = urlinfo['url'];
+    }
     var startTime = new Date();
     var options = {
-        'host': proxyRouter[0],
-        'port': proxyRouter[1],
-        'path': urlinfo['url'],
+        'host': __host,
+        'port': __port,
+        'path': __path,
         'method': 'GET',
         'headers': {
             "User-Agent":"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36",
@@ -149,7 +160,7 @@ downloader.prototype.downloadIt = function(urlinfo){
             "drill_count":0,
             "cookie":res.headers['Cookie'],
             "url":res.req.path,
-            "status":res.statusCode,
+            //"statusCode":res.statusCode,
             "origin":urlinfo
         };
 
@@ -210,16 +221,29 @@ downloader.prototype.browseIt = function(urlinfo){
         urlinfo['test'] = true;
         urlinfo['ipath'] = path.join(__dirname,'..', 'instance',this.spiderCore.settings['instance'],'logs');
     }
-    var phantomjs = child_process.spawn('phantomjs', [
-        '--proxy', this.spiderCore.settings['proxy_router'],
-        '--load-images', 'false',
-        '--local-to-remote-url-access','true',
-        //'--cookies-file',path.join(__dirname,'..', 'instance',this.spiderCore.settings['instance'],'logs','cookies.log'),
-        'phantomjs-bridge.js',
-        JSON.stringify(urlinfo)],
-        {'cwd':path.join(__dirname,'..', 'lib','phantomjs'),
-            'stdio':'pipe'}
-    );
+    if(this.spiderCore.settings['use_proxy']===true){
+        var phantomjs = child_process.spawn('phantomjs', [
+            '--proxy', this.spiderCore.settings['proxy_router'],
+            '--load-images', 'false',
+            '--local-to-remote-url-access','true',
+            //'--cookies-file',path.join(__dirname,'..', 'instance',this.spiderCore.settings['instance'],'logs','cookies.log'),
+            'phantomjs-bridge.js',
+            JSON.stringify(urlinfo)],
+            {'cwd':path.join(__dirname,'..', 'lib','phantomjs'),
+                'stdio':'pipe'}
+        );
+    }else{
+        var phantomjs = child_process.spawn('phantomjs', [
+            '--load-images', 'false',
+            '--local-to-remote-url-access','true',
+            //'--cookies-file',path.join(__dirname,'..', 'instance',this.spiderCore.settings['instance'],'logs','cookies.log'),
+            'phantomjs-bridge.js',
+            JSON.stringify(urlinfo)],
+            {'cwd':path.join(__dirname,'..', 'lib','phantomjs'),
+                'stdio':'pipe'}
+        );
+    }
+
     phantomjs.stdin.setEncoding('utf8');
     phantomjs.stdout.setEncoding('utf8');
 
