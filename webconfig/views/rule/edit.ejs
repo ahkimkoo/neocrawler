@@ -160,7 +160,7 @@
             }});        
         });
             $('#seedEditor').jsonEditor(seed, { change: function(){
-                $('#navigate_rule').val(JSON.stringify(seed));
+                $('#seed').val(JSON.stringify(seed));
             }});           
 /////////////////////////////////////////////////////        
         $('#form').submit(function(){
@@ -199,12 +199,16 @@
         <td><input name="alias" id="alias" value="<%=rule.alias %>" size="20" type="text"></td>
       </tr>
       <tr>
-        <th>encoding</th>
-        <td> <label><input name="encoding" value="UTF8" type="radio" <%if(rule.encoding === 'UTF8'){%> checked <%}%> >UTF8</label>&nbsp;&nbsp; <label><input name="encoding" value="GB2312" type="radio" <%if(rule.encoding === 'GB2312'){%> checked <%}%>>GB2312</label> 
+          <th>Identical parameter</th>
+          <td><input name="id_parameter" id="id_parameter" value="<%=rule.id_parameter %>" size="80" type="text"></td>
+      </tr>
+      <tr>
+        <th>Encoding</th>
+        <td> <label><input name="encoding" value="UTF8" type="radio" <%if(rule.encoding === 'UTF8'){%> checked <%}%> >UTF8</label>&nbsp;&nbsp; <label><input name="encoding" value="GBK" type="radio" <%if(rule.encoding === 'GBK'){%> checked <%}%>>GBK</label>
         </td>          
       </tr>
       <tr>
-        <th>type</th>
+        <th>Logic type</th>
         <td> <label><input name="type" value="branch" type="radio" <%if(rule.type === 'branch'){%> checked <%}%> >branch</label>&nbsp;&nbsp; <label><input name="type" value="node" type="radio" <%if(rule.type === 'node'){%> checked <%}%>>node</label> 
         </td>         
       </tr>      
@@ -215,19 +219,19 @@
         </td>         
       </tr>
       <tr>
-        <th>format</th>
+        <th>Content format</th>
         <td> <label><input name="format" value="0" type="radio" <%if(rule.format === '0'){%> checked <%}%> >html</label>&nbsp;&nbsp; <label><input name="format" value="1" type="radio" <%if(rule.format === '1'){%> checked <%}%>>json</label>&nbsp;&nbsp; <label><input name="format" value="2" type="radio" <%if(rule.format === '2'){%> checked <%}%>>binary</label>  
         </td>         
       </tr>        
       <tr>
-        <th>jshandle<br>
+        <th>Handle Js<br>
         </th>
         <td> <label><input name="jshandle" value="true" type="radio" <%if(rule.jshandle === 'true'){%> checked <%}%> >Yes</label>&nbsp;&nbsp; <label><input name="jshandle" value="false" type="radio" <%if(rule.jshandle === 'false'){%> checked <%}%>>No</label> 
         </td> 
 
       </tr>
       <tr>
-        <th>Extract Rule</th>
+        <th>Extraction Rule</th>
         <td> 
         <div id="extractEditor" class="json-editor"></div>
          <div id="extractRuleJson">
@@ -235,7 +239,7 @@
         </div>
       </tr>
       <tr>
-        <th>cookie</th>
+        <th>Faked cookie</th>
         <td> 
         <div id="cookieEditor" class="json-editor"></div>
          <div id="cookieJson">
@@ -276,7 +280,7 @@
           <td><input name="validation_keywords" id="validation_keywords" value="<%=rule.validation_keywords %>" size="150" type="text"></td>
       </tr>
       <tr>
-        <th>script</th>
+        <th>Inject script</th>
         <td>
         <div id="scriptEditor" class="json-editor"></div>
          <div id="scriptJsonDiv">
@@ -286,7 +290,7 @@
       </tr> 
 
       <tr>
-        <th>navigate rule</th>
+        <th>Auto navigation rule</th>
         <td>
         <div id="naviEditor" class="json-editor"></div>
          <div id="naviJson">
@@ -295,27 +299,27 @@
         </td>      
       </tr> 
       <tr>
-        <th>stop page</th>
+        <th>Auto navigation limit</th>
         <td> <input name="stoppage" id="stoppage" value="<%=rule.stoppage%>" size="30" type="text"></td>
       </tr> 
       <tr>
-        <th>priority</th>
+        <th>Schedule priority</th>
         <td> <input name="priority" id="priority" value="<%=rule.priority%>" size="30" type="text"></td> 
       </tr>  
       <tr>
-        <th>weight</th>
+        <th>Schedule weight</th>
         <td> <input name="weight" id="weight" value="<%=rule.weight%>" size="30" type="text"></td>
       </tr>  
       <tr>
-        <th>schedule interval </th>
+        <th>Schedule interval </th>
         <td> <input name="schedule_interval" id="schedule_interval" value="<%=rule.schedule_interval%>" size="30" type="text"></td>
       </tr>  
       <tr>
-        <th>active</th>
+        <th>Active</th>
         <td> <label><input name="active" value="true" type="radio" <%if(rule.active === 'true'){%> checked <%}%> >Yes</label>&nbsp;&nbsp; <label><input name="active" value="false" type="radio" <%if(rule.active === 'false'){%> checked <%}%>>No</label> </td>  
       </tr>  
 	  <tr>
-        <th>seed</th>
+        <th>Seeds</th>
         <td> 
         <div id="seedEditor" class="json-editor"></div>
          <div id="seedJson">
@@ -323,7 +327,7 @@
         </div>
       </tr> 
       <tr>
-        <th>schedule rule</th>
+        <th>Schedule rule</th>
         <td>
         <label><input name="schedule_rule" value="FIFO" type="radio" <%if(rule.schedule_rule === 'FIFO'){%> checked <%}%> >FIFO</label>&nbsp;&nbsp; <label><input name="schedule_rule" value="LIFO" type="radio" <%if(rule.schedule_rule === 'LIFO'){%> checked <%}%>>LIFO</label>
         </td>

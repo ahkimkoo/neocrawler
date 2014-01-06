@@ -5,6 +5,8 @@ var util = require('util');
 var events = require('events');
 var redis = require("redis");
 var crypto = require('crypto');
+var urlUtil =  require("url");
+var querystring = require('querystring');
 
 var scheduler = function(settings){
     events.EventEmitter.call(this);//eventemitter inherits
@@ -171,12 +173,57 @@ scheduler.prototype.doScheduleExt = function(index,avg_rate,more){
             scheduler.emit('schedule_circle',index,avg_rate,ct-act);
         });
 }
+
+/**
+ * get top level domain
+ * www.baidu.com -> baidu.com
+ * @param domain
+ * @returns string
+ * @private
+ */
+scheduler.prototype.__getTopLevelDomain = function(domain){
+    var arr = domain.split('.');
+    if(arr.length<=2)return domain;
+    else return arr.slice(1).join('.');
+}
+/**
+ * Transfer url, filter duplicated url base identical parameter
+ * @param link
+ * @param urllib
+ * @returns {*}
+ */
+scheduler.prototype.transformLink = function(link,urllib){
+    var final_link = link;
+    var urlobj = urlUtil.parse(link);
+    var domain = this.__getTopLevelDomain(urlobj['hostname']);
+    var drill_alias = urllib.slice(urllib.lastIndexOf(':')+1);
+    if(this.driller_rules[domain]&&this.driller_rules[domain][drill_alias]){
+        var driller_rule = this.driller_rules[domain][drill_alias];
+        if(typeof(driller_rule)!='object')driller_rule = JSON.parse(driller_rule);
+        if(driller_rule['id_parameter']){
+            var id_parameter = JSON.parse(driller_rule['id_parameter']);
+
+            var parameters = querystring.parse(urlobj.query);
+            var new_parameters = {};
+            for(var x=0;x<id_parameter.length;x++){
+                var param_name = id_parameter[x];
+                if(x==0&&param_name=='#')break;
+                if(parameters.hasOwnProperty(param_name))new_parameters[param_name] = parameters[param_name];
+            }
+            urlobj.search = querystring.stringify(new_parameters);
+            final_link = urlUtil.format(urlobj);
+        }
+    }
+    return final_link
+}
+
 /**
  * check the url, whether insert to urllib
  * @param url
  * @param interval
  */
 scheduler.prototype.checkURL = function(url,interval){
+    var scheduler = this;
     if(typeof(url)!=='string'){
         logger.error(util.format('Invalidate url: %s',url));
         return;
@@ -187,6 +234,15 @@ scheduler.prototype.checkURL = function(url,interval){
     redis_cli1.hgetall(kk,function(err,values){
         if(err)throw(err);
         if(!values)return;
+
+        if(values['trace']){
+            var t_url = scheduler.transformLink(url,values['trace']);
+            if(t_url!=url){
+                logger.debug(util.format('Transform url: %s -> %s',url,t_url));
+                return scheduler.checkURL(t_url,interval);
+            }
+        }
+
         var status = values['status'];
         var records = JSON.parse(values['records']);
         var last = parseInt(values['last']);

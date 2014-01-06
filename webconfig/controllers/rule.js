@@ -6,6 +6,7 @@ var template =  {
         domain: '',
         url_pattern: '',
         alias: '',
+        id_parameter: '[]',
         encoding: 'UTF8',
         type: 'node', //branch or node
         save_page: 'true',
@@ -76,7 +77,7 @@ exports.new = function(req, res) {
     //res.render('rule/new', {title : 'New rule'});  
 };
 
-// add a rule
+// add a rule, ****not use****
 exports.create = function(req, res) {
   // get key and rule from form
   var domain = req.body.domain;
@@ -171,6 +172,7 @@ exports.update = function(req,res) {
     template['domain'] = req.body.domain;
     template['url_pattern'] = req.body.url_pattern;
     template['alias'] = req.body.alias;
+    template['id_parameter'] = req.body.id_parameter;
     template['encoding'] = req.body.encoding;
     template['type'] = req.body.type;
     template['save_page'] = req.body.save_page;

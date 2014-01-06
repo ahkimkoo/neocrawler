@@ -9,6 +9,7 @@
 var cheerio = require('cheerio')
 var util = require('util');
 var url =  require("url");
+var querystring = require('querystring');
 require('../lib/jsextend.js');
 
 var extractor = function(spiderCore){
@@ -70,11 +71,11 @@ extractor.prototype.wash_link = function(pageurl,links){
 /**
  * detect link which drill rule matched
  * @param link
- * @returns {string}
+ * @returns [alias name,alias]
  */
 extractor.prototype.detectLink = function(link){
     var urlobj = url.parse(link);
-    var result = '';
+    var result = [];
     var domain = this.__getTopLevelDomain(urlobj['hostname']);
     if(this.spiderCore.spider.driller_rules[domain]!=undefined){
         var alias = this.spiderCore.spider.driller_rules[domain];
@@ -82,7 +83,7 @@ extractor.prototype.detectLink = function(link){
             var url_pattern  = decodeURIComponent(alias[a]['url_pattern']);
             var patt = new RegExp(url_pattern);
             if(patt.test(link)){
-                result = 'driller:'+domain+':'+a;
+                result = ['driller:'+domain+':'+a,alias[a]];
                 break;
             }
         }
@@ -101,10 +102,25 @@ extractor.prototype.arrange_link = function(links){
     for(var i=0;i<links.length;i++){
         var link = links[i];
         var matched_driller = this.detectLink(link);
-        if(matched_driller!=''){
-            matched_driller = 'urllib:' + matched_driller;
-            if(linkobj[matched_driller]==undefined)linkobj[matched_driller]=[];
-            linkobj[matched_driller].push(link);
+        if(matched_driller.length>0){
+            var driller_lib = 'urllib:' + matched_driller[0];
+            var driller_rule = matched_driller[1];
+            if(typeof(driller_rule)!='object')driller_rule = JSON.parse(driller_rule);
+            if(linkobj[driller_lib]==undefined)linkobj[driller_lib]=[];
+            if(driller_rule['id_parameter']){
+                var id_parameter = JSON.parse(driller_rule['id_parameter']);
+                var urlobj = url.parse(link);
+                var parameters = querystring.parse(urlobj.query);
+                var new_parameters = {};
+                for(var x=0;x<id_parameter.length;x++){
+                    var param_name = id_parameter[x];
+                    if(x==0&&param_name=='#')break;
+                    if(parameters.hasOwnProperty(param_name))new_parameters[param_name] = parameters[param_name];
+                }
+                urlobj.search = querystring.stringify(new_parameters);
+                link = url.format(urlobj);
+            }
+            linkobj[driller_lib].push(link);
         }
     }
     return linkobj;

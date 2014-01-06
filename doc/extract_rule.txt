@@ -1,0 +1,67 @@
+extract_rule sample:
+
+{
+    '#product#':{//以下数据都属于product
+        '#id#':         {'base':'#url#',    'mode':'#regex#',   'expression':'#.*(\d+).*#',     'pick':'',      'index':1},//用正则表达式从url中抽取，选取第一组
+        '#name#':       {'base':'#content#','mode':'#css#',     'expression':'#.classname#',    'pick':'#text#','index':1},//用css3 selector从网页内容中摘取
+        '#static#':     {'base':'#content#','mode':'#value#',   'expression':'#static value#',  'pick':'',      'index':1},//给某字段指定固定值
+        '#jsonvalue#':  {'base':'#content#','mode':'#json#',    'expression':'#a.b.c#',         'pick':'',      'index':1},//从json中选取值
+        '#comments#':   {'base':'#content#','mode':'#css#',     'expression':'#.classname#',    'pick':'',      'index':1,
+            'subset':{//子集
+                'category':'comment',//属于comment（存储到comment）
+                'relate':'#id#',//与上级关联
+                'mapping':false,//子集类型
+                'rule':{
+                    '#profile#': {'base':'#content#','mode':'#css#','expression':'#.classname#','pick':'@href','index':1},
+                    '#message#': {'base':'#content#','mode':'#css#','expression':'#.classname#','pick':'@alt','index':1},
+                    'require':['#profile#']
+                }
+            }
+        },
+       'require':['id',['name','static']] //必须的字段，id必须有，name和static任意一个即可。
+    }
+}
+
+ 
+
+ 
+
+{
+    'product' : {
+        'prod_id' :             {'base':'url',        'mode':'regex', 'expression':'.*?/dp/(.+?)/.*',                                                   'pick':'',          'index':1},
+        'prod_name' :           {'base':'content',    'mode':'css',   'expression':'#btAsinTitle>span',                                                 'pick':'innerText', 'index':1},
+        'price' :               {'base':'content',    'mode':'css',   'expression':'#listPriceValue,b[class*=listprice],td.listprice,#listPriceValue',  'pick':'innerText', 'index':1},
+        'promo_price' :         {'base':'content',    'mode':'css',   'expression':'b[class*=priceLarge],span[class*=priceLarge]',                      'pick':'innerText', 'index':1},
+        'avg_score' :           {'base':'content',    'mode':'css',   'expression':'.swSprite.s_star_4_5,.swSprite.s_star_4_0',                         'pick':'innerText', 'index':1},
+        'brand' :               {'base':'content',    'mode':'css',   'expression':'.buying h1+a',                                                      'pick':'innerText', 'index':1},
+        'reviews_count' :       {'base':'content',    'mode':'css',   'expression':'.crAvgStars span+a',                                                'pick':'innerText', 'index':1},
+        'stock_availability' :  {'base':'content',    'mode':'css',   'expression':'.ddm-sbr-avail-title',                                              'pick':'innerText', 'index':1},
+        'shop_name' :           {'base':'content',    'mode':'css',   'expression':'.ddm-sbr-above:nth-child(2)',                                       'pick':'innerText', 'index':1},
+        'attributes' :          {'base':'content',    'mode':'css',   'expression':'.pdTab tr',                                                         'pick':'',          'index':1,
+                                    'subset':{
+                                        'category' : 'product',
+                                        'relate':'prod_id',
+                                        'mapping':true,
+                                        'rule':{
+                                            'key' :     {'base':'content',    'mode':'css',   'expression':'td:nth-child(1)',     'pick':'innerText',      'index':1},
+                                            'value' :   {'base':'content',    'mode':'css',   'expression':'td:nth-child(2)',     'pick':'innerText',      'index':1}
+                                            }
+                                    }
+                                },
+        'features' :            {'base':'content',    'mode':'css',   'expression':'#feature-bullets-btf ul',               'pick':'innerText',      'index':1},
+        'basic_info' :          {'base':'content',    'mode':'css',   'expression':'.bucket div.content ul:nth-child(1)',   'pick':'innerText',      'index':1},
+        'comments' :            {'base':'content',    'mode':'css',   'expression':'div.reviews',                           'pick':'',               'index':1,
+                                    'subset':{
+                                        'category':'comment',
+                                        'relate':'prod_id',
+                                        'mapping':false,
+                                        'rule':{
+                                            'nickname' :    {'base':'content',    'mode':'css',   'expression':'.gry+a.noTextDecoration',     'pick':'innerText',       'index':1},
+                                            'link' :        {'base':'content',    'mode':'css',   'expression':'.gry+a.noTextDecoration',     'pick':'@href',           'index':1},
+                                            'text' :        {'base':'content',    'mode':'css',   'expression':'.reviewText',                 'pick':'innerText',       'index':1}
+                                        }
+                                    }
+                                },
+        'require':['prod_id','prod_name',['price','promo_price']]
+        }
+}
