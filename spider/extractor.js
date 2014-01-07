@@ -232,8 +232,11 @@ extractor.prototype.validateContent = function(crawl_info){
     var result = true;
     var statusCode = parseInt(crawl_info['statusCode']);
     if(statusCode===200){
+        if(crawl_info['content'].length<500){
+            logger.error(util.format('Too little content: %s, length:%s',crawl_info['url'],crawl_info['content'].length));
+            result = false;
+        }
         if(crawl_info['origin']['validation_keywords']){
-            if(crawl_info['content'].length<500)result = false;
             for(var i =0;i<crawl_info['origin']['validation_keywords'].length;i++){
                 var keyword = crawl_info['origin']['validation_keywords'][i];
                 if(crawl_info['content'].indexOf(keyword)<0){
