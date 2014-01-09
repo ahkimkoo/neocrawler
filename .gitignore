@@ -4,3 +4,4 @@
 *.log
 **/logs/debug-*
 node_modules/*
+/doc/statistic/target/
