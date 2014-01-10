@@ -4,12 +4,13 @@
 
 Monitor = function() {
     var mysql = require('mysql');
+    var settings = global.settings['statistic_mysql_db'];
     var connection = mysql.createConnection({
-        host    : '192.168.1.246',
-        port    : '3306',
-        user    : 'crawler',
-        password: '140109',
-        database: 'crawling'
+        host    : settings[0],
+        port    : settings[1],
+        user    : settings[3],
+        password: settings[4],
+        database: settings[2]
     });
     this.connection = connection;
 
@@ -31,14 +32,6 @@ Monitor.prototype.isEmpty = function(str) {
 
 Monitor.prototype.query = function(sql, callback) {
     this.connection.query(sql, callback);
-};
-
-Monitor.prototype.queryWithArg = function(sql, args, callback) {
-    this.connection.query(sql, args, callback);
-}
-
-Monitor.prototype.search = function(start, end, size, domain, date) {
-    var sql = 'select * from'
 };
 
 Monitor.prototype.dateFormat = function(date) {
@@ -107,6 +100,5 @@ exports.search = function(req, res) {
     if (!monitor.isEmpty(domain)) {
         sql = sql + ' and domain = "' + domain + '"';
     }
-    console.log(sql);
     monitor.query(sql, callback);
 };
