@@ -28,18 +28,44 @@
         <artifactId>guava</artifactId>
         <version>12.0</version>
     </dependency>
-    -->			
+    -->	
+    <!--hadoop begin-->		
     <dependency>
 	<groupId>org.apache.hadoop</groupId>
 	<artifactId>hadoop-client</artifactId>
 	<version>2.2.0</version>
-    </dependency>      
+        <scope>provided</scope>
+    </dependency> 
+    <!--hadoop end-->
+    <!--testing begin-->	
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
       <version>4.11</version>
       <scope>test</scope>
     </dependency>
+    <!--testing end-->	
+    <!--logging begin-->
+    <dependency>
+        <groupId>log4j</groupId>
+        <artifactId>log4j</artifactId>
+        <version>1.2.17</version>
+      </dependency>
+    <!--logging end-->
+    <!--mysql database begin-->
+    <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>5.1.27</version>
+            <type>jar</type>
+            <scope>compile</scope>
+    </dependency>
+    <dependency>
+	<groupId>jstl</groupId>
+	<artifactId>jstl</artifactId>
+	<version>1.2</version>
+    </dependency>
+    <!--mysql database end-->
   </dependencies>
 
   <build>
@@ -63,12 +89,24 @@
                         <goal>copy-dependencies</goal>
                     </goals>
                     <configuration>
+                        <excludeScope>provided</excludeScope>
                         <outputDirectory>
                           ${project.build.directory}/classes/lib
                         </outputDirectory>
                     </configuration>
                 </execution>
             </executions>
+    </plugin>
+    <plugin>
+        <groupId>org.apache.maven.plugins</groupId>  
+        <artifactId>maven-jar-plugin</artifactId>  
+        <configuration>
+            <archive>  
+                <manifest>
+                    <mainClass>com.caigen100.hadoop.crawler.Statistic</mainClass>  
+                </manifest>  
+            </archive>  
+        </configuration>  
     </plugin>
     </plugins>
   </build>

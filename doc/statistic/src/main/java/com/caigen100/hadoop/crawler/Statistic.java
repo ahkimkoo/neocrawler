@@ -9,6 +9,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.input.TextInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.NullOutputFormat;
 import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 /*
@@ -30,11 +31,13 @@ public class Statistic {
         job.setOutputValueClass(IntWritable.class);
         
         job.setMapperClass(StatisticMapper.class);
+        //job.setNumReduceTasks(0);
         //job.setCombinerClass(StatisticReducer.class);
         job.setReducerClass(StatisticReducer.class);
         
         job.setInputFormatClass(TextInputFormat.class);
-        job.setOutputFormatClass(TextOutputFormat.class);
+        //job.setOutputFormatClass(TextOutputFormat.class);
+        job.setOutputFormatClass(NullOutputFormat.class);
         
         FileInputFormat.addInputPath(job, new Path(args[0]));
         FileOutputFormat.setOutputPath(job, new Path(args[1]));

@@ -1,7 +1,12 @@
 package com.caigen100.hadoop.crawler;
 
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.servlet.jsp.jstl.sql.Result;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
@@ -10,8 +15,10 @@ import junit.framework.TestSuite;
  * Unit test for simple App.
  */
 public class AppTest 
-    extends TestCase
+extends TestCase
 {
+    
+    private static final org.apache.log4j.Logger logger = org.apache.log4j.Logger.getLogger(AppTest.class);
     /**
      * Create the test case
      *
@@ -41,7 +48,6 @@ public class AppTest
     /**
      * test regex
      */
-
     public void testRegex(){
         String regex_time_prefix = "\\[(\\d{4}\\-\\d{2}\\-\\d{2}).*?";
         Pattern p = Pattern.compile(regex_time_prefix + "crawl.*?http:\\/\\/(.*?)/.*?finish.*?cost:(\\d+)ms");
@@ -56,5 +62,32 @@ public class AppTest
             }
         }else System.err.println("no match"); 
         assertTrue(m.groupCount()==3);
-    }   
+    }
+    
+    public void testTransformDomain(){
+        StatisticMapper sm = new StatisticMapper();
+        String domain = "www.baidu.com";
+        String topDomain = sm.getTopLevelDomain(domain);
+        logger.debug("topdomain: "+topDomain);
+        assertTrue(topDomain.equals("baidu.com"));
+    }
+    
+    public void testDao() throws SQLException{
+//        GenericDao mysqlDao = new GenericDao() {};
+//        mysqlDao.setSqlValue("insert dataflow (domain)values(?)");
+//        List list = new ArrayList(Arrays.asList("taobao.com"));
+//        mysqlDao.setValues(list);
+//        int result = mysqlDao.executeUpdate();
+//        assertTrue(result==1);
+//        mysqlDao.setSqlValue("select * from dataflow where domain=?");
+//        mysqlDao.setValues(Arrays.asList("taobao.com"));
+//        Result result = mysqlDao.executeQuery();
+//        assertTrue(result.getRowCount()==1);
+        int sum=123213;
+        int count = 3455;
+        double d = 0d;
+        d = (1.0*sum)/count;
+        System.out.println("avg--->"+d);
+        logger.debug("avg=====>"+d);
+    }
 }
