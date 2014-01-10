@@ -4,9 +4,11 @@ exports.mapRoute = function(app) {
 
 	prefix_rule = '/rule';
 	prefix_proxy = '/proxy';
+    prefix_monitor = '/monitor';
 
 	var prefixRuleObj = require('./controllers' + prefix_rule);
 	var prefixProxyObj = require('./controllers' + prefix_proxy);
+    var prefixMonitorObj = require('./controllers' + prefix_monitor);
 
 	// index
 	app.get(prefix_rule, prefixRuleObj.index);
@@ -36,6 +38,10 @@ exports.mapRoute = function(app) {
 	// Proxy create 
 	app.post(prefix_proxy + "/create", prefixProxyObj.create);
 	// Proxy destroy 
-	app.get(prefix_proxy + "/:host/:key", prefixProxyObj.destroy);	
+	app.get(prefix_proxy + "/:host/:key", prefixProxyObj.destroy);
 
+/////////////////////////////////////////////////////////////////////////
+    app.get(prefix_monitor, prefixMonitorObj.index);
+
+    app.get(prefix_monitor + "/search", prefixMonitorObj.search);
 };

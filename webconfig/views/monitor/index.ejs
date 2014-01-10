@@ -1,0 +1,91 @@
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Statistic Monitor</title>
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
+    <script src="/javascripts/jquery.min.js"></script>
+    <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+    <script src = "/javascripts/jquery.dataTables.min.js"></script>
+    <style type = "text/css">
+        @import "stylesheets/demo_table.css";
+        @import "stylesheets/demo_page.css";
+        @import "stylesheets/jquery.dataTables.css";
+        @import "stylesheets/jquery.dataTables_themeroller.css";
+    </style>
+    <script>
+        var table = null;
+
+        function requireData(url, data, success) {
+            var date = $('#dateField').val();
+            var domain = $('#domainField').val();
+            data = {
+                date  : date,
+                domain: domain
+            };
+            $.getJSON(url, data, function(json) {
+                success(json);
+            });
+        };
+
+        $(document).ready(function() {
+            $( "#dateField" ).datepicker({
+                dateFormat: 'yy-mm-dd'
+            });
+            $("#dateField").datepicker("setDate", new Date());
+            table = $( '#data' ).dataTable({
+                "bProcessing": true,
+                "sAjaxSource": '/monitor/search',
+                "fnServerData": requireData,
+                'autoWidth': false  
+            });
+        });
+
+        function search() {
+            var date = $('#dateField').val();
+            var domain = $('#domainField').val();
+            data = {
+                date  : date,
+                domain: domain
+            };
+            $.getJSON('/monitor/search', data, function( json ) {
+                oSettings = table.fnSettings();
+                
+                table.fnClearTable();
+                for (var i=0; i<json.aaData.length; i++)
+                {
+                  table.oApi._fnAddData(oSettings, json.aaData[i]);
+                }
+
+                oSettings.aiDisplay = oSettings.aiDisplayMaster.slice();
+                table.fnDraw();
+            });
+        }
+    </script>
+</head>
+<body>
+    <h1>Crawling Statistics <div align='right'> <a href="../">Home</a></div></h1>
+    <%if (err) {%>
+    <%= err %>
+    <% } else { %>
+    Date: <input type="text" id="dateField" style="width: 150px"/>
+
+    Domain: <select id="domainField" style="width: 150px">
+    <% domains.forEach(function(domain) { %>
+        <option><%=domain%></option>
+    <% }) %>
+    </select>
+
+    <input type="button" id="search" onclick="search()" value="search"/>
+    <% } %>
+    <div class = 'wrapper' style="border: 20 20 20 20">
+    <table id = "data">
+        <thead><tr>
+            <% heads.forEach(function(head) { %>
+                <th width="50px"><%= head %></th>
+            <% }) %>
+        </tr></thead>
+        <tbody align='center'>
+        </tbody>
+    </table></div>
+</body>
+</html>
