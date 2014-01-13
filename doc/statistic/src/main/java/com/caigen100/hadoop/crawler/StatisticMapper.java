@@ -40,6 +40,7 @@ public class StatisticMapper extends Mapper<LongWritable, Text, Text, IntWritabl
             put("crawl_fail",Pattern.compile(regex_time_prefix + "give.*?up.*?crawl.*?:http://(.*?)/.*$"));
             put("retry",Pattern.compile(regex_time_prefix + "Retry.*?url:.*?http://(.*?)/.*$"));
             put("invalidation",Pattern.compile(regex_time_prefix + "invalidate.*?content.*?http://(.*?)/.*$"));
+            put("saved",Pattern.compile(regex_time_prefix + "insert.*?content.*?http://(.*?)/.*$"));
         }
     };
     

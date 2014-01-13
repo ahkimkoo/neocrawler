@@ -153,8 +153,10 @@ downloader.prototype.downloadIt = function(urlinfo){
             "Cookie":this.transCookieKvPair(urlinfo['cookie'])
         }
     };
-
+    logger.debug(util.format('Request start, %s',urlinfo['url']));
     var req = http.request(options, function(res) {
+        logger.debug(util.format('Response, %s',urlinfo['url']));
+
         var result = {
             "remote_proxy":res.headers['remoteproxy'],
             "drill_count":0,
