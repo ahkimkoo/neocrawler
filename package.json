@@ -1,5 +1,5 @@
 {
-        "name"    : "uxcrawler",
+        "name"    : "neocrawler",
 
         "description" : "Nodejs Distribute Crawler",
         
@@ -12,7 +12,7 @@
         "author"  : {
                 "name"  : "James",
                 "email" : "successage@gmail.com",
-                "url"   : "my.oschina.net/waterbear/blog"
+                "url"   : "http://my.oschina.net/waterbear/blog"
         },
 
         "version" : "0.0.1",

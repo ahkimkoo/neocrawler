@@ -1,0 +1,14 @@
+{
+    "driller_info_redis_db":["192.168.1.4",6379,0],
+    "url_info_redis_db":["192.168.1.4",6379,1],
+    "proxy_info_redis_db":["192.168.1.4",6379,3],
+    "use_proxy":true,
+    "proxy_router":"127.0.0.1:2013",
+    "crawled_hbase_db":["192.168.1.4",8080,"crawled"],
+//    "statistic_mysql_db":["192.168.1.246",3306,"crawling","crawler","140109"],
+    "check_driller_rules_interval":120,
+    "spider_concurrency":30,
+    "spider_request_delay":0,
+    "schedule_interval":60,
+    "schedule_quantity_limitation":200
+}
