@@ -2,176 +2,41 @@
 <html><head>
   
   <meta charset="utf-8" content="text/html; charset=ISO-8859-1" http-equiv="content-type">
-  <title>detail</title>
+  <title>Edit Crawling Rules</title>
   <link rel="stylesheet" href="/stylesheets/main.css">
   <link rel="stylesheet" href="/stylesheets/FlexiJsonEditor/jsoneditor.css"/> 
 
-    <script type="text/javascript" src="/javascripts/json2.js"></script>
+  <script type="text/javascript" src="/javascripts/json2.js"></script>
   <script type="text/javascript" src="/javascripts/jquery.min.js"></script>
   <script type="text/javascript" src="/javascripts/jquery.jsoneditor.js"></script>
+  <script type="text/javascript" src="/javascripts/my-json-editor.js"></script>
 
 <script type="text/javascript">
-
  $(function(){
-
-        /////////////extract rule
-        var extractRule = $.parseJSON($("#extract_rule").val());
-        $('#extract_rule').change(function() {
-
-        var  val = $('#extract_rule').val();
-
-          if (val) {
-              try { extractRule = JSON.parse(val); }
-              catch (e) { alert('Error in parsing json. ' + e); }
-          } else {
-                  extractRule = {};
-                }
-            $('#extractEditor').jsonEditor(extractRule, { change: function(){
-                $('#extract_rule').val(JSON.stringify(extractRule));
-            }});        
+    /////////////extract rule
+    jsonEditorConstructor($('#extractEditor'),$('#extract_rule'));
+    /////////////cookie editor
+    jsonEditorConstructor($('#cookieEditor'),$('#cookie'));
+    /////////////drilling rule editor
+    jsonEditorConstructor($('#ruleEditor'),$('#drill_rules'));
+    /////////////drilling rule editor
+    jsonEditorConstructor($('#ruleRelationEditor'),$('#drill_relation'));
+    /////////////script rule editor
+    jsonEditorConstructor($('#scriptEditor'),$('#script'));
+    /////////////navigation rule editor
+    jsonEditorConstructor($('#naviEditor'),$('#navigate_rule'));
+    /////////////seed editor
+    jsonEditorConstructor($('#seedEditor'),$('#seed'));
+    ////////////id_parameter editor
+    jsonEditorConstructor($('#id_parameter_editor'),$('#id_parameter'));
+    ///////////validation_keywords editor
+    jsonEditorConstructor($('validation_keywords_editor'),$('#validation_keywords'));
+    //b4 submit///////////////////////////////////////////////////
+    $('#form').submit(function(){
+        $(".json-input").each(function(index,element){
+            $(element).val(JSON.stringify(JSON.parse($(element).val())));
         });
-            $('#extractEditor').jsonEditor(extractRule, { change: function(){
-                $('#extract_rule').val(JSON.stringify(extractRule));
-            }});           
-
-        /////////////cookie editor
-        var cookie = $.parseJSON($("#cookie").val());
-
-        $('#cookie').change(function() {
-
-        var  val = $('#cookie').val();
-
-          if (val) {
-              try { cookie = JSON.parse(val); }
-              catch (e) { alert('Error in parsing json. ' + e); }
-          } else {
-                  cookie = {};
-                }
-       
-            $('#cookieEditor').jsonEditor(cookie, { change: function(){
-                $('#cookie').val(JSON.stringify(cookie));
-            }}); 
-        });
-
-        $('#cookieEditor').jsonEditor(cookie, { change: function(){
-                $('#cookie').val(JSON.stringify(cookie));
-        }});               
-
-        /////////////drilling rule editor
-        var drillRules = $.parseJSON($("#drill_rules").val());
-        $('#drill_rules').change(function() {
-
-        var  val = $('#drill_rules').val();
-
-          if (val) {
-              try { drillRules = JSON.parse(val); }
-              catch (e) { alert('Error in parsing json. ' + e); }
-          } else {
-                  drillRules = {};
-                }
-            $('#ruleEditor').jsonEditor(drillRules, { change: function(){
-                $('#drill_rules').val(JSON.stringify(drillRules));
-            }});
-        });
-
-            $('#ruleEditor').jsonEditor(drillRules, { change: function(){
-                $('#drill_rules').val(JSON.stringify(drillRules));
-            }}); 
-
-        /////////////drilling rule editor
-        var drillRelation = $.parseJSON($("#drill_relation").val());
-        $('#drill_relation').change(function() {
-
-        var  val = $('#drill_relation').val();
-
-          if (val) {
-              try { drillRelation = JSON.parse(val); }
-              catch (e) { alert('Error in parsing json. ' + e); }
-          } else {
-                  drillRelation = {};
-                }
-            $('#ruleRelationEditor').jsonEditor(drillRelation, { change: function(){
-                $('#drill_relation').val(JSON.stringify(drillRelation));
-            }});
-        });
-
-            $('#ruleRelationEditor').jsonEditor(drillRelation, { change: function(){
-                $('#drill_relation').val(JSON.stringify(drillRelation));
-            }});             
-
-        /////////////script rule editor
-        var  scriptJson = $.parseJSON($("#script").val());
-
-        $('#script').change(function() {
-
-          val = $('#script').val();
-
-          if (val) {
-              try { scriptJson = JSON.parse(val); }
-              catch (e) { alert('Error in parsing json. ' + e); }
-          } else {
-                  scriptJson = {};
-                }
-
-            $('#scriptEditor').jsonEditor(scriptJson, { change: function(){
-                $('#script').val(JSON.stringify(scriptJson));
-            }});          
-        });
-            $('#scriptEditor').jsonEditor(scriptJson, { change: function(){
-                $('#script').val(JSON.stringify(scriptJson));
-            }});       
-
-        /////////////navigation rule editor
-
-        var naviRule = $.parseJSON($("#navigate_rule").val());
-
-        $('#navigate_rule').change(function() {
-
-          var val = $('#navigate_rule').val();
-
-          if (val) {
-              try { naviRule = JSON.parse(val); }
-              catch (e) { alert('Error in parsing json. ' + e); }
-          } else {
-                  naviRule = {};
-                }
-            $('#naviEditor').jsonEditor(naviRule, { change: function(){
-                $('#navigate_rule').val(JSON.stringify(naviRule));
-            }});       
-        }); 
-            $('#naviEditor').jsonEditor(naviRule, { change: function(){
-                $('#navigate_rule').val(JSON.stringify(naviRule));
-            }});
-
-        /////////////seed editor
-        var seed = $.parseJSON($("#seed").val());
-        $('#seed').change(function() {
-
-        var  val = $('#seed').val();
-
-          if (val) {
-              try { seed = JSON.parse(val); }
-              catch (e) { alert('Error in parsing json. ' + e); }
-          } else {
-                  seed = {};
-                }
-            $('#seedEditor').jsonEditor(seed, { change: function(){
-                $('#navigate_rule').val(JSON.stringify(seed));
-            }});        
-        });
-            $('#seedEditor').jsonEditor(seed, { change: function(){
-                $('#seed').val(JSON.stringify(seed));
-            }});           
-/////////////////////////////////////////////////////        
-        $('#form').submit(function(){
-          $('#extract_rule').val(JSON.stringify(JSON.parse($("#extract_rule").val())));
-          $('#cookie').val(JSON.stringify(JSON.parse($("#cookie").val())));
-          $('#drill_rules').val(JSON.stringify(JSON.parse($("#drill_rules").val())));
-          $('#scriptJson').val(JSON.stringify(JSON.parse($("#script").val()))); 
-          $('#navigate_rule').val(JSON.stringify(JSON.parse($("#navigate_rule").val())));       
-          $('#seed').val(JSON.stringify(JSON.parse($("#seed").val())));
-        });      
-
+    });
   });
 </script>
 
@@ -200,7 +65,9 @@
       </tr>
       <tr>
           <th>Identical parameter</th>
-          <td><input name="id_parameter" id="id_parameter" value="<%=rule.id_parameter %>" size="80" type="text"></td>
+          <td>
+              <div id="id_parameter_editor"></div>
+              <input name="id_parameter" id="id_parameter" value="<%=rule.id_parameter %>" size="80" type="text"></td>
       </tr>
       <tr>
         <th>Encoding</th>
@@ -248,7 +115,8 @@
       </tr>
       <tr>
         <th>Inject jquery</th>
-        <td> <label><input name="inject_jquery" value="true" type="radio" <%if(rule.inject_jquery === 'true'){%> checked <%}%> >Yes</label>&nbsp;&nbsp; <label><input name="inject_jquery" value="false" type="radio" <%if(rule.inject_jquery === 'false'){%> checked <%}%>>No</label> 
+        <td>
+            <label><input name="inject_jquery" value="true" type="radio" <%if(rule.inject_jquery === 'true'){%> checked <%}%> >Yes</label>&nbsp;&nbsp; <label><input name="inject_jquery" value="false" type="radio" <%if(rule.inject_jquery === 'false'){%> checked <%}%>>No</label>
         </td>                
       </tr>  
       <tr>
@@ -277,7 +145,9 @@
       </tr>
       <tr>
           <th>Content validation keywords</th>
-          <td><input name="validation_keywords" id="validation_keywords" value="<%=rule.validation_keywords %>" size="150" type="text"></td>
+          <td>
+              <div id="validation_keywords_editor"></div>
+              <input name="validation_keywords" id="validation_keywords" value="<%=rule.validation_keywords %>" size="150" type="text"></td>
       </tr>
       <tr>
         <th>Inject script</th>

@@ -12,7 +12,7 @@ var template =  {
         save_page: 'true',
         format: '0',
         jshandle: 'false',
-        extract_rule:'{"alias":"","productname":{"rule":""},"reviews":{"rule":"","sub":{"rule":""}}}',
+        extract_rule:'{"crawled":{"title":{"base":"content","mode":"css","expression":"title","pick":"text","index":1}}}',
         cookie: '[]',
         inject_jquery: 'false',
         load_img: 'false',

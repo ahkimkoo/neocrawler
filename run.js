@@ -8,7 +8,7 @@ var userArgv = require('optimist')
 .usage('Usage: $0 -i [instance name] -a [crawl|test|config|proxy|schedule|proxyCollector]  -p [num] -l[url] -h')
 .options('i', {
         'alias' : 'instance',
-        'default' : 'spaceux',
+        'default' : 'pengtouba',
         'describe' : 'Specify a instance',
         'demand' : true
     })
