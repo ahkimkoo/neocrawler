@@ -44,8 +44,8 @@
        <td><%= rule.type %></td>
        <td><%= rule.priority %></td>
        <td><%= rule.weight %></td>
-       <td><a href="/rule/<%= rule.id %>/edit">Edit</a>&nbsp;
-          <a href="/rule/<%= rule.id %>">Delete</a></td>
+       <td><a href="/rule/driller:<%= rule.domain %>:<%= rule.alias %>/edit">Edit</a>&nbsp;
+          <a href="/rule/driller:<%= rule.domain %>:<%= rule.alias %>">Delete</a></td>
        </tr>
     <% }) %>
   </tbody>

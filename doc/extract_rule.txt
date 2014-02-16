@@ -1,7 +1,8 @@
 extract_rule sample:
 
 {
-    '#product#':{//以下数据都属于product
+    'category':'#product#',
+    'rule':{//以下数据都属于product
         '#id#':         {'base':'#url#',    'mode':'#regex#',   'expression':'#.*(\d+).*#',     'pick':'',      'index':1},//用正则表达式从url中抽取，选取第一组
         '#name#':       {'base':'#content#','mode':'#css#',     'expression':'#.classname#',    'pick':'#text#','index':1},//用css3 selector从网页内容中摘取
         '#static#':     {'base':'#content#','mode':'#value#',   'expression':'#static value#',  'pick':'',      'index':1},//给某字段指定固定值

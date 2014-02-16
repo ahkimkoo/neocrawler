@@ -6,11 +6,11 @@ var template =  {
         'url_pattern': '',
         'alias': '',
         'id_parameter': [],
-        'encoding': 'UTF8',
+        'encoding': 'UTF-8',
         'type': 'node', //branch or node
-        'save_page': 'true',
-        'format': '0',
-        'jshandle': 'false',
+        'save_page': true,
+        'format': 'html',//html or json or binary
+        'jshandle': false,
         'extract_rule':{
             'crawled':{
                 'title':{'base':'content','mode':'css','expression':'title','pick':'text','index':1}
@@ -30,7 +30,7 @@ var template =  {
         'priority': 1,
         'weight': 10,
         'schedule_interval': 86400,
-        'active': 'true',
+        'active': true,
         'seed': [],//[]
         'schedule_rule':'FIFO'// FIFO  or LIFO
 };
@@ -105,13 +105,11 @@ exports.create = function(req, res) {
 // show a specific rule
 exports.show = function(req, res) {
   var id = req.params.id;
-  console.log('show id:', id);
   rule.displayOne(id, function(err, obj){
     /*
       if(obj)   
           res.send('There is no rule with id of ' + req.params.id);
       else*/
-        console.log('obj:', obj);
           res.render('rule/show', {title : 'Show Rule', rule : obj});
   });
 };
@@ -139,8 +137,22 @@ exports.edit = function(req, res) {
    rule.displayOne(id, function(err, obj){
       if(obj){
 //        obj['id'] = id;
-        console.log("obj:", obj);
-        res.render('rule/edit', {title : 'Edit rule', rule:obj});        
+          var dataobj = template;
+          var numberPattern = new RegExp("^\-?[0-9]+$");
+          for(i in obj){
+              if(obj.hasOwnProperty(i)){
+                  if(typeof(obj[i])==='string'&&(obj[i].charAt(0)==='{'||obj[i].charAt(0)==='[')){
+                      dataobj[i] = JSON.parse(obj[i]);
+                  }else if(numberPattern.test(obj[i])){
+                      dataobj[i] = parseInt(obj[i]);
+                  }else if(obj[i]==='true'){
+                      dataobj[i] = true;
+                  }else if(obj[i]==='false'){
+                      dataobj[i] = false;
+                  }else dataobj[i] = obj[i];
+              }
+          }
+        res.render('rule/edit', {title : 'Edit rule', rule:dataobj});
       }else{
         res.render('rule/edit', {title : 'Edit rule', rule:template});        
       }
@@ -153,13 +165,21 @@ exports.update = function(req,res) {
     var jsonobj = JSON.parse(jsonstr);
     var key = 'driller:' + jsonobj['domain'] + ':' + jsonobj['alias'];
 
-    console.log("key", key);
     //console.log("url:", urlencode(req.body.url_pattern));
     console.log("edit update:", req.body.drill_rules);
 
     //req.session.searchBox = req.body.domain;
 
-   rule.update(key, jsonobj, function(err, result){
+    var dataobj = {};
+    for(i in jsonobj){
+        if(jsonobj.hasOwnProperty(i)){
+            if(typeof(jsonobj[i])==='object')dataobj[i] = JSON.stringify(jsonobj[i]);
+            else{
+                dataobj[i] = jsonobj[i];}
+        }
+    }
+
+   rule.update(key, dataobj, function(err, result){
       if(!err){
             /*         
           rule.getDrillingRules(function(err, result){

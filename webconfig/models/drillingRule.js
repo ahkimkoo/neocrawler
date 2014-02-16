@@ -118,7 +118,6 @@ var drillingRule = {
 				console.log(err);
 				return fn(err);
 			}
-			console.log("displayone:", obj);
 			return fn(err, obj);
 		});
 	},

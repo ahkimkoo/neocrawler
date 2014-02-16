@@ -41,7 +41,7 @@
 <hr><a href="/rule">Return</a>
 <p></p>
 <form method="post" action="/rule/upsert" id="form"  onsubmit="return checkform()">
-    <textarea id="jsondata" style="display:none"><%=JSON.stringify(rule)%></textarea>
+    <textarea id="jsondata" name="jsondata" style="display:none"><%=JSON.stringify(rule)%></textarea>
     <div id="jsoneditor"></div>
     <p>
     <input type="submit" name="submit" id="submit" value="Submit"/>

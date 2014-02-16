@@ -24,7 +24,7 @@ exports.mapRoute = function(app) {
 	// edit
 	app.get(prefix_rule + '/:id/edit', prefixRuleObj.edit);
 	// update
-	app.put(prefix_rule + '/upsert', prefixRuleObj.update);
+	app.post(prefix_rule + '/upsert', prefixRuleObj.update);
 	// destroy
 	app.del(prefix_rule + '/:id', prefixRuleObj.destroy);
 	
