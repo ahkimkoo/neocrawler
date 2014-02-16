@@ -5,7 +5,7 @@
 var logging = require('./lib/logging.js'); 
 ////arguments parse///////////////////////////////////////////////////////////////
 var userArgv = require('optimist')
-.usage('Usage: $0 -i [instance name] -a [crawl|test|config|proxy|schedule|proxyCollector]  -p [num] -l[url] -h')
+.usage('Usage: $0 -i [instance name] -a [crawl|test|config|proxy|schedule]  -p [num] -l[url] -h')
 .options('i', {
         'alias' : 'instance',
         'default' : 'pengtouba',
@@ -15,7 +15,7 @@ var userArgv = require('optimist')
 .options('a', {
         'alias' : 'action',
         'default' : 'crawl',
-        'describe' : 'Specify a action[crawl|test|config|proxy|schedule|proxyCollector]',
+        'describe' : 'Specify a action[crawl|test|config|proxy|schedule]',
         'demand' : true
     })
 .options('p', {
@@ -85,16 +85,6 @@ var testUrl = function(){
     }
 }
 
-////proxy collector////////////////////////////////////////////////////////////
-var proxyCollectorService = function(){
-    var logger = logging.getLogger('proxyCollector-service',options['i'],'DEBUG');
-    settings['logger'] = logger;
-    settings['port'] = parseInt(options['p']);
-    var proxyCollector = new(require('./proxyCollector'))(settings);
-    
-    proxyCollector.start();  
-}
-
 ////route/////////////////////////////////////////////////////////////////////
 switch(options['a']){
 case 'crawl':
@@ -112,9 +102,6 @@ case 'schedule':
 case 'test':
     testUrl();
     break;
-case 'proxyCollector':
-    proxyCollectorService();
-    break;     
 default:
 	userArgv.showHelp();
 }

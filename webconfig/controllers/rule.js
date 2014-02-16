@@ -21,7 +21,7 @@ var template =  {
         'load_img': false,
         'drill_rules': [],
         'drill_relation': {
-            'mode':'css','expression':'title','pick':'text','index':1
+            'base':'content','mode':'css','expression':'title','pick':'text','index':1
         },
         'validation_keywords': [],
         'script': [],
