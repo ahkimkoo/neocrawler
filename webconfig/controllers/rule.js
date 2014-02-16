@@ -2,32 +2,38 @@ var rule = require('../models/drillingRule.js');
 
 //default
 var template =  {
-        id:'',
-        domain: '',
-        url_pattern: '',
-        alias: '',
-        id_parameter: '[]',
-        encoding: 'UTF8',
-        type: 'node', //branch or node
-        save_page: 'true',
-        format: '0',
-        jshandle: 'false',
-        extract_rule:'{"crawled":{"title":{"base":"content","mode":"css","expression":"title","pick":"text","index":1}}}',
-        cookie: '[]',
-        inject_jquery: 'false',
-        load_img: 'false',
-        drill_rules: '[]',
-        drill_relation: '{"mode":"css|regex|value","expression":"#expression#","pick":"","index":1}',
-        validation_keywords: '[]',
-        script: '[]',
-        navigate_rule: '[]',
-        stoppage: -1,
-        priority: 1,
-        weight: 10,
-        schedule_interval: 86400,
-        active: 'true',
-        seed:'[]',
-        schedule_rule:'FIFO'}; // FIFO  or LIFO
+        'domain': '',
+        'url_pattern': '',
+        'alias': '',
+        'id_parameter': [],
+        'encoding': 'UTF8',
+        'type': 'node', //branch or node
+        'save_page': 'true',
+        'format': '0',
+        'jshandle': 'false',
+        'extract_rule':{
+            'crawled':{
+                'title':{'base':'content','mode':'css','expression':'title','pick':'text','index':1}
+            }
+        },
+        'cookie': [],
+        'inject_jquery': false,
+        'load_img': false,
+        'drill_rules': [],
+        'drill_relation': {
+            'mode':'css','expression':'title','pick':'text','index':1
+        },
+        'validation_keywords': [],
+        'script': [],
+        'navigate_rule': [],
+        'stoppage': -1,
+        'priority': 1,
+        'weight': 10,
+        'schedule_interval': 86400,
+        'active': 'true',
+        'seed': [],//[]
+        'schedule_rule':'FIFO'// FIFO  or LIFO
+};
 
 var rules = [];
 
@@ -80,38 +86,14 @@ exports.new = function(req, res) {
 // add a rule, ****not use****
 exports.create = function(req, res) {
   // get key and rule from form
-  var domain = req.body.domain;
-  var alias = req.body.alias;
-  var key = 'driller:' + domain + ':' + alias;
+    var jsonstr = req.body.jsondata;
+    var jsonobj = JSON.parse(jsonstr);
+    var key = 'driller:' + jsonobj['domain'] + ':' + jsonobj['alias'];
 
-  console.log("key", key);
-  //console.log("url:", urlencode(req.body.url_pattern));
-   
-    // add rule
-    template['domain'] = req.body.domain;
-    template['url_pattern'] = req.body.url_pattern;
-    template['alias'] = req.body.alias;
-    template['encoding'] = req.body.encoding;
-    template['type'] = req.body.type;
-    template['save_page'] = req.body.save_page;
-    template['jshandle'] = req.body.jshandle;
-    template['extract_rule'] = req.body.extract_rule;
-    template['cookie'] = req.body.cookie;
-    template['inject_jquery'] = req.body.inject_jquery;
-    template['load_img'] = req.body.load_img;
-    template['drill_rules'] = req.body.drill_rules;
-    template['script'] = req.body.script;
-    template['navigate_rule'] = req.body.navigate_rule;
-    template['stoppage'] = req.body.stoppage;
-    template['priority'] = req.body.priority;
-    template['weight'] = req.body.weight;
-    template['schedule_interval'] = req.body.schedule_interval;
-    template['active'] = req.body.active;
-    template['seed'] = req.body.seed;
-    template['schedule_rule'] = req.body.schedule_rule;   
-    template['id'] = key;
+    console.log("key", key);
+    //console.log("url:", urlencode(req.body.url_pattern));
 
-    rule.create(key, template, function(err, result){
+    rule.create(key, jsonobj, function(err, result){
         if(!err) {
 
         }
@@ -156,7 +138,7 @@ exports.edit = function(req, res) {
   console.log("id:", id);
    rule.displayOne(id, function(err, obj){
       if(obj){
-        obj['id'] = id;
+//        obj['id'] = id;
         console.log("obj:", obj);
         res.render('rule/edit', {title : 'Edit rule', rule:obj});        
       }else{
@@ -167,40 +149,17 @@ exports.edit = function(req, res) {
 
 // upsert a rule
 exports.update = function(req,res) {
-    var id = "driller:" + req.body.domain + ":" + req.body.alias;
-    // upsert rule
-    template['domain'] = req.body.domain;
-    template['url_pattern'] = req.body.url_pattern;
-    template['alias'] = req.body.alias;
-    template['id_parameter'] = req.body.id_parameter;
-    template['encoding'] = req.body.encoding;
-    template['type'] = req.body.type;
-    template['save_page'] = req.body.save_page;
-    template['format'] = req.body.format;
-    template['jshandle'] = req.body.jshandle;
-    template['extract_rule'] = req.body.extract_rule;
-    template['cookie'] = req.body.cookie; 
-    template['inject_jquery'] = req.body.inject_jquery;
-    template['load_img'] = req.body.load_img;
-    template['drill_rules'] = req.body.drill_rules;
-    template['drill_relation'] = req.body.drill_relation;
-    template['validation_keywords'] = req.body.validation_keywords;
-    template['script'] = req.body.script;
-    template['navigate_rule'] = req.body.navigate_rule;
-    template['stoppage'] = req.body.stoppage;
-    template['priority'] = req.body.priority;
-    template['weight'] = req.body.weight;
-    template['schedule_interval'] = req.body.schedule_interval;
-    template['active'] = req.body.active;
-    template['seed'] = req.body.seed;
-    template['schedule_rule'] = req.body.schedule_rule;   
-    template['id'] = id;
+    var jsonstr = req.body.jsondata;
+    var jsonobj = JSON.parse(jsonstr);
+    var key = 'driller:' + jsonobj['domain'] + ':' + jsonobj['alias'];
 
+    console.log("key", key);
+    //console.log("url:", urlencode(req.body.url_pattern));
     console.log("edit update:", req.body.drill_rules);
 
     //req.session.searchBox = req.body.domain;
 
-   rule.update(id, template, function(err, result){
+   rule.update(key, jsonobj, function(err, result){
       if(!err){
             /*         
           rule.getDrillingRules(function(err, result){

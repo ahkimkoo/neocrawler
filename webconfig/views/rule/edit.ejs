@@ -1,44 +1,36 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!DOCTYPE HTML>
 <html><head>
-  
-  <meta charset="utf-8" content="text/html; charset=ISO-8859-1" http-equiv="content-type">
-  <title>Edit Crawling Rules</title>
-  <link rel="stylesheet" href="/stylesheets/main.css">
-  <link rel="stylesheet" href="/stylesheets/FlexiJsonEditor/jsoneditor.css"/> 
 
-  <script type="text/javascript" src="/javascripts/json2.js"></script>
-  <script type="text/javascript" src="/javascripts/jquery.min.js"></script>
-  <script type="text/javascript" src="/javascripts/jquery.jsoneditor.js"></script>
-  <script type="text/javascript" src="/javascripts/my-json-editor.js"></script>
+    <meta http-equiv="Content-Type" content="text/html;charset=utf-8">
+    <title>Edit Crawling Rules</title>
+    <!-- jsoneditor -->
+    <link rel="stylesheet" type="text/css" href="/javascripts/jsoneditor/jsoneditor.css">
+    <script type="text/javascript" src="/javascripts/jsoneditor/jsoneditor.js"></script>
+    <!-- ace code editor -->
+    <script type="text/javascript" src="/javascripts/jsoneditor/lib/ace/ace.js"></script>
+    <script type="text/javascript" src="/javascripts/jsoneditor/lib/ace/mode-json.js"></script>
+    <script type="text/javascript" src="/javascripts/jsoneditor/lib/ace/theme-textmate.js"></script>
+    <script type="text/javascript" src="/javascripts/jsoneditor/lib/ace/theme-jsoneditor.js"></script>
+    <!-- json lint -->
+    <script type="text/javascript" src="/javascripts/jsoneditor/lib/jsonlint/jsonlint.js"></script>
 
-<script type="text/javascript">
- $(function(){
-    /////////////extract rule
-    jsonEditorConstructor($('#extractEditor'),$('#extract_rule'));
-    /////////////cookie editor
-    jsonEditorConstructor($('#cookieEditor'),$('#cookie'));
-    /////////////drilling rule editor
-    jsonEditorConstructor($('#ruleEditor'),$('#drill_rules'));
-    /////////////drilling rule editor
-    jsonEditorConstructor($('#ruleRelationEditor'),$('#drill_relation'));
-    /////////////script rule editor
-    jsonEditorConstructor($('#scriptEditor'),$('#script'));
-    /////////////navigation rule editor
-    jsonEditorConstructor($('#naviEditor'),$('#navigate_rule'));
-    /////////////seed editor
-    jsonEditorConstructor($('#seedEditor'),$('#seed'));
-    ////////////id_parameter editor
-    jsonEditorConstructor($('#id_parameter_editor'),$('#id_parameter'));
-    ///////////validation_keywords editor
-    jsonEditorConstructor($('validation_keywords_editor'),$('#validation_keywords'));
-    //b4 submit///////////////////////////////////////////////////
-    $('#form').submit(function(){
-        $(".json-input").each(function(index,element){
-            $(element).val(JSON.stringify(JSON.parse($(element).val())));
-        });
-    });
-  });
-</script>
+    <style type="text/css">
+        body {
+            font: 10.5pt arial;
+            color: #4d4d4d;
+            line-height: 150%;
+            width: 500px;
+        }
+
+        code {
+            background-color: #f5f5f5;
+        }
+
+        #jsoneditor {
+            width: 1000px;
+            height: 500px;
+        }
+    </style>
 
 </head>
 
@@ -47,169 +39,36 @@
 <h1>Edit <%= rule.domain %></h1>
 
 <hr><a href="/rule">Return</a>
-
-<form method="post" action="/rule/upsert" id="form">
-  <table>
-    <tbody> 
-      <tr>
-        <th>Domain</th>
-        <td><input name="domain" id="domain" value="<%=rule.domain %>" size="30" type="text"></td>
-      </tr>
-     <tr>
-        <th>url pattern</th>
-        <td><input name="url_pattern" id="url_pattern" value="<%=rule.url_pattern %>" size="170" type="text"></td>
-      </tr>      
-      <tr>
-        <th>Alias</th>
-        <td><input name="alias" id="alias" value="<%=rule.alias %>" size="20" type="text"></td>
-      </tr>
-      <tr>
-          <th>Identical parameter</th>
-          <td>
-              <div id="id_parameter_editor"></div>
-              <input name="id_parameter" id="id_parameter" value="<%=rule.id_parameter %>" size="80" type="text"></td>
-      </tr>
-      <tr>
-        <th>Encoding</th>
-        <td> <label><input name="encoding" value="UTF8" type="radio" <%if(rule.encoding === 'UTF8'){%> checked <%}%> >UTF8</label>&nbsp;&nbsp; <label><input name="encoding" value="GBK" type="radio" <%if(rule.encoding === 'GBK'){%> checked <%}%>>GBK</label>
-        </td>          
-      </tr>
-      <tr>
-        <th>Logic type</th>
-        <td> <label><input name="type" value="branch" type="radio" <%if(rule.type === 'branch'){%> checked <%}%> >branch</label>&nbsp;&nbsp; <label><input name="type" value="node" type="radio" <%if(rule.type === 'node'){%> checked <%}%>>node</label> 
-        </td>         
-      </tr>      
-      <tr>
-        <th>Extract content<br>
-        </th>
-        <td> <label><input name="save_page" value="true" type="radio" <%if(rule.save_page === 'true'){%> checked <%}%> >Yes</label>&nbsp;&nbsp; <label><input name="save_page" value="false" type="radio" <%if(rule.save_page === 'false'){%> checked <%}%>>No</label> 
-        </td>         
-      </tr>
-      <tr>
-        <th>Content format</th>
-        <td> <label><input name="format" value="0" type="radio" <%if(rule.format === '0'){%> checked <%}%> >html</label>&nbsp;&nbsp; <label><input name="format" value="1" type="radio" <%if(rule.format === '1'){%> checked <%}%>>json</label>&nbsp;&nbsp; <label><input name="format" value="2" type="radio" <%if(rule.format === '2'){%> checked <%}%>>binary</label>  
-        </td>         
-      </tr>        
-      <tr>
-        <th>Handle Js<br>
-        </th>
-        <td> <label><input name="jshandle" value="true" type="radio" <%if(rule.jshandle === 'true'){%> checked <%}%> >Yes</label>&nbsp;&nbsp; <label><input name="jshandle" value="false" type="radio" <%if(rule.jshandle === 'false'){%> checked <%}%>>No</label> 
-        </td> 
-
-      </tr>
-      <tr>
-        <th>Extraction Rule</th>
-        <td> 
-        <div id="extractEditor" class="json-editor"></div>
-         <div id="extractRuleJson">
-          <textarea id="extract_rule" name="extract_rule" cols="130" rows="5"><%=rule.extract_rule%></textarea>
-        </div>
-      </tr>
-      <tr>
-        <th>Faked cookie</th>
-        <td> 
-        <div id="cookieEditor" class="json-editor"></div>
-         <div id="cookieJson">
-          <textarea id="cookie" name="cookie" cols="130" rows="5"><%=rule.cookie%></textarea>
-        </div>
-      </tr>
-      <tr>
-        <th>Inject jquery</th>
-        <td>
-            <label><input name="inject_jquery" value="true" type="radio" <%if(rule.inject_jquery === 'true'){%> checked <%}%> >Yes</label>&nbsp;&nbsp; <label><input name="inject_jquery" value="false" type="radio" <%if(rule.inject_jquery === 'false'){%> checked <%}%>>No</label>
-        </td>                
-      </tr>  
-      <tr>
-        <th>Load img</th>
-        <td> <label><input name="load_img" value="true" type="radio" <%if(rule.load_img === 'true'){%> checked <%}%> >Yes</label>&nbsp;&nbsp; <label><input name="load_img" value="false" type="radio" <%if(rule.load_img === 'false'){%> checked <%}%>>No</label> 
-        </td>               
-      </tr> 
-
-      <tr>
-        <th>Drill rules</th>
-        <td>
-        <div id="ruleEditor" class="json-editor"></div>
-         <div id="ruleJson">
-          <textarea id="drill_rules" name="drill_rules" cols="130" rows="5"><%=rule.drill_rules%></textarea>
-        </div>
-        </td>      
-      </tr> 
-      <tr>
-        <th>Drill relation</th>
-        <td>
-        <div id="ruleRelationEditor" class="json-editor"></div>
-         <div id="ruleRelationJson">
-          <textarea id="drill_relation" name="drill_relation" cols="130" rows="5"><%=rule.drill_relation%></textarea>
-        </div>
-        </td>      
-      </tr>
-      <tr>
-          <th>Content validation keywords</th>
-          <td>
-              <div id="validation_keywords_editor"></div>
-              <input name="validation_keywords" id="validation_keywords" value="<%=rule.validation_keywords %>" size="150" type="text"></td>
-      </tr>
-      <tr>
-        <th>Inject script</th>
-        <td>
-        <div id="scriptEditor" class="json-editor"></div>
-         <div id="scriptJsonDiv">
-          <textarea id="script" name="script" cols="130" rows="5"><%=rule.script%></textarea>
-        </div>
-        </td>      
-      </tr> 
-
-      <tr>
-        <th>Auto navigation rule</th>
-        <td>
-        <div id="naviEditor" class="json-editor"></div>
-         <div id="naviJson">
-          <textarea id="navigate_rule" name="navigate_rule" cols="130" rows="5"><%=rule.navigate_rule%></textarea>
-        </div>
-        </td>      
-      </tr> 
-      <tr>
-        <th>Auto navigation limit</th>
-        <td> <input name="stoppage" id="stoppage" value="<%=rule.stoppage%>" size="30" type="text"></td>
-      </tr> 
-      <tr>
-        <th>Schedule priority</th>
-        <td> <input name="priority" id="priority" value="<%=rule.priority%>" size="30" type="text"></td> 
-      </tr>  
-      <tr>
-        <th>Schedule weight</th>
-        <td> <input name="weight" id="weight" value="<%=rule.weight%>" size="30" type="text"></td>
-      </tr>  
-      <tr>
-        <th>Schedule interval </th>
-        <td> <input name="schedule_interval" id="schedule_interval" value="<%=rule.schedule_interval%>" size="30" type="text"></td>
-      </tr>  
-      <tr>
-        <th>Active</th>
-        <td> <label><input name="active" value="true" type="radio" <%if(rule.active === 'true'){%> checked <%}%> >Yes</label>&nbsp;&nbsp; <label><input name="active" value="false" type="radio" <%if(rule.active === 'false'){%> checked <%}%>>No</label> </td>  
-      </tr>  
-	  <tr>
-        <th>Seeds</th>
-        <td> 
-        <div id="seedEditor" class="json-editor"></div>
-         <div id="seedJson">
-          <textarea id="seed" name="seed" cols="130" rows="5"><%=rule.seed%></textarea>
-        </div>
-      </tr> 
-      <tr>
-        <th>Schedule rule</th>
-        <td>
-        <label><input name="schedule_rule" value="FIFO" type="radio" <%if(rule.schedule_rule === 'FIFO'){%> checked <%}%> >FIFO</label>&nbsp;&nbsp; <label><input name="schedule_rule" value="LIFO" type="radio" <%if(rule.schedule_rule === 'LIFO'){%> checked <%}%>>LIFO</label>
-        </td>
-      </tr>
-    </tbody>
-  </table>
-<input type="hidden" value="put" name="_method" />
-<br>
-<input type="submit" name="submit" id="submit" value="Submit"/>
-<input type="reset" name="reset" id="reset" value="Reset"/>  
+<p></p>
+<form method="post" action="/rule/upsert" id="form"  onsubmit="return checkform()">
+    <textarea id="jsondata" style="display:none"><%=JSON.stringify(rule)%></textarea>
+    <div id="jsoneditor"></div>
+    <p>
+    <input type="submit" name="submit" id="submit" value="Submit"/>
+    </p>
 </form>
-<br>
-<br>
-<br>
+<script type="text/javascript" >
+    var container = document.getElementById('jsoneditor');
+    var datanode = document.getElementById('jsondata');
+
+    var options = {
+        mode: 'tree',
+        modes: ['code', 'form', 'text', 'tree', 'view'], // allowed modes
+        error: function (err) {
+            alert(err.toString());
+        }
+    };
+
+    var editor = new jsoneditor.JSONEditor(container, options,JSON.parse(datanode.value));
+
+    var checkform = function(){
+        try{
+            var jsonvalue = JSON.stringify(editor.get());
+            datanode.value = jsonvalue;
+        }catch(e){
+            return false;
+        }
+        return true;
+    }
+</script>
 </body></html>
