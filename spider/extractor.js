@@ -125,6 +125,156 @@ extractor.prototype.arrange_link = function(links){
     }
     return linkobj;
 }
+
+
+/**
+ * generate drill relation string: page->sub page->sub page
+ * @param crawl_info
+ * @returns string
+ */
+extractor.prototype.getDrillRelation = function($,crawl_info){
+    //var rule = crawl_info['origin']['drill_relation_rule'];//rule: {"base":"content","mode":"css","expression":"#breadCrumb","pick":"innerText","index":1}
+    var rule = this.spiderCore.spider.getDrillerRule(crawl_info['origin']['urllib'],'drill_relation');
+    var origin_relation = crawl_info['origin']['drill_relation'];
+    if(!origin_relation)origin_relation = '*';
+    var new_relation = '*';
+    if(rule){
+        switch(rule['mode']){
+            case 'regex':
+                if(rule['base']==='url'){
+                    new_relation = this.regexSelector(crawl_info['url'],rule['expression'],rule['index']);
+                }else{
+                    new_relation = this.regexSelector(crawl_info['content'],rule['expression'],rule['index']);
+                }
+                break;
+            case 'css':
+            default:
+                new_relation = this.cssSelector($.root(),rule['expression'],rule['pick'],rule['index']);
+                break;
+        }
+    }
+    return util.format('%s->%s',origin_relation,new_relation);
+}
+
+/**
+ * extractor: for now , just extract links
+ * @param crawl_info
+ * @returns {*}
+ */
+extractor.prototype.extract = function(crawl_info){
+    var extract_rule = this.spiderCore.spider.getDrillerRule(crawl_info['origin']['urllib'],'extract_rule');
+
+    if(crawl_info['origin']['drill_rules']||extract_rule){
+        var $ = cheerio.load(crawl_info['content']);
+    }
+
+    if(crawl_info['origin']['drill_rules']){
+        if(crawl_info['drill_link']){
+            var drill_link = crawl_info['drill_link'];
+        }else{
+            var drill_link = this.extract_link($,crawl_info['origin']['drill_rules']);
+        }
+
+        var washed_link = this.wash_link(crawl_info['url'],drill_link);
+        crawl_info['drill_link'] = this.arrange_link(washed_link);
+        crawl_info['drill_relation'] = this.getDrillRelation($,crawl_info);
+    }
+
+    if(extract_rule){
+        var extracted_data = this.extract_data(crawl_info['url'],crawl_info['content'],extract_rule,null,$.root());
+        crawl_info['extracted_data'] = extracted_data;
+    }
+    return crawl_info;
+}
+/**
+ * extract data
+ * @param url
+ * @param content
+ * @param extract_rule
+ * @param uppper_data
+ * @param dom
+ * @returns {{}}
+ */
+extractor.prototype.extract_data = function(url,content,extract_rule,uppper_data,dom){
+    var data = {};
+    var extractor = this;
+    if(extract_rule['category'])data['$category'] = extract_rule['category'];
+//    if(extract_rule['require'])data['$require'] = extract_rule['require'];
+    if(extract_rule['relate'])data['relate'] = uppper_data[extract_rule['relate']];
+    for(i in extract_rule['rule']){
+        if(extract_rule['rule'].hasOwnProperty(i)){
+            var rule = extract_rule['rule'][i];
+            var baser = content;
+            if(rule['base']==='url')baser = url;
+            switch(rule['mode']){
+                case 'regex':
+                    var tmp_result = this.regexSelector(baser,rule['expression'],rule['index']);
+                    data[i] = tmp_result;
+                    break;
+                case 'xpath':
+                    break;
+                case 'value':
+                    data[i] = rule['expression'];
+                    break;
+                case 'json':
+                    break;
+                default://css selector
+                    if(dom)baser = dom;
+                    else baser = (cheerio.load(content)).root();
+                    var pick = rule['pick'];
+                    if(rule['subset']){
+                        pick = false;
+                        (function(k){
+                            var result_arr = [];
+                            var tmp_result = extractor.cssSelector(baser,rule['expression'],pick,rule['index']);
+                            if(tmp_result){
+                                tmp_result.each(function(x, elem) {
+                                    var sub_dom = tmp_result.eq(x);
+                                    result_arr.push(extractor.extract_data(url,content,rule['subset'],data,sub_dom));
+                                });
+                            }
+                            if(!result_arr.isEmpty())data[k] = result_arr;
+                        })(i);
+                    }else{
+                        var tmp_result = this.cssSelector(baser,rule['expression'],pick,rule['index']);
+                        if(!tmp_result.isEmpty())data[i] = tmp_result;
+                    }
+
+            }
+            }
+    }
+    if(extract_rule['require']){
+        var lacks = [];
+        for(var c=0;c<extract_rule['require'].length;c++){
+            var key = extract_rule['require'][c];
+            if(typeof(key)==='object'){
+                var sublack = (function(keys){
+                    var sublackarr = [];
+                    for(var x=0;x<keys.length;x++){
+                        if(!data[keys[x]]){
+                            sublackarr.push(keys[x]);
+                            logger.warn(keys[x] + ' not found in '+ url + ' extracted data');
+                        }
+                    }
+                    if(sublackarr.length===keys.length)return sublackarr;
+                    else return [];
+                })(key)
+                if(sublack.length>0)lacks = lacks.concat(sublack);
+            }else{
+                if(!data[key]){
+                    lacks.push(key);
+                    logger.warn(key + ' not found in '+ url + ' extracted data');
+                }
+            }
+        }
+        if(!lacks.isEmpty()){
+            logger.error(url + ' extracted data lacks of '+lacks.join(','));
+            if('data_lack_alert' in extractor.spiderCore.spider_extend)extractor.spiderCore.spider_extend.data_lack_alert(url,lacks);
+        }
+    }
+    return data;
+}
+
 /**
  * extract value base expression
  * @param $
@@ -138,7 +288,7 @@ extractor.prototype.cssSelector = function($,expression,pick,index){
     if(!index)index=1;
     var real_index = parseInt(index) - 1;
     if(real_index<0)real_index=0;
-    var tmp_val = $(expression);
+    var tmp_val = $.find(expression);
     if(!pick)return tmp_val;
     if(typeof(tmp_val)==='object'){
         var val = tmp_val.eq(real_index);
@@ -177,56 +327,6 @@ extractor.prototype.regexSelector = function(content,expression,index){
     var expression = new RegExp(expression,"ig");
     var matched = expression.exec(content);
     if(matched&&matched.length>index)return matched[index];
-}
-
-/**
- * generate drill relation string: page->sub page->sub page
- * @param crawl_info
- * @returns string
- */
-extractor.prototype.getDrillRelation = function($,crawl_info){
-    //var rule = crawl_info['origin']['drill_relation_rule'];//rule: {"base":"content","mode":"css","expression":"#breadCrumb","pick":"innerText","index":1}
-    var rule = this.spiderCore.spider.getDrillerRule(crawl_info['origin']['urllib'],'drill_relation');
-    var origin_relation = crawl_info['origin']['drill_relation'];
-    if(!origin_relation)origin_relation = '*';
-    var new_relation = '*';
-    if(rule){
-        switch(rule['mode']){
-            case 'regex':
-                if(rule['base']==='url'){
-                    new_relation = this.regexSelector(crawl_info['url'],rule['expression'],rule['index']);
-                }else{
-                    new_relation = this.regexSelector(crawl_info['content'],rule['expression'],rule['index']);
-                }
-                break;
-            case 'css':
-            default:
-                new_relation = this.cssSelector($,rule['expression'],rule['pick'],rule['index']);
-                break;
-        }
-    }
-    return util.format('%s->%s',origin_relation,new_relation);
-}
-
-/**
- * extractor: for now , just extract links
- * @param crawl_info
- * @returns {*}
- */
-extractor.prototype.extract = function(crawl_info){
-    if(crawl_info['origin']['drill_rules']){
-        var $ = cheerio.load(crawl_info['content']);
-        if(crawl_info['drill_link']){
-            var drill_link = crawl_info['drill_link'];
-        }else{
-            var drill_link = this.extract_link($,crawl_info['origin']['drill_rules']);
-        }
-
-        var washed_link = this.wash_link(crawl_info['url'],drill_link);
-        crawl_info['drill_link'] = this.arrange_link(washed_link);
-        crawl_info['drill_relation'] = this.getDrillRelation($,crawl_info);
-    }
-    return crawl_info;
 }
 
 extractor.prototype.validateContent = function(crawl_info){

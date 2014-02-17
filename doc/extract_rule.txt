@@ -19,8 +19,9 @@ extract_rule sample:
                 }
             }
         },
-       'require':['id',['name','static']] //必须的字段，id必须有，name和static任意一个即可。
-    }
+       
+    },
+    'require':['id',['name','static']] //必须的字段，id必须有，name和static任意一个即可。
 }
 
  

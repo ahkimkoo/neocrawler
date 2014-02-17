@@ -6,6 +6,7 @@ var crypto = require('crypto');
 var redis = require("redis");
 var hbase = require('hbase');
 var os = require("os");
+require('../lib/jsextend.js');
 
 var pipeline = function(spiderCore){
     this.spiderCore = spiderCore;
@@ -78,7 +79,7 @@ pipeline.prototype.save_links = function(page_url,linkobjs,drill_relation){
  * @param referer
  * @param pattern
  */
-pipeline.prototype.save_content = function(pageurl,content,referer,pattern,drill_relation){
+pipeline.prototype.save_content = function(pageurl,content,extracted_data,js_result,referer,pattern,drill_relation){
     var url_hash = crypto.createHash('md5').update(pageurl+'').digest('hex');
     var spider = os.hostname()+'-'+process.pid;
 
@@ -87,8 +88,20 @@ pipeline.prototype.save_content = function(pageurl,content,referer,pattern,drill
 //                { "column":"basic:url","timestamp":Date.now(),"$":pageurl},
 //                { "column":"basic:content","timestamp":Date.now(),"$":content}
 //                ];
-        var keylist = ['basic:spider','basic:url','basic:content','basic:referer','basic:url_pattern','basic:drill_relation'];
-        var valuelist = [spider,pageurl,content,referer,pattern,drill_relation];
+        var keylist = ['basic:spider','basic:url','basic:referer','basic:url_pattern','basic:drill_relation'];
+        var valuelist = [spider,pageurl,referer,pattern,drill_relation];
+        if(content&&!content.isEmpty()){
+            keylist.push('basic:content');
+            valuelist.push(content);
+        }
+        if(extracted_data&&!extracted_data.isEmpty()){
+            keylist.push('basic:extracted_data');
+            valuelist.push(extracted_data);
+        }
+        if(js_result&&!js_result.isEmpty()){
+            keylist.push('basic:jsresult');
+            valuelist.push(js_result);
+        }
         var row = this.hbase_table.getRow(url_hash);
     try{
         row.put(keylist,valuelist,function(err,success){
@@ -105,49 +118,16 @@ pipeline.prototype.save_content = function(pageurl,content,referer,pattern,drill
         row.put('basic:url',pageurl,function(err, success){
             logger.debug(pageurl+' update basic:url ');
         });
+        if(content&&!content.isEmpty())
         row.put('basic:content',content,function(err, success){
             logger.debug(pageurl+' update basic:content ');
         });
-        row.put('basic:referer',referer,function(err, success){
-            logger.debug(pageurl+' update basic:referer ');
+        if(extracted_data&&!extracted_data.isEmpty())
+        row.put('basic:data',extracted_data,function(err, success){
+            logger.debug(pageurl+' update basic:data ');
         });
-        row.put('basic:url_pattern',pattern,function(err, success){
-            logger.debug(pageurl+' update basic:url_pattern ');
-        });
-        row.put('basic:drill_relation',drill_relation,function(err, success){
-            logger.debug(pageurl+' update basic:drill_relation ');
-        });
-    }
-}
-/**
- * save js executed result
- * @param pageurl
- * @param content
- * @param referer
- * @param pattern
- */
-pipeline.prototype.save_jsresult = function(pageurl,content,referer,pattern,drill_relation){
-    var url_hash = crypto.createHash('md5').update(pageurl+'').digest('hex');
-    var spider = os.hostname()+'-'+process.pid;
-
-    var keylist = ['basic:spider','basic:url','basic:jsresult','basic:referer','basic:url_pattern','basic:drill_relation'];
-    var valuelist = [spider,pageurl,content,referer,pattern,drill_relation];
-
-    var row = this.hbase_table.getRow(url_hash);
-    try{
-        row.put(keylist,valuelist,function(err,success){
-            logger.debug('insert js result extracted from '+pageurl);
-        });
-    }catch(e){
-        logger.error('use bench mode insert jsresult , err: '+e);
-
-        row.put('basic:spider',spider,function(err, success){
-            logger.debug(pageurl+' update basic:spider ');
-        });
-        row.put('basic:url',pageurl,function(err, success){
-            logger.debug(pageurl+' update basic:url ');
-        });
-        row.put('basic:jsresult',content,function(err, success){
+        if(js_result&&!js_result.isEmpty())
+        row.put('basic:jsresult',js_result,function(err, success){
             logger.debug(pageurl+' update basic:jsresult ');
         });
         row.put('basic:referer',referer,function(err, success){
@@ -183,8 +163,9 @@ pipeline.prototype.save =function(extracted_info){
         if(extracted_info['drill_link'])this.save_links(extracted_info['url'],extracted_info['drill_link'],extracted_info['drill_relation']);
         if('pipeline' in this.spiderCore.spider_extend)this.spiderCore.spider_extend.pipeline(extracted_info);//spider extend
         else{
-            if(extracted_info['origin']['save_page'])this.save_content(extracted_info['url'],extracted_info['content'],extracted_info['origin']['referer'],extracted_info['origin']['url_pattern'],extracted_info['drill_relation']);
-            if(extracted_info['js_result']&&extracted_info['js_result'].length>0)this.save_jsresult(extracted_info['url'],extracted_info['js_result'],extracted_info['origin']['referer'],extracted_info['origin']['url_pattern'],extracted_info['drill_relation']);
+            var html_content = extracted_info['content'];
+            if(extracted_info['origin']['save_page'])html_content = false;
+            this.save_content(extracted_info['url'],extracted_info['content'],extracted_info['extracted_data'],extracted_info['js_result'],extracted_info['origin']['referer'],extracted_info['origin']['url_pattern'],extracted_info['drill_relation']);
         }
     }
 }

@@ -55,5 +55,11 @@ var spider_extend = function(spiderCore){
 //spider_extend.prototype.pipeline = function(extracted_info){
 //    logger.debug(JSON.stringify(extracted_info));
 //}
+/**
+ * report extracted data lacks of some fields
+ */
+spider_extend.prototype.data_lack_alert = function(url,fields){
+    logger.error(url + ' lacks of :'+fields.join(' and '));
+}
 
 module.exports = spider_extend;
