@@ -27,6 +27,28 @@ spider.prototype.assembly = function(){
         });
     });
 }
+/**
+ * smart parse string to json object deeply(level2)
+ * @param source
+ */
+spider.prototype.jsonSmartDeepParse = function(obj){
+    var dataobj = {};
+    var numberPattern = new RegExp("^\-?[0-9]+$");
+    for(i in obj){
+        if(obj.hasOwnProperty(i)){
+            if(typeof(obj[i])==='string'&&(obj[i].charAt(0)==='{'||obj[i].charAt(0)==='[')){
+                dataobj[i] = JSON.parse(obj[i]);
+            }else if(numberPattern.test(obj[i])){
+                dataobj[i] = parseInt(obj[i]);
+            }else if(obj[i]==='true'){
+                dataobj[i] = true;
+            }else if(obj[i]==='false'){
+                dataobj[i] = false;
+            }else dataobj[i] = obj[i];
+        }
+    }
+    return dataobj;
+}
 
 //refresh the driller rules//////////////////////////////
 spider.prototype.refreshDrillerRules = function(){
@@ -45,7 +67,7 @@ spider.prototype.refreshDrillerRules = function(){
                             redis_cli.hgetall(key, function(err,value){//for synchronized using object variable
                                 if(spider.tmp_driller_rules==undefined)spider.tmp_driller_rules = {};
                                 if(spider.tmp_driller_rules[value['domain']]==undefined)spider.tmp_driller_rules[value['domain']]={};
-                                spider.tmp_driller_rules[value['domain']][value['alias']] = value;
+                                spider.tmp_driller_rules[value['domain']][value['alias']] = spider.jsonSmartDeepParse(value);
                                 spider.tmp_driller_rules_length--;
                                 if(spider.tmp_driller_rules_length<=0){
                                     spider.driller_rules = spider.tmp_driller_rules;
@@ -64,6 +86,39 @@ spider.prototype.refreshDrillerRules = function(){
             }
         })
 }
+/**
+ * query drillerrule
+ * @param id
+ * @param name
+ */
+spider.prototype.getDrillerRule = function(id,name){
+    var splited_id = id.split(':');
+    var pos = 1;
+    if(splited_id[0]==='urllib')pos = 2;
+    if(this.driller_rules[splited_id[pos]][splited_id[pos+1]][name]){
+        return this.driller_rules[splited_id[pos]][splited_id[pos+1]][name];
+    }else{
+        logger.warn(util.format('%s in %s%s, not found',name,splited_id[pos],splited_id[pos+1]));
+        return false;
+    }
+}
+/**
+ * get driller rules dictionary
+ * @param id
+ * @returns dict{}
+ */
+spider.prototype.getDrillerRules = function(id){
+    var splited_id = id.split(':');
+    var pos = 1;
+    if(splited_id[0]==='urllib')pos = 2;
+    if(this.driller_rules[splited_id[pos]][splited_id[pos+1]]){
+        return this.driller_rules[splited_id[pos]][splited_id[pos+1]];
+    }else{
+        logger.warn(util.format('%s%s, not exists',splited_id[pos],splited_id[pos+1]));
+        return null;
+    }
+}
+
 ////get url////////////////////////////////////////////
 spider.prototype.getUrlQueue = function(){
     /*
@@ -108,9 +163,7 @@ spider.prototype.getUrlQueue = function(){
                             logger.warn(link+', url info is incomplete');
                             spider.getUrlQueue();
                         }else{
-                            redis_driller_db.hgetall(link_info['trace'].slice(link_info['trace'].indexOf(':')+1),function(err, drillerinfo){
-                                //5---------------------------------------------------------------------
-                                if(err)throw(err);
+                            var drillerinfo = this.getDrillerRules(link_info['trace']);
                                 if(drillerinfo==null){
                                     logger.warn(link+', has no driller info!');
                                     spider.getUrlQueue();
@@ -121,25 +174,22 @@ spider.prototype.getUrlQueue = function(){
                                         "referer":link_info['referer'],
                                         "url_pattern":drillerinfo['url_pattern'],
                                         "urllib":link_info['trace'],
-                                        "save_page":JSON.parse(drillerinfo['save_page']),
-                                        "cookie":JSON.parse(drillerinfo['cookie']),
-                                        "jshandle":JSON.parse(drillerinfo['jshandle']),
-                                        "inject_jquery":JSON.parse(drillerinfo['inject_jquery']),
-                                        "drill_rules":JSON.parse(drillerinfo['drill_rules']),
-                                        "drill_relation_rule":drillerinfo['drill_relation']&&drillerinfo['drill_relation']!='undefined'?JSON.parse(drillerinfo['drill_relation']):'',
+                                        "save_page":drillerinfo['save_page'],
+                                        "cookie":drillerinfo['cookie'],
+                                        "jshandle":drillerinfo['jshandle'],
+                                        "inject_jquery":drillerinfo['inject_jquery'],
+                                        "drill_rules":drillerinfo['drill_rules'],
                                         "drill_relation":link_info['drill_relation'],
-                                        "validation_keywords":drillerinfo['validation_keywords']&&drillerinfo['validation_keywords']!='undefined'?JSON.parse(drillerinfo['validation_keywords']):'',
-                                        "script":JSON.parse(drillerinfo['script']),
-                                        "navigate_rule":JSON.parse(drillerinfo['navigate_rule']),
-                                        "stoppage":parseInt(drillerinfo['stoppage']),
+                                        "validation_keywords":drillerinfo['validation_keywords']&&drillerinfo['validation_keywords']!='undefined'?drillerinfo['validation_keywords']:'',
+                                        "script":drillerinfo['script'],
+                                        "navigate_rule":drillerinfo['navigate_rule'],
+                                        "stoppage":drillerinfo['stoppage'],
                                         "start_time":(new Date()).getTime()
                                     }
                                     logger.debug('new url: '+link);
                                     spider.queue_length++;
                                     spider.spiderCore.emit('new_url_queue',urlinfo);
                                 }
-                                //5----------------------------------------------------------------------
-                            });
                         }
                     }
                     //4-----------------------------------------------------------------------------------
@@ -211,17 +261,16 @@ spider.prototype.wrapLink = function(link){
             "referer":'',
             "url_pattern":drillerinfo['url_pattern'],
             "urllib":'urllib:'+driller,
-            "save_page":JSON.parse(drillerinfo['save_page']),
-            "cookie":JSON.parse(drillerinfo['cookie']),
-            "jshandle":JSON.parse(drillerinfo['jshandle']),
-            "inject_jquery":JSON.parse(drillerinfo['inject_jquery']),
-            "drill_rules":JSON.parse(drillerinfo['drill_rules']),
-            "drill_relation_rule":drillerinfo['drill_relation']&&drillerinfo['drill_relation']!='undefined'?JSON.parse(drillerinfo['drill_relation']):'',
+            "save_page":drillerinfo['save_page'],
+            "cookie":drillerinfo['cookie'],
+            "jshandle":drillerinfo['jshandle'],
+            "inject_jquery":drillerinfo['inject_jquery'],
+            "drill_rules":drillerinfo['drill_rules'],
             "drill_relation":'*',
-            "validation_keywords":drillerinfo['validation_keywords']&&drillerinfo['validation_keywords']!='undefined'?JSON.parse(drillerinfo['validation_keywords']):'',
-            "script":JSON.parse(drillerinfo['script']),
-            "navigate_rule":JSON.parse(drillerinfo['navigate_rule']),
-            "stoppage":parseInt(drillerinfo['stoppage'])
+            "validation_keywords":drillerinfo['validation_keywords']&&drillerinfo['validation_keywords']!='undefined'?drillerinfo['validation_keywords']:'',
+            "script":drillerinfo['script'],
+            "navigate_rule":drillerinfo['navigate_rule'],
+            "stoppage":drillerinfo['stoppage']
         }
     }
     return linkinfo;

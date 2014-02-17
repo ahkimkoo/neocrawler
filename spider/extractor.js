@@ -185,7 +185,8 @@ extractor.prototype.regexSelector = function(content,expression,index){
  * @returns string
  */
 extractor.prototype.getDrillRelation = function($,crawl_info){
-    var rule = crawl_info['origin']['drill_relation_rule'];//rule: {"base":"content","mode":"css","expression":"#breadCrumb","pick":"innerText","index":1}
+    //var rule = crawl_info['origin']['drill_relation_rule'];//rule: {"base":"content","mode":"css","expression":"#breadCrumb","pick":"innerText","index":1}
+    var rule = this.spiderCore.spider.getDrillerRule(crawl_info['origin']['urllib'],'drill_relation');
     var origin_relation = crawl_info['origin']['drill_relation'];
     if(!origin_relation)origin_relation = '*';
     var new_relation = '*';
