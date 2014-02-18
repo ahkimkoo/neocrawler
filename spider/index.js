@@ -62,6 +62,7 @@ spiderCore.prototype.start = function(){
             this.pipeline.save(extracted_info);
             this.spider.updateLinkState(crawled_info['url'],'crawled_finish');
             this.emit('slide_queue');
+            if('crawl_finish_alert' in this.spider_extend)this.spider_extend.crawl_finish_alert(crawled_info);
         }else{
             logger.error(util.format('invalidate content %s',crawled_info['url']));
             this.spider.retryCrawl(crawled_info['origin']);

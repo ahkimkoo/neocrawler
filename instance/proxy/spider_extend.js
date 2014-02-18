@@ -61,5 +61,17 @@ var spider_extend = function(spiderCore){
 spider_extend.prototype.data_lack_alert = function(url,fields){
     logger.error(url + ' lacks of :'+fields.join(' and '));
 }
-
+/**
+ * report a url crawling finish
+ * @param crawled_info
+ */
+spider_extend.prototype.crawl_finish_alert = function(crawled_info){
+    logger.debug('I see, '+crawled_info['url'] + 'crawling finish.');
+}
+/**
+ * report no queue
+ */
+spider_extend.prototype.no_queue_alert = function(){
+    logger.debug('I see, no queue');
+}
 module.exports = spider_extend;

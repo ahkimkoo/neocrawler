@@ -108,7 +108,7 @@ extractor.prototype.arrange_link = function(links){
             if(typeof(driller_rule)!='object')driller_rule = JSON.parse(driller_rule);
             if(linkobj[driller_lib]==undefined)linkobj[driller_lib]=[];
             if(driller_rule['id_parameter']){
-                var id_parameter = JSON.parse(driller_rule['id_parameter']);
+                var id_parameter = driller_rule['id_parameter'];
                 var urlobj = url.parse(link);
                 var parameters = querystring.parse(urlobj.query);
                 var new_parameters = {};
@@ -164,7 +164,7 @@ extractor.prototype.getDrillRelation = function($,crawl_info){
 extractor.prototype.extract = function(crawl_info){
     var extract_rule = this.spiderCore.spider.getDrillerRule(crawl_info['origin']['urllib'],'extract_rule');
 
-    if(crawl_info['origin']['drill_rules']||extract_rule){
+    if(crawl_info['origin']['drill_rules']||extract_rule['rule']){
         var $ = cheerio.load(crawl_info['content']);
     }
 
@@ -180,7 +180,7 @@ extractor.prototype.extract = function(crawl_info){
         crawl_info['drill_relation'] = this.getDrillRelation($,crawl_info);
     }
 
-    if(extract_rule){
+    if(extract_rule['rule']&&!extract_rule['rule'].isEmpty()){
         var extracted_data = this.extract_data(crawl_info['url'],crawl_info['content'],extract_rule,null,$.root());
         crawl_info['extracted_data'] = extracted_data;
     }
@@ -321,12 +321,19 @@ extractor.prototype.cssSelector = function($,expression,pick,index){
  * @returns {*}
  */
 extractor.prototype.regexSelector = function(content,expression,index){
-    logger.debug('regex expression: '+expression);
     var index = parseInt(index);
-    if(index<1)index=1;
+    if(index==0)index=1;
     var expression = new RegExp(expression,"ig");
-    var matched = expression.exec(content);
-    if(matched&&matched.length>index)return matched[index];
+    if(index>0){
+        var matched = expression.exec(content);
+        if(matched&&matched.length>index)return matched[index];
+    }else{
+        var arr = [],matched;
+        while (matched = expression.exec(content))
+            arr.push(matched[1]);
+        return arr;
+    }
+
 }
 
 extractor.prototype.validateContent = function(crawl_info){

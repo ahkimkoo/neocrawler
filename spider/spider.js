@@ -144,6 +144,7 @@ spider.prototype.getUrlQueue = function(){
             //2----------------------------------------------------------------------------------------
             if(!link){
                 logger.debug('No queue~');
+                if('no_queue_alert' in spider.spiderCore.spider_extend)spider.spiderCore.spider_extend.no_queue_alert();
                 return;
             };//no queue
                 var linkhash = crypto.createHash('md5').update(link).digest('hex');
@@ -163,7 +164,7 @@ spider.prototype.getUrlQueue = function(){
                             logger.warn(link+', url info is incomplete');
                             spider.getUrlQueue();
                         }else{
-                            var drillerinfo = this.getDrillerRules(link_info['trace']);
+                            var drillerinfo = spider.getDrillerRules(link_info['trace']);
                                 if(drillerinfo==null){
                                     logger.warn(link+', has no driller info!');
                                     spider.getUrlQueue();

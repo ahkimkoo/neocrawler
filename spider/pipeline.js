@@ -95,8 +95,8 @@ pipeline.prototype.save_content = function(pageurl,content,extracted_data,js_res
             valuelist.push(content);
         }
         if(extracted_data&&!extracted_data.isEmpty()){
-            keylist.push('basic:extracted_data');
-            valuelist.push(extracted_data);
+            keylist.push('basic:data');
+            valuelist.push(JSON.stringify(extracted_data));
         }
         if(js_result&&!js_result.isEmpty()){
             keylist.push('basic:jsresult');
@@ -123,7 +123,7 @@ pipeline.prototype.save_content = function(pageurl,content,extracted_data,js_res
             logger.debug(pageurl+' update basic:content ');
         });
         if(extracted_data&&!extracted_data.isEmpty())
-        row.put('basic:data',extracted_data,function(err, success){
+        row.put('basic:data',JSON.stringify(extracted_data),function(err, success){
             logger.debug(pageurl+' update basic:data ');
         });
         if(js_result&&!js_result.isEmpty())

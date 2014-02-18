@@ -12,7 +12,8 @@ var template =  {
         'format': 'html',//html or json or binary
         'jshandle': false,
         'extract_rule':{
-            'crawled':{
+            'category':'crawled',
+            'rule':{
                 'title':{'base':'content','mode':'css','expression':'title','pick':'text','index':1}
             }
         },
