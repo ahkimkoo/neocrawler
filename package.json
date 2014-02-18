@@ -15,7 +15,7 @@
                 "url"   : "http://my.oschina.net/waterbear/blog"
         },
 
-        "version" : "0.0.1",
+        "version" : "1.0.0",
 
         "main"    : "./run.js",
 
@@ -35,11 +35,11 @@
               "cheerio" : "0.12.4",
               "iconv-lite":"0.2.11",
               "bufferhelper":"0.2.0",
+              "request":"2.33.0",
               "hbase":"0.1.6",
               "ejs" : "0.8.5",
               "express" : "3.3.4",
               "stylus" : "0.40.3",
-              "async" : "0.2.9",
               "mysql":"2.0.0"
         },
         "scripts" : {

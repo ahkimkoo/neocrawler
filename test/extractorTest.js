@@ -65,6 +65,24 @@ var arrangeLinkText = function() {
     },2000);
 }
 
+var requestTest = function(){
+    var request = require('request');
+    request({
+        'url': 'http://ip.jsontest.com/',
+        'headers': {
+            "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36"
+        },
+        'timeout':60*1000,
+        'proxy':'http://60.223.241.92:9999'
+    }, function(error, response, body){
+        if (!error && response.statusCode == 200) {
+            console.log(body);
+        }
+    });
+}
+
+
 //dirllRelationTest1();
 //dirllRelationTest2();
-arrangeLinkText();
+//arrangeLinkText();
+requestTest();
