@@ -78,6 +78,9 @@ spider_extend.prototype.crawl_finish_alert = function(crawled_info){
         var ips = crawled_info['extracted_data']['IP'];
         for(var i=0;i<ips.length;i++){
             var ip = ips[i];
+            if(typeof(ip)==='object'){
+                ip = ip['host'] + ':' + ip['port'];
+            }
             (function(ip,redis_cli){
                 var startTime = (new Date()).getTime();
                 request({
