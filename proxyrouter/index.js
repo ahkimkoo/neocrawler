@@ -6,6 +6,7 @@ var util = require('util');
 var events = require('events');
 var url =  require("url");
 var redis = require("redis");
+require('../lib/jsextend.js');
 var logger;
 var CHECK_PROXY_LIST_INTERVAL = 10*60*1000;//refresh proxy list interval: 10 mins
 
@@ -15,8 +16,9 @@ var proxyRouter = function(settings){
 	this.settings = settings;
 	logger = settings['logger'];
     this.proxyServeMap = {};//record which browser client using which proxy ,requesting which url. e.g {'id':[url,proxy]}
-    this.proxyUpdated = -1;
+    this.proxyUpdated = -1;//proxy lib updated time
     this.proxyList = [];
+    this.handleCount = 0;//proxy handle count. once proxy list change, reset to 0.
 }
 
 util.inherits(proxyRouter, events.EventEmitter);//eventemitter inherits
@@ -76,17 +78,24 @@ proxyRouter.prototype.start = function(){
  */
 proxyRouter.prototype.__chooseProxy = function(ip,header){
     var proxyRouter = this;
+    this.handleCount++;
     if(header['client_pid']&&header['page']){
         var browserId = ip+':'+header['client_pid'];
         if(!this.proxyServeMap[browserId]||this.proxyServeMap[browserId][0]!==header['page']){
-            var choseProxy = proxyRouter.proxyList[Math.floor(Math.random() * proxyRouter.proxyList.length)];
+            //random choose
+            //var choseProxy = proxyRouter.proxyList[Math.floor(Math.random() * proxyRouter.proxyList.length)];
+            //fair choose
+            var choseProxy = this.handleCount %  this.proxyList.length;
             this.proxyServeMap[browserId] = [header['page'],choseProxy];
             return choseProxy;
         }else {
             return this.proxyServeMap[browserId][1];
         }
     }else{
-        return proxyRouter.proxyList[Math.floor(Math.random() * proxyRouter.proxyList.length)];
+        //random choose
+        //return proxyRouter.proxyList[Math.floor(Math.random() * proxyRouter.proxyList.length)];
+        //fair choose
+        return this.handleCount %  this.proxyList.length;
     }
 }
 
@@ -191,7 +200,10 @@ proxyRouter.prototype.assembly = function(){
     //when refreshed proxy list, set timeout//////////////////////////////////
     this.on('refreshed_proxy_list',function(proxylist){
         this.emit('proxyListChanged',proxylist);
+        this.tmp_proxyUpdated = this.tmp_proxyUpdated.unique().shuffle();//filter duplicated and shuffle
         this.proxyUpdated = this.tmp_proxyUpdated;
+        this.handleCount = 0;//reset handle count, for proxy fair schedule
+        logger.log('proxy list changed, quantity: '+this.proxyUpdated);
         setTimeout(function(){proxyRouter.refreshProxyList(proxyRouter)},CHECK_PROXY_LIST_INTERVAL);//refresh again after 10 mins
     });
     //event:gotProxyList, after getting proxy list from each redis keys
@@ -222,7 +234,7 @@ proxyRouter.prototype.assembly = function(){
                 break;
             case 'proxy:public:available:3s':
                 if(proxyRouter.tmp_proxyList.length<MIN_PROXY_LENGTH)logger.warn(util.format('Only %d proxies !!!',proxyRouter.tmp_proxyList.length));
-                if(proxyRouter.tmp_proxyList.length<0)throw new Error('no proxy list');
+                if(proxyRouter.tmp_proxyList.length<=0)throw new Error('no proxy list');
                 else{
                     proxyRouter.proxyList = proxyRouter.tmp_proxyList;
                     proxyRouter.emit('refreshed_proxy_list',proxyRouter.proxyList);
