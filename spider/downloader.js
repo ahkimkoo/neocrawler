@@ -127,6 +127,7 @@ downloader.prototype.transCookieKvPair = function(json){
  */
 downloader.prototype.downloadIt = function(urlinfo){
     var spiderCore = this.spiderCore;
+    var timeOuter = false;
     if(this.spiderCore.settings['use_proxy']===true){
         var proxyRouter = this.spiderCore.settings['proxy_router'].split(':');
         var __host = proxyRouter[0];
@@ -191,6 +192,10 @@ downloader.prototype.downloadIt = function(urlinfo){
         });
 
         res.on('end', function (chunk) {
+            if(timeOuter){
+                clearTimeout(timeOuter);
+                timeOuter = false;
+            }
             result["cost"] = (new Date()) - startTime;
             result['statusCode'] = res.statusCode;
             if(!compressed || typeof unzip == 'undefined'){
@@ -206,6 +211,13 @@ downloader.prototype.downloadIt = function(urlinfo){
             }
         });
     });
+
+    timeOuter = setTimeout(function(){
+        if(req){
+            logger.error('download timeout, '+urlinfo['url']);
+            req.destroy();
+        }
+    },spiderCore.settings['download_timeout']*1000);
 
     req.on('error', function(e) {
         logger.error('problem with request: ' + e.message+', url:'+urlinfo['url']);
