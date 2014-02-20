@@ -82,7 +82,71 @@ var requestTest = function(){
 }
 
 
+var hbaseThriftTest = function(){
+    // This section includes a fix from here:
+    // https://stackoverflow.com/questions/17415528/nodejs-hbase-thrift-weirdness/21141862#21141862
+    var thrift = require('thrift'),
+    HBase = require('../lib/node_hbase/gen-nodejs/HBase.js'),
+    HBaseTypes = require('../lib/node_hbase/gen-nodejs/HBase_types.js'),
+    connection = thrift.createConnection('192.168.1.4', 9090, {
+        transport: thrift.TFramedTransport,
+        protocol: thrift.TBinaryProtocol
+    });
+
+    connection.on('connect', function() {
+        var client = thrift.createClient(HBase,connection);
+        client.getTableNames(function(err,data) {
+            if (err) {
+                console.log('gettablenames error:', err);
+            } else {
+                console.log('hbase tables:', data);
+            }
+//            connection.end();
+        });
+        client.mutateRow('test',''+(new Date()).getTime(),
+            [
+                new Mutation({column:'f:name',value:'James'}),
+                new Mutation({column:'f:mail',value:'successage@gmail.com'})
+            ],
+            null,
+            function(err, success){
+                if (err) {
+                    console.log(err);
+                }else console.log('insert successful');
+            }
+        );
+    });
+
+    connection.on('error', function(err){
+        console.log('error', err);
+    });
+}
+
+var hbaseClientTest = function(){
+    var HBase = require('hbase-client');
+    var client = HBase.create({
+        zookeeperHosts: [
+            '192.168.1.4:2222'
+        ],
+        zookeeperRoot: '/hbase'
+    });
+
+    var put = new HBase.Put('row0');
+    put.add('f', 'name', 'foo');
+    put.add('f', 'age', '18');
+    client.put('test', put, function (err) {
+        console.log(err);
+    });
+
+    client.putRow('test','row1', {'f:name':'foo name','f:age':'18'},function(err) {
+        if(err)console.log(err);
+        else console.log('put successful.');
+    });
+}
+
 //dirllRelationTest1();
 //dirllRelationTest2();
 //arrangeLinkText();
-requestTest();
+//requestTest();
+hbaseThriftTest();
+//hbaseClientTest();

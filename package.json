@@ -36,6 +36,7 @@
               "iconv-lite":"0.2.11",
               "bufferhelper":"0.2.0",
               "request":"2.33.0",
+              "thrift":"0.9.1",
               "hbase":"0.1.6",
               "ejs" : "0.8.5",
               "express" : "3.3.4",
