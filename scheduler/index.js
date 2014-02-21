@@ -7,6 +7,8 @@ var redis = require("redis");
 var crypto = require('crypto');
 var urlUtil =  require("url");
 var querystring = require('querystring');
+var url =  require("url");
+var async = require('async');
 
 var scheduler = function(settings){
     events.EventEmitter.call(this);//eventemitter inherits
@@ -159,6 +161,7 @@ scheduler.prototype.doScheduleExt = function(index,avg_rate,more){
             var ct = Math.ceil(avg_rate * xdriller['rate'])+more;
             var act = queue_length>=ct?ct:queue_length;
             logger.debug(util.format('%s, rate:%d, queue length:%d, actual quantity:%d',xdriller['key'],xdriller['rate'],queue_length,act));
+            /*
             for(var i=0;i<act;i++){
                 if(xdriller['rule']=='LIFO'){
                     redis_cli0.rpop('urllib:'+xdriller['key'],function(err, url){
@@ -170,7 +173,48 @@ scheduler.prototype.doScheduleExt = function(index,avg_rate,more){
                     })
                 }
             }
-            scheduler.emit('schedule_circle',index,avg_rate,ct-act);
+            */
+            //use async//////////////////////////////////////////////////
+            var count = 0;
+            var pointer = true;//current point, false means end of list
+            async.whilst(
+                function (){ return count < ct && pointer; },
+                function (callback) {
+                    if(xdriller['rule']=='LIFO'){
+                        redis_cli0.rpop('urllib:'+xdriller['key'],function(err, url){
+                            pointer = url;
+                            if(!err&&url){
+                                scheduler.checkURL(url,xdriller['interval'],function(bol){
+                                    if(bol)count++;
+                                    callback();
+                                });
+                            }else{
+                                callback();
+                            }
+                        })
+                    }else{
+                        redis_cli0.lpop('urllib:'+xdriller['key'],function(err, url){
+                            pointer = url;
+                            if(!err&&url){
+                                scheduler.checkURL(url,xdriller['interval'],function(bol){
+                                    if(bol)count++;
+                                    callback();
+                                });
+                            }else{
+                                callback();
+                            }
+                        })
+                    }
+                },
+                function (err) {
+                    var left = 0;
+                    if(count<ct)left = ct - count;
+                    logger.debug('Schedule '+xdriller['key']+', '+count+'/'+ct+', left '+left);
+                    scheduler.emit('schedule_circle',index,avg_rate,left);
+                }
+            );
+           /////////////////////////////////////////////////////////////
+
         });
 }
 
@@ -185,6 +229,31 @@ scheduler.prototype.__getTopLevelDomain = function(domain){
     var arr = domain.split('.');
     if(arr.length<=2)return domain;
     else return arr.slice(1).join('.');
+}
+/**
+ * detect link which driller rule matched
+ * @param link
+ * @returns {string}
+ */
+scheduler.prototype.detectLink = function(link){
+    var urlobj = url.parse(link);
+    var result = '';
+    var domain = this.__getTopLevelDomain(urlobj['hostname']);
+    if(this.driller_rules[domain]!=undefined){
+        var alias = this.driller_rules[domain];
+        for(a in alias){
+            if(alias.hasOwnProperty(a)){
+                //var url_pattern  = decodeURIComponent(alias[a]['url_pattern']);
+                var url_pattern  = alias[a]['url_pattern'];
+                var patt = new RegExp(url_pattern);
+                if(patt.test(link)){
+                    result = 'driller:'+domain+':'+a;
+                    break;
+                }
+            }
+        }
+    }
+    return result;
 }
 /**
  * Transfer url, filter duplicated url base identical parameter
@@ -222,18 +291,18 @@ scheduler.prototype.transformLink = function(link,urllib){
  * @param url
  * @param interval
  */
-scheduler.prototype.checkURL = function(url,interval){
+scheduler.prototype.checkURL = function(url,interval,callback){
     var scheduler = this;
     if(typeof(url)!=='string'){
         logger.error(util.format('Invalidate url: %s',url));
-        return;
+        return callback(false);
     }
     var redis_cli0 = this.redis_cli0;
     var redis_cli1 = this.redis_cli1;
     var kk = crypto.createHash('md5').update(url).digest('hex');
     redis_cli1.hgetall(kk,function(err,values){
-        if(err)throw(err);
-        if(!values)return;
+        if(err)return callback(false);
+        if(!values)return callback(false);
 
         if(values['trace']){
             var t_url = scheduler.transformLink(url,values['trace']);
@@ -249,21 +318,90 @@ scheduler.prototype.checkURL = function(url,interval){
 
         if(status!='crawled_failure'&&status!='hit'){
             var real_interval = interval*1000;
-            if(status=='crawling'){
+            if(status=='crawling'||status=='schedule'){
                 real_interval = 5*60*1000;//url request hang up or interrupted, give opportunity to crawl after 5 minutes.
             }
             if((new Date()).getTime()-last<real_interval){
                 logger.debug(util.format('ignore %s, last event time:%s, status:%s',url,last,status));
-                return;
+                return callback(false);
             }
         }
 
-        redis_cli0.rpush('queue:scheduled:all',url,function(err,value){
-            logger.debug('Append '+url+' to queue');
+        scheduler.updateLinkState(url,'schedule',function(bol){
+            if(bol){
+                redis_cli0.rpush('queue:scheduled:all',url,function(err,value){
+                    if(err){
+                        logger.debug('Append '+url+' to queue failure');
+                        return callback(false);
+                    }else{
+                        logger.debug('Append '+url+' to queue successful');
+                        return callback(true);
+                    }
+                });
+            }else return callback(false);
         });
-
     });
 }
+
+/**
+ * update link state to redis db
+ * @param link
+ * @param state
+ */
+scheduler.prototype.updateLinkState = function(link,state,callback){
+    var scheduler = this;
+    var urlhash = crypto.createHash('md5').update(link+'').digest('hex');
+    this.redis_cli1.hgetall(urlhash,function(err,link_info){
+        if(err){logger.error('get state of link('+link+') fail: '+err);return callback(false);}
+        if(link_info){
+            var t_record = link_info['records'];
+            var records = [];
+            if(t_record!=''&&t_record!='[]'){
+                try{
+                    records = JSON.parse(t_record);
+                }catch(e){
+                    logger.error(t_record+' JSON parse error: '+e);
+                }
+            }
+            records.push(state);
+            scheduler.redis_cli1.hmset(urlhash,{'records':JSON.stringify(records),'last':(new Date()).getTime(),'status':state},function(err,link_info){
+                if(err){
+                    logger.error('update state of link('+link+') fail: '+err);
+                    return callback(false);
+                }
+                else {
+                    logger.debug('update state of link('+link+') success: '+state);
+                    return callback(true);
+                }
+            });
+        }else{
+            var trace = scheduler.detectLink(link);
+            if(trace!=''){
+                trace = 'urllib:' + trace;
+                var urlinfo = {
+                    'url':link,
+                    'trace':trace,
+                    'referer':'',
+                    'create':(new Date()).getTime(),
+                    'records':JSON.stringify([]),
+                    'last':(new Date()).getTime(),
+                    'status':state
+                }
+                scheduler.redis_cli1.hmset(urlhash,urlinfo,function(err, value){
+                    if (err) {throw(err);return callback(false);}
+                    else{
+                        logger.debug('save new url info: '+link);
+                        return callback(true);
+                    }
+                });
+            }else {
+                logger.error(link+' can not match any rules, ignore updating.');
+                return callback(false);
+            }
+        }
+    });
+}
+
 /**
  * entrance, other module feel free to call this method
  */

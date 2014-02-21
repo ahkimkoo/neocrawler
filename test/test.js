@@ -184,10 +184,28 @@ var copy_redis = function(){
     });
 }
 
+var asyncTest = function(){
+    var async = require('async');
+    var count = 0;
+
+    async.whilst(
+        function () { return count < 5; },
+        function (callback) {
+            count++;
+            console.log('==>'+count);
+            setTimeout(callback, 1000);
+        },
+        function (err) {
+            // 5 seconds have passed
+        }
+    );
+}
+
 //fake_drill_rules();
 //fake_url_lib();
 
 //stupid_schedule();
 
 //copy_redis();
+asyncTest();
 require('./extractorTest.js');

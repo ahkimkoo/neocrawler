@@ -107,7 +107,7 @@ spider_extend.prototype.crawl_finish_alert = function(crawled_info){
                                         if(!err)logger.debug('Append a proxy: '+ip);
                                     });
                                 }else{
-                                    logger.debug(ip + 'took a long time: '+(endTime - startTime)+'ms, ignore it');
+                                    logger.debug(ip + ' took a long time: '+(endTime - startTime)+'ms, drop it');
                                 }
                             }
                         }

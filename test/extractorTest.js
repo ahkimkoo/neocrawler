@@ -148,5 +148,5 @@ var hbaseClientTest = function(){
 //dirllRelationTest2();
 //arrangeLinkText();
 //requestTest();
-hbaseThriftTest();
+//hbaseThriftTest();
 //hbaseClientTest();
