@@ -48,24 +48,27 @@ pipeline.prototype.save_links = function(page_url,linkobjs,drill_relation){
                         redis_cli0.rpush(alias,link,function(err, value){
                             if(err)throw(err);
                             logger.debug('push url: '+link+' to urllib: '+alias);
+
                             var kk = crypto.createHash('md5').update(link+'').digest('hex');
-                            var vv = {
-                                'url':link,
-                                'trace':alias,
-                                'referer':pageurl,
-                                'drill_relation':drill_relation?drill_relation:'*',
-                                'create':(new Date()).getTime(),
-                                'records':JSON.stringify([]),
-                                'last':(new Date()).getTime(),
-                                'status':'hit'
-                            }
-                            redis_cli1.hmset(kk,vv,function(err, value){
-                                if (err) throw(err);
-                                logger.debug(' save url info: '+link);
-                                if(spiderCore.settings['test'])spiderCore.emit('append_link',link);
-                                //redis_cli1.quit();
+                            redis_cli1.exists(kk,function(err, value){
+                                if(err)return;
+                                if(!value){
+                                    var vv = {
+                                        'url':link,
+                                        'trace':alias,
+                                        'referer':pageurl,
+                                        'drill_relation':drill_relation?drill_relation:'*',
+                                        'create':(new Date()).getTime(),
+                                        'records':JSON.stringify([]),
+                                        'last':(new Date()).getTime(),
+                                        'status':'hit'
+                                    }
+                                    redis_cli1.hmset(kk,vv,function(err, value){
+                                        if (err) throw(err);
+                                        logger.debug(' save url info: '+link);
+                                    });
+                                }else logger.debug('url info exists, '+link);
                             });
-                                //redis_cli0.quit();
                         });
                         //--push url to queue--end--
                     })(page_url,alias,link);

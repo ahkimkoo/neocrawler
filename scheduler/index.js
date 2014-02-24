@@ -184,11 +184,13 @@ scheduler.prototype.doScheduleExt = function(index,avg_rate,more){
                         redis_cli0.rpop('urllib:'+xdriller['key'],function(err, url){
                             pointer = url;
                             if(!err&&url){
+                                logger.debug('fetch url '+url+' from urllib:'+xdriller['key']);
                                 scheduler.checkURL(url,xdriller['interval'],function(bol){
                                     if(bol)count++;
                                     callback();
                                 });
                             }else{
+                                logger.debug('error or end of list, urllib:'+xdriller['key']);
                                 callback();
                             }
                         })
@@ -196,21 +198,28 @@ scheduler.prototype.doScheduleExt = function(index,avg_rate,more){
                         redis_cli0.lpop('urllib:'+xdriller['key'],function(err, url){
                             pointer = url;
                             if(!err&&url){
+                                logger.debug('fetch url '+url+' from urllib:'+xdriller['key']);
                                 scheduler.checkURL(url,xdriller['interval'],function(bol){
                                     if(bol)count++;
                                     callback();
                                 });
                             }else{
+                                logger.debug('error or end of list, urllib:'+xdriller['key']);
                                 callback();
                             }
                         })
                     }
                 },
                 function (err) {
+                    if(err)log.error(err);
                     var left = 0;
                     if(count<ct)left = ct - count;
                     logger.debug('Schedule '+xdriller['key']+', '+count+'/'+ct+', left '+left);
                     scheduler.emit('schedule_circle',index,avg_rate,left);
+                    if(index>=scheduler.priotity_list.length-1){
+                        logger.debug('schedule round finish, sleep '+scheduler.settings['schedule_interval']+' s');
+                        setTimeout(function(){scheduler.doSchedule()},scheduler.settings['schedule_interval']*1000);
+                    }
                 }
             );
            /////////////////////////////////////////////////////////////
@@ -319,11 +328,13 @@ scheduler.prototype.checkURL = function(url,interval,callback){
         if(status!='crawled_failure'&&status!='hit'){
             var real_interval = interval*1000;
             if(status=='crawling'||status=='schedule'){
-                real_interval = 5*60*1000;//url request hang up or interrupted, give opportunity to crawl after 5 minutes.
+                real_interval = 60*60*1000;//url request hang up or interrupted, give opportunity to crawl after 60 minutes.
             }
             if((new Date()).getTime()-last<real_interval){
                 logger.debug(util.format('ignore %s, last event time:%s, status:%s',url,last,status));
                 return callback(false);
+            }else{
+                logger.debug('release lock: '+url);
             }
         }
 
@@ -416,7 +427,7 @@ scheduler.prototype.start = function(){
     this.on('schedule_circle',function(index,avg_rate,more){
         if(index<this.priotity_list.length-1)this.doScheduleExt(++index,avg_rate,more);
         else {
-            setTimeout(function(){scheduler.doSchedule()},this.settings['schedule_interval']*1000);
+            //setTimeout(function(){scheduler.doSchedule()},this.settings['schedule_interval']*1000);
         }
     });
     //when refresh priority list finished

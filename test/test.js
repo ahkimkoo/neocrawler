@@ -100,19 +100,22 @@ var fake_drill_rules = function(){
 var fake_url_lib = function(){
     var redis = require("redis");
     var crypto = require('crypto');
-    var k = 'urllib:driller:amazon.cn:bestsellers';
+    var k = 'urllib:driller:com.ru:listpage';
     var v = [
-        'http://www.amazon.cn/gp/bestsellers/audio-video/ref=zg_bs_nav_0',
-        'http://www.amazon.cn/gp/bestsellers/digital-text/ref=zg_bs_nav_0',
-        'http://www.amazon.cn/gp/bestsellers/office-products/ref=zg_bs_nav_0',
-        'http://www.amazon.cn/gp/bestsellers/pc/ref=zg_bs_nav_0',
-        'http://www.amazon.cn/gp/bestsellers/pc/2028178051/ref=zg_bs_nav_pc_1_pc'
+        'http://proxy.com.ru/list_1.html',
+        'http://proxy.com.ru/list_2.html',
+        'http://proxy.com.ru/list_3.html',
+        'http://proxy.com.ru/list_4.html',
+        'http://proxy.com.ru/list_5.html',
+        'http://proxy.com.ru/list_6.html',
+        'http://proxy.com.ru/list_7.html',
+        'http://proxy.com.ru/list_8.html'
     ]
-    client0 = redis.createClient(6379,'127.0.0.1');
-    client1 = redis.createClient(6379,'127.0.0.1');
+    client0 = redis.createClient(6379,'192.168.8.7');
+    client1 = redis.createClient(6379,'192.168.8.7');
     client0.select(0, function(err, value) {
-        for(var i=0;i<v.length;i++){
-            var itm = v[i];
+        for(var i=0;i<80;i++){
+            var itm = v[i% v.length];
             (function(itm){
             /////////////////
             client0.rpush(k,itm,function(err, value){
@@ -127,12 +130,14 @@ var fake_url_lib = function(){
                         'records':JSON.stringify([]),
                         'status':'hit'
                     }
-                    client1.hmset(kk,vv,function(err, value){
-                        if (err) throw(err);
-                        console.log(itm+' information saved.');
-                        client1.quit();
-                        client0.quit();
-                    });
+//                    client1.hmset(kk,vv,function(err, value){
+//                        if (err) throw(err);
+//                        console.log(itm+' information saved.');
+//                        client1.quit();
+//                        client0.quit();
+//                    });
+                    client1.quit();
+                    client0.quit();
                 });
                 //client1.quit();
             });
@@ -201,11 +206,40 @@ var asyncTest = function(){
     );
 }
 
+var testSyncQueue = function(){
+    var async = require('async');
+    var q = async.queue(function(task, callback) {
+        console.log('worker is processing task: ', task.name);
+        task.run(callback);
+    }, 2);
+    q.saturated = function() {
+        console.log('all workers to be used');
+    }
+    q.empty = function() {
+        console.log('no more tasks wating');
+    }
+    q.drain = function() {
+        console.log('all tasks have been processed');
+    }
+
+    for(var i=0;i<20;i++){
+        (function(i){
+            q.push({name:'t'+i, run: function(cb){
+                console.log('t'+i+' is running, waiting tasks: ', q.length());
+                cb();
+            }}, function(err) {
+                console.log('t'+i+' executed');
+            });
+        })(i);
+    }
+}
+
 //fake_drill_rules();
 //fake_url_lib();
 
 //stupid_schedule();
 
 //copy_redis();
-asyncTest();
+//testSyncQueue();
+fake_url_lib();
 require('./extractorTest.js');
