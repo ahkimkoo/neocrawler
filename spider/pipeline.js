@@ -55,8 +55,8 @@ pipeline.prototype.save_links = function(page_url,version,linkobjs,drill_relatio
                                 if(value){
                                     logger.debug('url info exists, '+link+', just update the version');
                                     if(version>parseInt(value['version'])){
-                                        redis_cli1.hset(kk,'version',version,function(err, value){
-                                            if (err) throw(err);
+                                        redis_cli1.hset(kk,'version',version,function(err, svalue){
+                                            if(err){loggeer.error(err);return;}
                                             logger.debug('update url('+link+') version, '+value['version']+' -> '+version);
                                         });
                                     }else logger.debug(link+' keep the version: '+value['version']);

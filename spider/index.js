@@ -112,15 +112,14 @@ spiderCore.prototype.test = function(link){
 
     this.on('crawled',function(crawled_info){
         logger.debug('crawl '+crawled_info['url']+' finish');
-        if(this.extractor.validateContent(crawled_info)){
-            //if(crawled_info['content'].length<500)logger.warn(util.format('Strange content, length:%s, url:%s',crawled_info['content'].length,crawled_info['url']));
-            var extracted_info = this.extractor.extract(crawled_info);
-            if('extract' in this.spider_extend)extracted_info = this.spider_extend.extract(extracted_info);//spider extend
-            this.pipeline.save(extracted_info);
-            if('crawl_finish_alert' in this.spider_extend)this.spider_extend.crawl_finish_alert(crawled_info);
-        }else{
+        if(!this.extractor.validateContent(crawled_info)){
             logger.error(util.format('invalidate content %s',crawled_info['url']));
         }
+        //if(crawled_info['content'].length<500)logger.warn(util.format('Strange content, length:%s, url:%s',crawled_info['content'].length,crawled_info['url']));
+        var extracted_info = this.extractor.extract(crawled_info);
+        if('extract' in this.spider_extend)extracted_info = this.spider_extend.extract(extracted_info);//spider extend
+        this.pipeline.save(extracted_info);
+        //if('crawl_finish_alert' in this.spider_extend)this.spider_extend.crawl_finish_alert(crawled_info);
     });
 
     this.once('driller_rules_loaded',function(rules){

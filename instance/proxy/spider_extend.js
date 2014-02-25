@@ -79,24 +79,24 @@ spider_extend.prototype.crawl_finish_alert = function(crawled_info){
         var ips = crawled_info['extracted_data']['IP'];
         //async queue/////////////////////////////////////////////////////////
         var q = async.queue(function(task, callback) {
-            logger.debug('worker '+task.name+' is processing task: ');
+            logger.debug('proxy checker: worker '+task.name+' is processing task: ');
             task.run(callback);
-        }, 10);
+        }, 20);
         q.saturated = function() {
-            logger.debug('all workers to be used');
+            logger.debug('proxy checker: all workers to be used');
         }
         q.empty = function() {
-            logger.debug('no more tasks wating');
+            logger.debug('proxy checker: no more tasks wating');
         }
         q.drain = function() {
-            logger.debug('all tasks have been processed');
+            logger.debug('proxy checker: all tasks have been processed');
         }
         /////////////////////////////////////////////////////////////////////
         //-------------------------------------------------------------------
         for(var i=0;i<ips.length;i++){
             (function(i,redis_cli){
                 q.push({name:'t'+i, run: function(cb){
-                logger.debug('t'+i+' is running, waiting tasks: ', q.length());
+                logger.debug('proxy checker: t'+i+' is running, waiting tasks: ', q.length());
                     var ip = ips[i];
                     if(typeof(ip)==='object'){
                         ip = ip['host'] + ':' + ip['port'];
@@ -116,7 +116,7 @@ spider_extend.prototype.crawl_finish_alert = function(crawled_info){
                                     try{
                                         var info = JSON.parse(body);
                                     }catch(e){
-                                        logger.error('json parse error: '+ip);
+                                        logger.error('proxy checker: json parse error: '+ip);
                                         return cb();
                                     };
 
@@ -124,11 +124,11 @@ spider_extend.prototype.crawl_finish_alert = function(crawled_info){
                                         var endTime = (new Date()).getTime();
                                         if(endTime - startTime <= 60000){
                                             redis_cli.rpush('proxy:public:available:temp',ip,function(err,value){
-                                                if(!err)logger.debug('Append a proxy: '+ip);
+                                                if(!err)logger.debug('proxy checker: Append a proxy: '+ip);
                                                 cb();
                                             });
                                         }else{
-                                            logger.debug(ip + ' took a long time: '+(endTime - startTime)+'ms, drop it');
+                                            logger.debug('proxy checker: '+ip + ' took a long time: '+(endTime - startTime)+'ms, drop it');
                                             cb();
                                         }
                                     }else cb();
@@ -137,7 +137,7 @@ spider_extend.prototype.crawl_finish_alert = function(crawled_info){
                         });
                     })(ip,redis_cli);
                 }}, function(err) {
-                    logger.debug('t'+i+' executed');
+                    logger.debug('proxy checker: t'+i+' executed');
                 });
             })(i,this.redis_cli);
         }
