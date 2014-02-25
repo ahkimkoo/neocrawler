@@ -171,6 +171,7 @@ spider.prototype.getUrlQueue = function(){
                                 }else{
                                     var urlinfo = {
                                         "url":link,
+                                        "version":parseInt(link_info['version']),
                                         "type":drillerinfo['type'],
                                         "referer":link_info['referer'],
                                         "url_pattern":drillerinfo['url_pattern'],
@@ -258,6 +259,7 @@ spider.prototype.wrapLink = function(link){
         var drillerinfo = this.driller_rules[driller_arr[1]][driller_arr[2]];
         linkinfo = {
             "url":link,
+            "version":(new Date()).getTime(),
             "type":drillerinfo['type'],
             "referer":'',
             "url_pattern":drillerinfo['url_pattern'],

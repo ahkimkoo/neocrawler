@@ -35,7 +35,7 @@ pipeline.prototype.assembly = function(){
  * @param page_url
  * @param linkobjs
  */
-pipeline.prototype.save_links = function(page_url,linkobjs,drill_relation){
+pipeline.prototype.save_links = function(page_url,version,linkobjs,drill_relation){
     var spiderCore = this.spiderCore;
     var redis_cli0 = this.redis_cli0;
     var redis_cli1 = this.redis_cli1;
@@ -50,11 +50,20 @@ pipeline.prototype.save_links = function(page_url,linkobjs,drill_relation){
                             logger.debug('push url: '+link+' to urllib: '+alias);
 
                             var kk = crypto.createHash('md5').update(link+'').digest('hex');
-                            redis_cli1.exists(kk,function(err, value){
+                            redis_cli1.hgetall(kk,function(err, value){
                                 if(err)return;
-                                if(!value){
+                                if(value){
+                                    logger.debug('url info exists, '+link+', just update the version');
+                                    if(version>parseInt(value['version'])){
+                                        redis_cli1.hset(kk,'version',version,function(err, value){
+                                            if (err) throw(err);
+                                            logger.debug('update url('+link+') version, '+value['version']+' -> '+version);
+                                        });
+                                    }else logger.debug(link+' keep the version: '+value['version']);
+                                }else{
                                     var vv = {
                                         'url':link,
+                                        'version':version,
                                         'trace':alias,
                                         'referer':pageurl,
                                         'drill_relation':drill_relation?drill_relation:'*',
@@ -65,9 +74,9 @@ pipeline.prototype.save_links = function(page_url,linkobjs,drill_relation){
                                     }
                                     redis_cli1.hmset(kk,vv,function(err, value){
                                         if (err) throw(err);
-                                        logger.debug(' save url info: '+link);
+                                        logger.debug(' save url('+link+') to urlinfo.');
                                     });
-                                }else logger.debug('url info exists, '+link);
+                                }
                             });
                         });
                         //--push url to queue--end--
@@ -163,7 +172,7 @@ pipeline.prototype.save =function(extracted_info){
             logger.debug('Crawling result saved, '+resultfile);
         });
     }else{
-        if(extracted_info['drill_link'])this.save_links(extracted_info['url'],extracted_info['drill_link'],extracted_info['drill_relation']);
+        if(extracted_info['drill_link'])this.save_links(extracted_info['url'],extracted_info['origin']['version'],extracted_info['drill_link'],extracted_info['drill_relation']);
         if('pipeline' in this.spiderCore.spider_extend)this.spiderCore.spider_extend.pipeline(extracted_info);//spider extend
         else{
             var html_content = extracted_info['content'];

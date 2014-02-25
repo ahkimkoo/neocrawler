@@ -132,8 +132,14 @@ scheduler.prototype.reSchedule = function(driller,index){
 
     for(var i=0;i<links.length;i++){
         (function(link){
-            scheduler.redis_cli0.rpush('queue:scheduled:all',link,function(err, value){
-                logger.debug('reschedule url: '+link);
+            scheduler.updateLinkState(link,'schedule',(new Date()).getTime(),function(bol){
+                if(bol){
+                    scheduler.redis_cli0.rpush('queue:scheduled:all',link,function(err, value){
+                        logger.debug('reschedule url: '+link);
+                    });
+                }else{
+                    logger.warn(util.format('reschedule(%s) failure, can not update link state',link));
+                }
             });
         })(links[i])
     }
@@ -324,11 +330,16 @@ scheduler.prototype.checkURL = function(url,interval,callback){
         var status = values['status'];
         var records = JSON.parse(values['records']);
         var last = parseInt(values['last']);
+        var version = parseInt(values['version']);
 
         if(status!='crawled_failure'&&status!='hit'){
             var real_interval = interval*1000;
             if(status=='crawling'||status=='schedule'){
                 real_interval = 60*60*1000;//url request hang up or interrupted, give opportunity to crawl after 60 minutes.
+            }
+            if(status=='crawled_finish'&&version>last){
+                real_interval = 0;
+                logger.debug(url +' got new version after last crawling');
             }
             if((new Date()).getTime()-last<real_interval){
                 logger.debug(util.format('ignore %s, last event time:%s, status:%s',url,last,status));
@@ -338,7 +349,7 @@ scheduler.prototype.checkURL = function(url,interval,callback){
             }
         }
 
-        scheduler.updateLinkState(url,'schedule',function(bol){
+        scheduler.updateLinkState(url,'schedule',false,function(bol){
             if(bol){
                 redis_cli0.rpush('queue:scheduled:all',url,function(err,value){
                     if(err){
@@ -359,7 +370,7 @@ scheduler.prototype.checkURL = function(url,interval,callback){
  * @param link
  * @param state
  */
-scheduler.prototype.updateLinkState = function(link,state,callback){
+scheduler.prototype.updateLinkState = function(link,state,version,callback){
     var scheduler = this;
     var urlhash = crypto.createHash('md5').update(link+'').digest('hex');
     this.redis_cli1.hgetall(urlhash,function(err,link_info){
@@ -375,7 +386,17 @@ scheduler.prototype.updateLinkState = function(link,state,callback){
                 }
             }
             records.push(state);
-            scheduler.redis_cli1.hmset(urlhash,{'records':JSON.stringify(records),'last':(new Date()).getTime(),'status':state},function(err,link_info){
+            var valueDict = {
+                'records':JSON.stringify(records),
+                'last':(new Date()).getTime(),
+                'status':state
+            }
+
+            if(version){
+                valueDict['version'] = version;//set version
+            }
+
+            scheduler.redis_cli1.hmset(urlhash,valueDict,function(err,link_info){
                 if(err){
                     logger.error('update state of link('+link+') fail: '+err);
                     return callback(false);
@@ -398,6 +419,7 @@ scheduler.prototype.updateLinkState = function(link,state,callback){
                     'last':(new Date()).getTime(),
                     'status':state
                 }
+                if(version)urlinfo['version'] = version;//update version
                 scheduler.redis_cli1.hmset(urlhash,urlinfo,function(err, value){
                     if (err) {throw(err);return callback(false);}
                     else{
