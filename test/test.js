@@ -241,5 +241,5 @@ var testSyncQueue = function(){
 
 //copy_redis();
 //testSyncQueue();
-fake_url_lib();
+//fake_url_lib();
 require('./extractorTest.js');

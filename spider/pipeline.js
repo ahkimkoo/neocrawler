@@ -15,11 +15,14 @@ var pipeline = function(spiderCore){
 
 ////report to spidercore standby////////////////////////
 pipeline.prototype.assembly = function(){
-    this.hbase_cli = hbase({
-        host:this.spiderCore.settings['crawled_hbase_db'][0],
-        port:this.spiderCore.settings['crawled_hbase_db'][1]
-    });
-    this.hbase_table = this.hbase_cli.getTable('crawled');
+    if(this.spiderCore.settings['save_content_to_hbase']===true){
+        this.hbase_cli = hbase({
+            host:this.spiderCore.settings['crawled_hbase_db'][0],
+            port:this.spiderCore.settings['crawled_hbase_db'][1]
+        });
+        this.hbase_table = this.hbase_cli.getTable('crawled');
+    }
+
     this.redis_cli0 = redis.createClient(this.spiderCore.settings['driller_info_redis_db'][1],this.spiderCore.settings['driller_info_redis_db'][0]);
     this.redis_cli1 = redis.createClient(this.spiderCore.settings['url_info_redis_db'][1],this.spiderCore.settings['url_info_redis_db'][0]);
     var spider = this;
@@ -174,7 +177,7 @@ pipeline.prototype.save =function(extracted_info){
     }else{
         if(extracted_info['drill_link'])this.save_links(extracted_info['url'],extracted_info['origin']['version'],extracted_info['drill_link'],extracted_info['drill_relation']);
         if('pipeline' in this.spiderCore.spider_extend)this.spiderCore.spider_extend.pipeline(extracted_info);//spider extend
-        else{
+        else if(this.spiderCore.settings['save_content_to_hbase']===true){
             var html_content = extracted_info['content'];
             if(!extracted_info['origin']['save_page'])html_content = false;
             this.save_content(extracted_info['url'],html_content,extracted_info['extracted_data'],extracted_info['js_result'],extracted_info['origin']['referer'],extracted_info['origin']['url_pattern'],extracted_info['drill_relation']);

@@ -61,9 +61,9 @@ var spider_extend = function(spiderCore){
  * if it do nothing , comment it
  * @param extracted_info (same to extract)
  */
-//spider_extend.prototype.pipeline = function(extracted_info){
-//    logger.debug(JSON.stringify(extracted_info));
-//}
+spider_extend.prototype.pipeline = function(extracted_info){
+    logger.debug('spider extender receive extracted info from '+extracted_info['url']);
+}
 /**
  * report extracted data lacks of some fields
  */
