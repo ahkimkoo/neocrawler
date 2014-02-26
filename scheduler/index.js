@@ -331,13 +331,14 @@ scheduler.prototype.checkURL = function(url,interval,callback){
         var records = JSON.parse(values['records']);
         var last = parseInt(values['last']);
         var version = parseInt(values['version']);
+        var type = values['type'];
 
         if(status!='crawled_failure'&&status!='hit'){
             var real_interval = interval*1000;
             if(status=='crawling'||status=='schedule'){
                 real_interval = 60*60*1000;//url request hang up or interrupted, give opportunity to crawl after 60 minutes.
             }
-            if(status=='crawled_finish'&&version>last){
+            if(status=='crawled_finish'&&type=='branch'&&version>last){
                 real_interval = 0;
                 logger.debug(url +' got new version after last crawling');
             }
