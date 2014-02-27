@@ -1,6 +1,7 @@
 {
     "driller_info_redis_db":["192.168.8.88",6380,0],
     "url_info_redis_db":["192.168.8.88",6380,1],
+    "url_report_redis_db":["192.168.8.88",6380,2],
     "proxy_info_redis_db":["192.168.8.88",6380,3],
     "use_proxy":true,
     "proxy_router":"127.0.0.1:2013",

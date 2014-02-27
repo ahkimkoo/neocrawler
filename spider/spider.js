@@ -19,11 +19,17 @@ var spider = function(spiderCore){
 spider.prototype.assembly = function(){
     this.redis_cli0 = redis.createClient(this.spiderCore.settings['driller_info_redis_db'][1],this.spiderCore.settings['driller_info_redis_db'][0]);
     this.redis_cli1 = redis.createClient(this.spiderCore.settings['url_info_redis_db'][1],this.spiderCore.settings['url_info_redis_db'][0]);
+    this.redis_cli2 = redis.createClient(this.spiderCore.settings['url_report_redis_db'][1],this.spiderCore.settings['url_report_redis_db'][0]);
     var spider = this;
     var spiderCore = this.spiderCore;
     this.redis_cli0.select(this.spiderCore.settings['driller_info_redis_db'][2], function(err,value) {
+        if(err)throw err;
         spider.redis_cli1.select(spiderCore.settings['url_info_redis_db'][2], function(err,value) {
-            spiderCore.emit('standby','spider');
+            if(err)throw err;
+            spider.redis_cli2.select(spiderCore.settings['url_report_redis_db'][2], function(err,value) {
+                if(err)throw err;
+                spiderCore.emit('standby','spider');
+            });
         });
     });
 }
@@ -291,7 +297,9 @@ spider.prototype.retryCrawl = function(urlinfo){
         }else{
             this.updateLinkState(urlinfo['url'],'crawled_failure');
             logger.error(util.format('after %s reties, give up crawl %s',urlinfo['retry'],urlinfo['url']));
-            this.spiderCore.emit('slide_queue');
+            this.redis_cli2.zadd('fail:'+urlinfo['urllib'],urlinfo['version'],urlinfo['url'],function(err,result){
+                this.spiderCore.emit('slide_queue');
+            });
         }
     }else{
         urlinfo['retry']=1;
@@ -326,6 +334,12 @@ spider.prototype.updateLinkState = function(link,state){
                 if(err)logger.error('update state of link('+link+') fail: '+err);
                 else logger.debug('update state of link('+link+') success: '+state);
             });
+
+            if(state=='crawled_finish'){
+                this.redis_cli2.zrem('fail:'+link_info['trace'],link,function(err,result){
+                    logger.debug('remove '+link+' from fail:'+link_info['trace']);
+                });
+            }
         }else{
             var trace = spider.detectLink(link);
             if(trace!=''){
@@ -343,6 +357,12 @@ spider.prototype.updateLinkState = function(link,state){
                     if (err) throw(err);
                     logger.debug('save new url info: '+link);
                 });
+
+                if(state==='crawled_finish'){
+                    this.redis_cli2.zrem('fail:'+urlinfo['trace'],link,function(err,result){
+                        logger.debug('remove '+link+' from fail:'+urlinfo['trace']);
+                    });
+                }
             }else logger.error(link+' can not match any rules, ignore updating.');
         }
     });

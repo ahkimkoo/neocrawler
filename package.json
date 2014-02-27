@@ -42,7 +42,8 @@
               "ejs" : "0.8.5",
               "express" : "3.3.4",
               "stylus" : "0.40.3",
-              "mysql":"2.0.0"
+              "mysql":"2.0.0",
+              "mongodb":">=1.4.0-rc8"
         },
         "scripts" : {
             "start" : "node run.js",

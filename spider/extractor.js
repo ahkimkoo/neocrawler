@@ -269,7 +269,14 @@ extractor.prototype.extract_data = function(url,content,extract_rule,uppper_data
         }
         if(!lacks.isEmpty()){
             logger.error(url + ' extracted data lacks of '+lacks.join(','));
+            extractor.spiderCore.spider.redis_cli2.zadd('incomplete:data:url',(new Date()).getTime(),url,function(err,result){
+                //nothing
+            });
             if('data_lack_alert' in extractor.spiderCore.spider_extend)extractor.spiderCore.spider_extend.data_lack_alert(url,lacks);
+        }else{
+            extractor.spiderCore.spider.redis_cli2.zrem('incomplete:data:url',url,function(err,result){
+                //nothing
+            });
         }
     }
     return data;

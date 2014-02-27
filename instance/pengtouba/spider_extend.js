@@ -4,10 +4,16 @@
  */
 require('../../lib/jsextend.js');
 var util = require('util');
+var url = require('url');
+var MongoClient = require('mongodb').MongoClient;
 
 var spider_extend = function(spiderCore){
     this.spiderCore = spiderCore;
     logger = spiderCore.settings.logger;
+    MongoClient.connect("mongodb://192.168.1.4:27017/pengtouba", function(err, db) {
+        if(err)throw err;
+        this.mongoTable = db.collection('numbers');
+    });
 }
 
 /**
@@ -52,8 +58,49 @@ var spider_extend = function(spiderCore){
  * if it do nothing , comment it
  * @param extracted_info (same to extract)
  */
-//spider_extend.prototype.pipeline = function(extracted_info){
-//    logger.debug(JSON.stringify(extracted_info));
-//}
+spider_extend.prototype.pipeline = function(extracted_info){
+    var spider_extend = this;
+    if(extracted_info['data'].isEmpty()){
+        logger.warn('data of '+extracted_info['url']+' is empty.');
+    }else{
+        if(data['name']){
+            var data = extracted_info['data'];
+            if(data['logo'])data['logo'] = url.resolve(extracted_info['url'],data['logo']);
+            if(data['qrcode'])data['qrcode'] = url.resolve(extracted_info['url'],data['qrcode']);
+            if(!data['type'])data['type']='wx';
+            data['updated'] = (new Date()).getTime();
+            data['published'] = false;
+            if(data['$category'])delete data['$category'];
+            if(data['$require'])delete data['$require'];
+
+            var urlibarr = extracted_info['urllib'].split(':');
+            var domain = urlibarr[urlibarr.length-2];
+            data['domain'] = domain;
+
+            logger.debug('get '+data['name']+' from '+domain+'('+extracted_info['url']+')');
+
+            data['url'] = extracted_info['url'];
+
+            spider_extend.mongoTable.findOne({'name':data['name'],'type':data['type']}, function(err, item) {
+                if(err)logger.error(err);
+                else{
+                    if(item){
+                        spider_extend.mongoTable.update({'_id':item['_id']},{$set:data}, {w:1}, function(err,result) {
+                            if(!err)logger.debug('update '+data['name']+' to mongodb');
+                        });
+                    }else{
+                        data['created'] = (new Date()).getTime();
+                        spider_extend.mongoTable.insert(data,{w:1}, function(err, result) {
+                            if(!err)logger.debug('insert '+data['name']+' to mongodb');
+                        });
+                    }
+                }
+            });
+        }else{
+            logger.warn(extracted_info['url']+' is lack of name, drop it');
+        }
+    }
+    logger.debug(JSON.stringify(extracted_info));
+}
 
 module.exports = spider_extend;
