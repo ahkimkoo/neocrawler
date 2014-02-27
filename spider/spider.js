@@ -289,16 +289,17 @@ spider.prototype.wrapLink = function(link){
  * @param urlinfo
  */
 spider.prototype.retryCrawl = function(urlinfo){
+    var spider = this;
     if(urlinfo['retry']){
         if(urlinfo['retry']<5){//5 time retry
             urlinfo['retry']+=1;
             logger.info(util.format('Retry url: %s, time: ',urlinfo['url'],urlinfo['retry']));
             this.spiderCore.emit('new_url_queue',urlinfo);
         }else{
-            this.updateLinkState(urlinfo['url'],'crawled_failure');
+            spider.updateLinkState(urlinfo['url'],'crawled_failure');
             logger.error(util.format('after %s reties, give up crawl %s',urlinfo['retry'],urlinfo['url']));
-            this.redis_cli2.zadd('fail:'+urlinfo['urllib'],urlinfo['version'],urlinfo['url'],function(err,result){
-                this.spiderCore.emit('slide_queue');
+            spider.redis_cli2.zadd('fail:'+urlinfo['urllib'],urlinfo['version'],urlinfo['url'],function(err,result){
+                spider.spiderCore.emit('slide_queue');
             });
         }
     }else{
@@ -336,7 +337,7 @@ spider.prototype.updateLinkState = function(link,state){
             });
 
             if(state=='crawled_finish'){
-                this.redis_cli2.zrem('fail:'+link_info['trace'],link,function(err,result){
+                spider.redis_cli2.zrem('fail:'+link_info['trace'],link,function(err,result){
                     logger.debug('remove '+link+' from fail:'+link_info['trace']);
                 });
             }

@@ -198,6 +198,7 @@ downloader.prototype.downloadIt = function(urlinfo){
             }
             result["cost"] = (new Date()) - startTime;
             result['statusCode'] = res.statusCode;
+            page_encoding = page_encoding.toLowerCase().replace('\-','')
             if(!compressed || typeof unzip == 'undefined'){
                 result["content"] = iconv.decode(bufferHelper.toBuffer(),page_encoding);//page_encoding
                 spiderCore.emit('crawled',result);

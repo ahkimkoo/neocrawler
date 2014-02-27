@@ -10,9 +10,12 @@ var MongoClient = require('mongodb').MongoClient;
 var spider_extend = function(spiderCore){
     this.spiderCore = spiderCore;
     logger = spiderCore.settings.logger;
+
+    this.mongoTable = null;
+    var spider_extend = this;
     MongoClient.connect("mongodb://192.168.1.4:27017/pengtouba", function(err, db) {
         if(err)throw err;
-        this.mongoTable = db.collection('numbers');
+        spider_extend.mongoTable = db.collection('numbers');
     });
 }
 
@@ -60,21 +63,22 @@ var spider_extend = function(spiderCore){
  */
 spider_extend.prototype.pipeline = function(extracted_info){
     var spider_extend = this;
-    if(extracted_info['data'].isEmpty()){
+    if(!extracted_info['extracted_data']||extracted_info['extracted_data'].isEmpty()){
         logger.warn('data of '+extracted_info['url']+' is empty.');
     }else{
+        var data = extracted_info['extracted_data'];
         if(data['name']){
-            var data = extracted_info['data'];
             if(data['logo'])data['logo'] = url.resolve(extracted_info['url'],data['logo']);
             if(data['qrcode'])data['qrcode'] = url.resolve(extracted_info['url'],data['qrcode']);
             if(!data['type'])data['type']='wx';
             if(!data['subtype'])data['subtype']='pb';
-            data['updated'] = (new Date()).getTime();
+            var currentTime = (new Date()).getTime();
+            data['updated'] = currentTime;
             data['published'] = false;
             if(data['$category'])delete data['$category'];
             if(data['$require'])delete data['$require'];
 
-            var urlibarr = extracted_info['urllib'].split(':');
+            var urlibarr = extracted_info['origin']['urllib'].split(':');
             var domain = urlibarr[urlibarr.length-2];
             data['domain'] = domain;
 
@@ -90,7 +94,7 @@ spider_extend.prototype.pipeline = function(extracted_info){
                             if(!err)logger.debug('update '+data['name']+' to mongodb');
                         });
                     }else{
-                        data['created'] = (new Date()).getTime();
+                        data['created'] = currentTime;
                         spider_extend.mongoTable.insert(data,{w:1}, function(err, result) {
                             if(!err)logger.debug('insert '+data['name']+' to mongodb');
                         });
@@ -101,7 +105,6 @@ spider_extend.prototype.pipeline = function(extracted_info){
             logger.warn(extracted_info['url']+' is lack of name, drop it');
         }
     }
-    logger.debug(JSON.stringify(extracted_info));
 }
 
 module.exports = spider_extend;

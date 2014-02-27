@@ -362,7 +362,7 @@ extractor.prototype.validateContent = function(crawl_info){
         }
     }else{
         logger.error(util.format('url:%s, status code: %s',crawl_info['url'],statusCode));
-        if(statusCode>400)result=false;
+        if(statusCode>300)result=false;//30x,40x,50x
     }
     return result;
 }

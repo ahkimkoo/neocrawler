@@ -103,6 +103,7 @@ scheduler.prototype.doSchedule = function(){
         redis_cli.llen('queue:scheduled:all',function(err, queue_length) {
             if(err)throw(err);
             var balance = scheduler.settings['schedule_quantity_limitation'] - queue_length;
+            if(balance<0)balance=0;
             var avg_rate = balance/scheduler.total_rates;
             logger.debug(util.format('Schedule, queue length: %s, balance: %s, avg_rate: %s',queue_length,balance,avg_rate));
             scheduler.emit('schedule_circle',-1,avg_rate,0);
