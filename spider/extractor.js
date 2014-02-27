@@ -237,7 +237,7 @@ extractor.prototype.extract_data = function(url,content,extract_rule,uppper_data
                         })(i);
                     }else{
                         var tmp_result = this.cssSelector(baser,rule['expression'],pick,rule['index']);
-                        if(!tmp_result.isEmpty())data[i] = tmp_result;
+                        if(tmp_result&&!tmp_result.isEmpty())data[i] = tmp_result;
                     }
 
             }
@@ -317,7 +317,7 @@ extractor.prototype.cssSelector = function($,expression,pick,index){
                 break;
         }
     }
-    result = result.replace(/[\r\n\t]/g, "").trim();
+    if(result)result = result.replace(/[\r\n\t]/g, "").trim();
     return result;
 }
 /**

@@ -68,6 +68,7 @@ spider_extend.prototype.pipeline = function(extracted_info){
             if(data['logo'])data['logo'] = url.resolve(extracted_info['url'],data['logo']);
             if(data['qrcode'])data['qrcode'] = url.resolve(extracted_info['url'],data['qrcode']);
             if(!data['type'])data['type']='wx';
+            if(!data['subtype'])data['subtype']='pb';
             data['updated'] = (new Date()).getTime();
             data['published'] = false;
             if(data['$category'])delete data['$category'];
