@@ -11,7 +11,7 @@ var async = require('async');
 var spider_extend = function(spiderCore){
     this.spiderCore = spiderCore;
     logger = spiderCore.settings.logger;
-    this.redis_cli = redis.createClient(6379,'192.168.1.4');
+    this.redis_cli = redis.createClient(6380,'192.168.8.88');
     this.redis_cli.select(3, function(err,value) {
         if(err)throw(err);
         logger.debug('temporarily proxy redis db ready');
@@ -196,7 +196,10 @@ spider_extend.prototype.no_queue_alert = function(){
                                                     spider_extend.redis_cli.del('lock:proxy:moving',function(er,sgn){
                                                         if(er)return callback(er, 'unlockFailure');;
                                                         logger.debug('unlock proxy moving');
-                                                        callback(null, 'unlockSuccessful');
+                                                        spider_extend.redis_cli.set('updated:proxy:lib',(new Date()).getTime(),function(err,result){
+                                                            logger.debug('refresh updated:proxy:lib');
+                                                            callback(null, 'unlockSuccessful');
+                                                        });
                                                     });
                                                 }else {
                                                     myarguments.callee(count);
