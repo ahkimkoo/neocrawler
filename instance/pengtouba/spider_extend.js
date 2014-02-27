@@ -78,6 +78,10 @@ spider_extend.prototype.pipeline = function(extracted_info){
             if(data['$category'])delete data['$category'];
             if(data['$require'])delete data['$require'];
 
+            if(extracted_info['drill_relation']){
+                data['relation'] = extracted_info['drill_relation'].split('->');
+            }
+
             var urlibarr = extracted_info['origin']['urllib'].split(':');
             var domain = urlibarr[urlibarr.length-2];
             data['domain'] = domain;
