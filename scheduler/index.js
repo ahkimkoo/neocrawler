@@ -72,7 +72,7 @@ scheduler.prototype.refreshPriotities  = function(){
                                         'last_schedule':value['last_schedule']!=undefined?parseInt(value['last_schedule']):0,
                                         'seed':JSON.parse(value['seed'])
                                     });
-                                }
+                                }else logger.debug(key+' status inactive, ignore it.');
                                 scheduler.tmp_priotites_length--;
                                 if(scheduler.tmp_priotites_length<=0){
                                     scheduler.driller_rules = scheduler.tmp_driller_rules;

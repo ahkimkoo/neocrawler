@@ -149,7 +149,7 @@ spider.prototype.getUrlQueue = function(){
         redis_driller_db.lpop('queue:scheduled:all',function(err, link){
             //2----------------------------------------------------------------------------------------
             if(!link){
-                logger.debug('No queue~');
+                logger.debug('No candidate queue, '+spider.queue_length+' urls in crawling.');
                 if('no_queue_alert' in spider.spiderCore.spider_extend)spider.spiderCore.spider_extend.no_queue_alert();
                 return;
             };//no queue

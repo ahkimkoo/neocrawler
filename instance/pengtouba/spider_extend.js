@@ -91,9 +91,15 @@ spider_extend.prototype.pipeline = function(extracted_info){
             data['url'] = extracted_info['url'];
 
             spider_extend.mongoTable.findOne({'name':data['name'],'type':data['type']}, function(err, item) {
-                if(err)logger.error(err);
+                if(err)throw err;
                 else{
                     if(item){
+                        //if the new data of field less than the old, drop it
+                        (function(nlist){
+                            for(var c=0;c<nlist.length;c++)
+                            if(data[nlist[c]]&&data[nlist[c]].length<item[nlist[c]].length)delete data[nlist[c]];
+                        })(['keyword','slogan','description']);
+
                         spider_extend.mongoTable.update({'_id':item['_id']},{$set:data}, {w:1}, function(err,result) {
                             if(!err)logger.debug('update '+data['name']+' to mongodb');
                         });
