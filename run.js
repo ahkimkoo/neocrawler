@@ -79,6 +79,7 @@ var testUrl = function(){
         var logger = logging.getLogger('crawling-testing',options['i'],'DEBUG');
         settings['logger'] = logger;
         settings['test'] = true;
+        settings['use_proxy'] = false;
         var spider = new (require('./spider'))(settings);
 
         spider.test(options['l']);

@@ -6,7 +6,7 @@ var template =  {
         'url_pattern': '',
         'alias': '',
         'id_parameter': [],
-        'encoding': 'UTF-8',
+        'encoding': 'auto',
         'type': 'node', //branch or node
         'save_page': true,
         'format': 'html',//html or json or binary

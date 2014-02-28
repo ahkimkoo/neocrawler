@@ -137,7 +137,8 @@ downloader.prototype.downloadIt = function(urlinfo){
         var urlobj = urlUtil.parse(urlinfo['url']);
         var __host = urlobj['host'];
         var __port = urlobj['port'];
-        var __path = urlinfo['url'];
+        var __path = urlobj['path'];
+//        var __path = urlinfo['url'];
     }
     var startTime = new Date();
     var options = {
@@ -166,22 +167,8 @@ downloader.prototype.downloadIt = function(urlinfo){
             //"statusCode":res.statusCode,
             "origin":urlinfo
         };
+        if(result['url'].startsWith('/'))result['url'] = urlUtil.resolve(urlinfo['url'],result['url']);
 
-        var page_encoding =
-        (function(header){
-            var page_encoding = 'UTF-8';
-            //get the encoding from header
-            if(header['content-type']!=undefined){
-                var contentType = res.headers['content-type'];
-                var patt = new RegExp("^.*?charset\=(.+)$","ig");
-                var mts = patt.exec(contentType);
-                if (mts != null)
-                {
-                    page_encoding = mts[1];
-                }
-            }
-            return page_encoding;
-        })(res.headers)
         var compressed = /gzip|deflate/.test(res.headers['content-encoding']);
 
         var bufferHelper = new BufferHelper();
@@ -198,6 +185,26 @@ downloader.prototype.downloadIt = function(urlinfo){
             }
             result["cost"] = (new Date()) - startTime;
             result['statusCode'] = res.statusCode;
+
+            var page_encoding = urlinfo['encoding'];
+
+            if(page_encoding==='auto'){
+                page_encoding =
+                    (function(header){
+                        var page_encoding = 'UTF-8';
+                        //get the encoding from header
+                        if(header['content-type']!=undefined){
+                            var contentType = res.headers['content-type'];
+                            var patt = new RegExp("^.*?charset\=(.+)$","ig");
+                            var mts = patt.exec(contentType);
+                            if (mts != null)
+                            {
+                                page_encoding = mts[1];
+                            }
+                        }
+                        return page_encoding;
+                    })(res.headers);
+            }
             page_encoding = page_encoding.toLowerCase().replace('\-','')
             if(!compressed || typeof unzip == 'undefined'){
                 result["content"] = iconv.decode(bufferHelper.toBuffer(),page_encoding);//page_encoding
