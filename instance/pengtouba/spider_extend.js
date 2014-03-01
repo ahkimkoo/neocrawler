@@ -109,7 +109,7 @@ spider_extend.prototype.pipeline = function(extracted_info){
                         //if the new data of field less than the old, drop it
                         (function(nlist){
                             for(var c=0;c<nlist.length;c++)
-                            if(data[nlist[c]]&&data[nlist[c]].length<item[nlist[c]].length)delete data[nlist[c]];
+                            if(data[nlist[c]]&&item[nlist[c]]&&data[nlist[c]].length<item[nlist[c]].length)delete data[nlist[c]];
                         })(['name','oid','nickname','keyword','slogan','description']);
 
                         spider_extend.mongoTable.update({'_id':item['_id']},{$set:data}, {w:1}, function(err,result) {
