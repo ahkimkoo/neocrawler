@@ -13,7 +13,7 @@ var spider_extend = function(spiderCore){
 
     this.mongoTable = null;
     var spider_extend = this;
-    MongoClient.connect("mongodb://192.168.1.4:27017/pengtouba", function(err, db) {
+    MongoClient.connect("mongodb://192.168.1.5:27017/pengtouba", function(err, db) {
         if(err)throw err;
         spider_extend.mongoTable = db.collection('numbers');
     });
