@@ -67,7 +67,16 @@ spider_extend.prototype.pipeline = function(extracted_info){
         logger.warn('data of '+extracted_info['url']+' is empty.');
     }else{
         var data = extracted_info['extracted_data'];
-        if(data['name']){
+        if(data['name']||data['oid']){
+            var identify = 'name';
+            if(!data['name']||data['name'].trim()==''||data['name'].trim()=='无'){
+                identify = 'oid';
+                if(!data['oid']||data['oid'].trim()==''||data['oid'].trim()=='无'){
+                    logger.error('weixin data from '+extracted_info['url']+' is invalidate');
+                    return;
+                }
+            }
+
             if(data['logo'])data['logo'] = url.resolve(extracted_info['url'],data['logo']);
             if(data['qrcode'])data['qrcode'] = url.resolve(extracted_info['url'],data['qrcode']);
             if(!data['type'])data['type']='wx';
@@ -86,11 +95,14 @@ spider_extend.prototype.pipeline = function(extracted_info){
             var domain = urlibarr[urlibarr.length-2];
             data['domain'] = domain;
 
-            logger.debug('get '+data['name']+' from '+domain+'('+extracted_info['url']+')');
+            logger.debug('get '+data[identify]+' from '+domain+'('+extracted_info['url']+')');
 
             data['url'] = extracted_info['url'];
 
-            spider_extend.mongoTable.findOne({'name':data['name'],'type':data['type']}, function(err, item) {
+            var query = {'type':data['type']};
+            query[identify] = data[identify];
+
+            spider_extend.mongoTable.findOne(query, function(err, item) {
                 if(err)throw err;
                 else{
                     if(item){
@@ -98,15 +110,15 @@ spider_extend.prototype.pipeline = function(extracted_info){
                         (function(nlist){
                             for(var c=0;c<nlist.length;c++)
                             if(data[nlist[c]]&&data[nlist[c]].length<item[nlist[c]].length)delete data[nlist[c]];
-                        })(['keyword','slogan','description']);
+                        })(['name','oid','nickname','keyword','slogan','description']);
 
                         spider_extend.mongoTable.update({'_id':item['_id']},{$set:data}, {w:1}, function(err,result) {
-                            if(!err)logger.debug('update '+data['name']+' to mongodb');
+                            if(!err)logger.debug('update '+data[identify]+' to mongodb');
                         });
                     }else{
                         data['created'] = currentTime;
                         spider_extend.mongoTable.insert(data,{w:1}, function(err, result) {
-                            if(!err)logger.debug('insert '+data['name']+' to mongodb');
+                            if(!err)logger.debug('insert '+data[identify]+' to mongodb');
                         });
                     }
                 }
