@@ -362,7 +362,7 @@ spider.prototype.updateLinkState = function(link,state){
                 });
 
                 if(state==='crawled_finish'){
-                    this.redis_cli2.zrem('fail:'+urlinfo['trace'],link,function(err,result){
+                    spider.redis_cli2.zrem('fail:'+urlinfo['trace'],link,function(err,result){
                         logger.debug('remove '+link+' from fail:'+urlinfo['trace']);
                     });
                 }
