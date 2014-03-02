@@ -16,3 +16,4 @@ site:网站
 location:所在地
 score:评分
 hits:关注数
+qq:QQ帐号

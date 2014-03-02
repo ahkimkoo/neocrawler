@@ -128,17 +128,21 @@ downloader.prototype.transCookieKvPair = function(json){
 downloader.prototype.downloadIt = function(urlinfo){
     var spiderCore = this.spiderCore;
     var timeOuter = false;
+
+    var pageLink = urlinfo['url'];
+    if(urlinfo['redirect'])pageLink = urlinfo['redirect'];
+
     if(this.spiderCore.settings['use_proxy']===true){
         var proxyRouter = this.spiderCore.settings['proxy_router'].split(':');
         var __host = proxyRouter[0];
         var __port = proxyRouter[1];
-        var __path =  urlinfo['url'];
+        var __path =  pageLink;
     }else{
-        var urlobj = urlUtil.parse(urlinfo['url']);
+        var urlobj = urlUtil.parse(pageLink);
         var __host = urlobj['host'];
         var __port = urlobj['port'];
         var __path = urlobj['path'];
-//        var __path = urlinfo['url'];
+//        var __path = pageLink;
     }
     var startTime = new Date();
     var options = {
@@ -155,9 +159,9 @@ downloader.prototype.downloadIt = function(urlinfo){
             "Cookie":this.transCookieKvPair(urlinfo['cookie'])
         }
     };
-    logger.debug(util.format('Request start, %s',urlinfo['url']));
+    logger.debug(util.format('Request start, %s',pageLink));
     var req = http.request(options, function(res) {
-        logger.debug(util.format('Response, %s',urlinfo['url']));
+        logger.debug(util.format('Response, %s',pageLink));
 
         var result = {
             "remote_proxy":res.headers['remoteproxy'],
@@ -167,7 +171,14 @@ downloader.prototype.downloadIt = function(urlinfo){
             //"statusCode":res.statusCode,
             "origin":urlinfo
         };
-        if(result['url'].startsWith('/'))result['url'] = urlUtil.resolve(urlinfo['url'],result['url']);
+        if(result['url'].startsWith('/'))result['url'] = urlUtil.resolve(pageLink,result['url']);
+        result['statusCode'] = res.statusCode;
+        if(res.statusCode==301){
+            if(res.headers['location']){
+                result['origin']['redirect'] = res.headers['location'];
+                logger.debug(pageLink+' 301 Moved Permanently to '+res.headers['location']);
+            }
+        }
 
         var compressed = /gzip|deflate/.test(res.headers['content-encoding']);
 
@@ -184,7 +195,7 @@ downloader.prototype.downloadIt = function(urlinfo){
                 timeOuter = false;
             }
             result["cost"] = (new Date()) - startTime;
-            result['statusCode'] = res.statusCode;
+
 
             var page_encoding = urlinfo['encoding'];
 
@@ -205,6 +216,7 @@ downloader.prototype.downloadIt = function(urlinfo){
                         return page_encoding;
                     })(res.headers);
             }
+
             page_encoding = page_encoding.toLowerCase().replace('\-','')
             if(!compressed || typeof unzip == 'undefined'){
                 result["content"] = iconv.decode(bufferHelper.toBuffer(),page_encoding);//page_encoding
@@ -222,13 +234,13 @@ downloader.prototype.downloadIt = function(urlinfo){
 
     timeOuter = setTimeout(function(){
         if(req){
-            logger.error('download timeout, '+urlinfo['url']);
+            logger.error('download timeout, '+pageLink);
             req.destroy();
         }
     },spiderCore.settings['download_timeout']*1000);
 
     req.on('error', function(e) {
-        logger.error('problem with request: ' + e.message+', url:'+urlinfo['url']);
+        logger.error('problem with request: ' + e.message+', url:'+pageLink);
         spiderCore.emit('crawling_failure',urlinfo,e.message);
     });
     req.end();
