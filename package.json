@@ -25,7 +25,7 @@
 
         "repository": {
                 "type": "git",
-                "url": "http://192.168.1.241/repos/spaceux_crawler.git"
+                "url": "http://git.oschina.net/dreamidea/neocrawler.git"
         },
         
         "dependencies": {
