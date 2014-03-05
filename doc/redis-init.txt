@@ -1,0 +1,3 @@
+redis-cli -n 0 set "updated:driller:rule" 0
+
+redis-cli -n 3 set "updated:proxy:lib" 0

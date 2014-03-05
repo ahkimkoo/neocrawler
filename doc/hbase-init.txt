@@ -1,0 +1,1 @@
+create 'crawled',{NAME => 'basic', VERSIONS => 1},{NAME => 'extra', VERSIONS => 1}
