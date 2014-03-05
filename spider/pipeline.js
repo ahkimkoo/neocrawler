@@ -92,9 +92,9 @@ pipeline.prototype.save_links = function(page_url,version,linkobjs,drill_relatio
  * @param pageurl
  * @param content
  * @param referer
- * @param pattern
+ * @param urllib
  */
-pipeline.prototype.save_content = function(pageurl,content,extracted_data,js_result,referer,pattern,drill_relation){
+pipeline.prototype.save_content = function(pageurl,content,extracted_data,js_result,referer,urllib,drill_relation){
     var url_hash = crypto.createHash('md5').update(pageurl+'').digest('hex');
     var spider = os.hostname()+'-'+process.pid;
 
@@ -103,8 +103,8 @@ pipeline.prototype.save_content = function(pageurl,content,extracted_data,js_res
 //                { "column":"basic:url","timestamp":Date.now(),"$":pageurl},
 //                { "column":"basic:content","timestamp":Date.now(),"$":content}
 //                ];
-        var keylist = ['basic:spider','basic:url','basic:referer','basic:url_pattern','basic:drill_relation'];
-        var valuelist = [spider,pageurl,referer,pattern,drill_relation];
+        var keylist = ['basic:spider','basic:url','basic:referer','basic:urllib','basic:drill_relation'];
+        var valuelist = [spider,pageurl,referer,urllib,drill_relation];
         if(content&&!content.isEmpty()){
             keylist.push('basic:content');
             valuelist.push(content);
@@ -148,8 +148,8 @@ pipeline.prototype.save_content = function(pageurl,content,extracted_data,js_res
         row.put('basic:referer',referer,function(err, success){
             logger.debug(pageurl+' update basic:referer ');
         });
-        row.put('basic:url_pattern',pattern,function(err, success){
-            logger.debug(pageurl+' update basic:url_pattern ');
+        row.put('basic:urllib',urllib,function(err, success){
+            logger.debug(pageurl+' update basic:urllib ');
         });
         row.put('basic:drill_relation',drill_relation,function(err, success){
             logger.debug(pageurl+' update basic:drill_relation ');
@@ -180,7 +180,7 @@ pipeline.prototype.save =function(extracted_info){
         else if(this.spiderCore.settings['save_content_to_hbase']===true){
             var html_content = extracted_info['content'];
             if(!extracted_info['origin']['save_page'])html_content = false;
-            this.save_content(extracted_info['url'],html_content,extracted_info['extracted_data'],extracted_info['js_result'],extracted_info['origin']['referer'],extracted_info['origin']['url_pattern'],extracted_info['drill_relation']);
+            this.save_content(extracted_info['url'],html_content,extracted_info['extracted_data'],extracted_info['js_result'],extracted_info['origin']['referer'],extracted_info['origin']['urllib'],extracted_info['drill_relation']);
         }
     }
 }
