@@ -176,12 +176,12 @@ pipeline.prototype.save =function(extracted_info){
         });
     }else{
         if(extracted_info['drill_link'])this.save_links(extracted_info['url'],extracted_info['origin']['version'],extracted_info['drill_link'],extracted_info['drill_relation']);
-        if('pipeline' in this.spiderCore.spider_extend)this.spiderCore.spider_extend.pipeline(extracted_info);//spider extend
-        else if(this.spiderCore.settings['save_content_to_hbase']===true){
+        if(this.spiderCore.settings['save_content_to_hbase']===true){
             var html_content = extracted_info['content'];
             if(!extracted_info['origin']['save_page'])html_content = false;
             this.save_content(extracted_info['url'],html_content,extracted_info['extracted_data'],extracted_info['js_result'],extracted_info['origin']['referer'],extracted_info['origin']['urllib'],extracted_info['drill_relation']);
         }
+        if('pipeline' in this.spiderCore.spider_extend)this.spiderCore.spider_extend.pipeline(extracted_info);//spider extend
     }
 }
 
