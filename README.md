@@ -124,42 +124,41 @@ NEOCrawler是nodejs、redis、phantomjs实现的爬虫系统。
 ## 摘取单元
 
 ```javascript
-  {
-  "base": "content",/*基于什么摘取，网页DOM：content或者给予url*/
-    "mode": "css",/*摘取模式，css或者regex表示css选择符或者正则表达式，value表示给固定值*/
-    "expression": "title",/*表达式，与mode相对应css选择符表达式或者正则表达式，或者一个固定的值*/
-    "pick": "text",/*css模式下摘取一个元素的属性或者值，text、html表示文本值或者标签代码，@href表示href属性值，其他属性依次类推在前面加@符号*/
-    "index": 1/*当有多个元素时，选取第几个元素，-1表示选择多个，将返回数组值*/
-  }
+{
+"base": "content",/*基于什么摘取，网页DOM：content或者给予url*/
+  "mode": "css",/*摘取模式，css或者regex表示css选择符或者正则表达式，value表示给固定值*/
+  "expression": "title",/*表达式，与mode相对应css选择符表达式或者正则表达式，或者一个固定的值*/
+  "pick": "text",/*css模式下摘取一个元素的属性或者值，text、html表示文本值或者标签代码，@href表示href属性值，其他属性依次类推在前面加@符号*/
+  "index": 1/*当有多个元素时，选取第几个元素，-1表示选择多个，将返回数组值*/
+}
 ```
 
 ## 摘取规则
 ```javascript
-  /*摘取规则由多个摘取单元构成，它们之间的基本结构如下*/
-  "extract_rule": {
-      "category": "crawled",/*该节点存储到hbase的表名称*/
-      "rule": {/*具体规则*/
-        "title": {/*一个摘取单元，规则参考上面的说明*/
-          "base": "content",
-          "mode": "css",
-          "expression": "title",
-          "pick": "text",
-          "index": 1,
-      'subset':{/*子集*/
-                'category':'comment',/*属于comment（存储到comment）*/
-                'relate':'#title#',/*与上级关联*/
-                'mapping':false,/*子集类型，mapping为true将分到另外的表中单独存储*/
-                'rule':{
-                    'profile': {'base':'content','mode':'css','expression':'.classname','pick':'@href','index':1},/*摘取单元*/
-                    'message': {'base':'content','mode':'css','expression':'.classname','pick':'@alt','index':1}	                    
-                  },
-        'require':['profile']/*必须字段*/
-              }
-        }
+/*摘取规则由多个摘取单元构成，它们之间的基本结构如下*/
+"extract_rule": {
+    "category": "crawled",/*该节点存储到hbase的表名称*/
+    "rule": {/*具体规则*/
+      "title": {/*一个摘取单元，规则参考上面的说明*/
+        "base": "content",
+        "mode": "css",
+        "expression": "title",
+        "pick": "text",
+        "index": 1,
+        "subset":{/*子集*/
+              "category":"comment",/*属于comment（存储到comment）*/
+              "relate":"#title#",/*与上级关联*/
+              "mapping":false,/*子集类型，mapping为true将分到另外的表中单独存储*/
+              "rule":{
+                  "profile": {"base":"content","mode":"css","expression":".classname","pick":"@href","index":1},/*摘取单元*/
+                  "message": {"base":"content","mode":"css","expression":".classname","pick":"@alt","index":1}	                    
+                },
+              "require":["profile"]/*必须字段*/
+            }
       }
-    ,
-    'require':['title']/*必须字段，如果里面的值为数组，表示这个数组内的值有任意一个就满足要求，例如[[a,b],c]*/
     }
+  "require":["title"]/*必须字段，如果里面的值为数组，表示这个数组内的值有任意一个就满足要求，例如[[a,b],c]*/
+  }
 ```
 
 #【联系作者】
