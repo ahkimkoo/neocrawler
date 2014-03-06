@@ -25,27 +25,27 @@ NEOCrawler是nodejs、redis、phantomjs实现的爬虫系统。
 * 实例在instance目录下，拷贝一份example，重命名其他的实例名，例如：abc，以下说明中均使用该实例名举例。
 * 编辑instance/abc/setting.json
 
-		```javascript
-		{
-		    /*注意：此处用于解释各项配置，真正的setting.json中不能包含注释*/
-		    
-		    "driller_info_redis_db":["127.0.0.1",6379,0],/*网址规则配置信息存储位置，最后一个数字表示redis的第几个数据库*/
-		    "url_info_redis_db":["127.0.0.1",6379,1],/*网址信息存储位置*/
-		    "url_report_redis_db":["127.0.0.1",6380,2],/*抓取错误信息存储位置*/
-		    "proxy_info_redis_db":["127.0.0.1",6379,3],/*http代理网址存储位置*/
-		    "use_proxy":false,/*是否使用代理服务*/
-		    "proxy_router":"127.0.0.1:2013",/*使用代理服务的情况下，代理服务的路由中心地址*/
-		    "download_timeout":60,/*下载超时时间，秒，不等同于相应超时*/
-		    "save_content_to_hbase":false,/*是否将抓取信息存储到hbase*/
-		    "crawled_hbase_db":["127.0.0.1",8080,"crawled"],/*hbase rest服务地址及存储的表*/
-		    "statistic_mysql_db":["127.0.0.1",3306,"crawling","crawler","123"],/*用来存储抓取日志分析结果，需要结合flume来实现，一般不使用此项*/
-		    "check_driller_rules_interval":120,/*多久检测一次网址规则的变化以便热刷新到运行中的爬虫*/
-		    "spider_concurrency":5,/*爬虫的抓取页面并发请求数*/
-		    "spider_request_delay":0,/*两个并发请求之间的间隔时间，秒*/
-		    "schedule_interval":60,/*调度器两次调度的间隔时间*/
-		    "schedule_quantity_limitation":200/*调度器给爬虫的最大网址待抓取数量*/
-		}
-		```
+```javascript
+{
+    /*注意：此处用于解释各项配置，真正的setting.json中不能包含注释*/
+    
+    "driller_info_redis_db":["127.0.0.1",6379,0],/*网址规则配置信息存储位置，最后一个数字表示redis的第几个数据库*/
+    "url_info_redis_db":["127.0.0.1",6379,1],/*网址信息存储位置*/
+    "url_report_redis_db":["127.0.0.1",6380,2],/*抓取错误信息存储位置*/
+    "proxy_info_redis_db":["127.0.0.1",6379,3],/*http代理网址存储位置*/
+    "use_proxy":false,/*是否使用代理服务*/
+    "proxy_router":"127.0.0.1:2013",/*使用代理服务的情况下，代理服务的路由中心地址*/
+    "download_timeout":60,/*下载超时时间，秒，不等同于相应超时*/
+    "save_content_to_hbase":false,/*是否将抓取信息存储到hbase*/
+    "crawled_hbase_db":["127.0.0.1",8080,"crawled"],/*hbase rest服务地址及存储的表*/
+    "statistic_mysql_db":["127.0.0.1",3306,"crawling","crawler","123"],/*用来存储抓取日志分析结果，需要结合flume来实现，一般不使用此项*/
+    "check_driller_rules_interval":120,/*多久检测一次网址规则的变化以便热刷新到运行中的爬虫*/
+    "spider_concurrency":5,/*爬虫的抓取页面并发请求数*/
+    "spider_request_delay":0,/*两个并发请求之间的间隔时间，秒*/
+    "schedule_interval":60,/*调度器两次调度的间隔时间*/
+    "schedule_quantity_limitation":200/*调度器给爬虫的最大网址待抓取数量*/
+}
+```
 #【运行】
 * 运行调度器
 	> node run.js -i abc -a schedule
@@ -73,94 +73,94 @@ NEOCrawler是nodejs、redis、phantomjs实现的爬虫系统。
 #【抓取规则配置】
 打开web界面,例如：http://localhost:8888/ , 进入“Drilling Rules”，添加规则。这是一个json编辑器，可以在代码模式/可视化模式之间切换。为了方便演示这里以代码模式为准：
 
-	'''javascript
-		{
-		  /*注意：此处用于解释各项配置，真正的配置代码中不能包含注释*/
-		  "domain": "",/*顶级域名，例如163.com(不带主机名，www.163.com是错误的)*/
-		  "url_pattern": "",/*网址规则，正则表达式，例如：^http://domain/\d+\.html，限定范围越精确越好*/
-		  "alias": "",/*给该规则取的别名*/
-		  "id_parameter": [],/*该网址可以带的有效参数，如果数组第一个值为#，表示过滤一切参数*/
-		  "encoding": "auto",/*页面编码，auto表示自动检测，可以填写具体值：gbk,utf-8*/
-		  "type": "node",/*页面类型，分支branch或者节点node*/
-		  "save_page": true,/*是否保存html源代码*/
-		  "format": "html",/*页面形式，html/json/binary*/
-		  "jshandle": false,/*是否需要处理js，决定了爬虫是否用phantomjs加载页面*/
-		  "extract_rule": {/*摘取规则，后面单独详述*/
-		    "category": "crawled",
-		    "rule": {/*如果不摘取数据，rule应该为空*/
-		      "title": {/*一个摘取单元，后面单独详述*/
-		        "base": "content",
-		        "mode": "css",
-		        "expression": "title",
-		        "pick": "text",
-		        "index": 1
-		      }
-		    }
-		  },
-		  "cookie": [],/*cookie值，有多个object组成，每个object是一个cookie值*/
-		  "inject_jquery": false,/*在使用phantomjs的情况下是否注入jquery*/
-		  "load_img": false,/*在使用phantomjs的情况下是否载入图片*/
-		  "drill_rules": ["a"],/*页面中感兴趣的链接,填写css选择符选择a元素，可以为多个，此处表示所有链接*/
-		  "drill_relation": {/*一个摘取单元，从页面中摘取一个值来填充上下文关系对此页的描述*/
-		    "base": "content",
-		    "mode": "css",
-		    "expression": "title",
-		    "pick": "text",
-		    "index": 1
-		  },
-		  "validation_keywords": [],/*验证页面下载是否有效的关键词，可以为多个，为空表示不验证*/
-		  "script": [],/*在页面中执行的脚本，可以为多个，依次对应每个层级下的执行。以js_result=..形式*/
-		  "navigate_rule": [],/*自动导航，css选择符，可以为多个，依次对应每个层级，phantomjs将点击匹配的元素进行导航*/
-		  "stoppage": -1,/*导航几个层级后停止*/
-		  "priority": 1,/*调度优先级，数字越小越优先*/
-		  "weight": 10,/*调度权重，数字越大越有限*/
-		  "schedule_interval": 86400,/*重新调度的周期，单位秒*/
-		  "active": true,/*是否激活该规则*/
-		  "seed": [],/*种子地址，重新调度时从这些网址开始*/
-		  "schedule_rule": "FIFO"/*调度方式，FIFO或者LIFO*/
-		}
-	'''
+```javascript
+{
+  /*注意：此处用于解释各项配置，真正的配置代码中不能包含注释*/
+  "domain": "",/*顶级域名，例如163.com(不带主机名，www.163.com是错误的)*/
+  "url_pattern": "",/*网址规则，正则表达式，例如：^http://domain/\d+\.html，限定范围越精确越好*/
+  "alias": "",/*给该规则取的别名*/
+  "id_parameter": [],/*该网址可以带的有效参数，如果数组第一个值为#，表示过滤一切参数*/
+  "encoding": "auto",/*页面编码，auto表示自动检测，可以填写具体值：gbk,utf-8*/
+  "type": "node",/*页面类型，分支branch或者节点node*/
+  "save_page": true,/*是否保存html源代码*/
+  "format": "html",/*页面形式，html/json/binary*/
+  "jshandle": false,/*是否需要处理js，决定了爬虫是否用phantomjs加载页面*/
+  "extract_rule": {/*摘取规则，后面单独详述*/
+    "category": "crawled",
+    "rule": {/*如果不摘取数据，rule应该为空*/
+      "title": {/*一个摘取单元，后面单独详述*/
+        "base": "content",
+        "mode": "css",
+        "expression": "title",
+        "pick": "text",
+        "index": 1
+      }
+    }
+  },
+  "cookie": [],/*cookie值，有多个object组成，每个object是一个cookie值*/
+  "inject_jquery": false,/*在使用phantomjs的情况下是否注入jquery*/
+  "load_img": false,/*在使用phantomjs的情况下是否载入图片*/
+  "drill_rules": ["a"],/*页面中感兴趣的链接,填写css选择符选择a元素，可以为多个，此处表示所有链接*/
+  "drill_relation": {/*一个摘取单元，从页面中摘取一个值来填充上下文关系对此页的描述*/
+    "base": "content",
+    "mode": "css",
+    "expression": "title",
+    "pick": "text",
+    "index": 1
+  },
+  "validation_keywords": [],/*验证页面下载是否有效的关键词，可以为多个，为空表示不验证*/
+  "script": [],/*在页面中执行的脚本，可以为多个，依次对应每个层级下的执行。以js_result=..形式*/
+  "navigate_rule": [],/*自动导航，css选择符，可以为多个，依次对应每个层级，phantomjs将点击匹配的元素进行导航*/
+  "stoppage": -1,/*导航几个层级后停止*/
+  "priority": 1,/*调度优先级，数字越小越优先*/
+  "weight": 10,/*调度权重，数字越大越有限*/
+  "schedule_interval": 86400,/*重新调度的周期，单位秒*/
+  "active": true,/*是否激活该规则*/
+  "seed": [],/*种子地址，重新调度时从这些网址开始*/
+  "schedule_rule": "FIFO"/*调度方式，FIFO或者LIFO*/
+}
+```
 
 ## 摘取单元
 
-	'''javascript
-			{
-			"base": "content",/*基于什么摘取，网页DOM：content或者给予url*/
-		    "mode": "css",/*摘取模式，css或者regex表示css选择符或者正则表达式，value表示给固定值*/
-		    "expression": "title",/*表达式，与mode相对应css选择符表达式或者正则表达式，或者一个固定的值*/
-		    "pick": "text",/*css模式下摘取一个元素的属性或者值，text、html表示文本值或者标签代码，@href表示href属性值，其他属性依次类推在前面加@符号*/
-		    "index": 1/*当有多个元素时，选取第几个元素，-1表示选择多个，将返回数组值*/
-			}
-	'''
+```javascript
+  {
+  "base": "content",/*基于什么摘取，网页DOM：content或者给予url*/
+    "mode": "css",/*摘取模式，css或者regex表示css选择符或者正则表达式，value表示给固定值*/
+    "expression": "title",/*表达式，与mode相对应css选择符表达式或者正则表达式，或者一个固定的值*/
+    "pick": "text",/*css模式下摘取一个元素的属性或者值，text、html表示文本值或者标签代码，@href表示href属性值，其他属性依次类推在前面加@符号*/
+    "index": 1/*当有多个元素时，选取第几个元素，-1表示选择多个，将返回数组值*/
+  }
+```
 
 ## 摘取规则
-	'''javascript
-		/*摘取规则由多个摘取单元构成，它们之间的基本结构如下*/
-		"extract_rule": {
-		    "category": "crawled",/*该节点存储到hbase的表名称*/
-		    "rule": {/*具体规则*/
-		      "title": {/*一个摘取单元，规则参考上面的说明*/
-		        "base": "content",
-		        "mode": "css",
-		        "expression": "title",
-		        "pick": "text",
-		        "index": 1,
-				'subset':{/*子集*/
-	                'category':'comment',/*属于comment（存储到comment）*/
-	                'relate':'#title#',/*与上级关联*/
-	                'mapping':false,/*子集类型，mapping为true将分到另外的表中单独存储*/
-	                'rule':{
-	                    'profile': {'base':'content','mode':'css','expression':'.classname','pick':'@href','index':1},/*摘取单元*/
-	                    'message': {'base':'content','mode':'css','expression':'.classname','pick':'@alt','index':1}	                    
-	                	},
-					'require':['profile']/*必须字段*/
-	            	}
-		      }
-		    }
-		  ,
-		  'require':['title']/*必须字段，如果里面的值为数组，表示这个数组内的值有任意一个就满足要求，例如[[a,b],c]*/
-		  }
-	'''
+```javascript
+  /*摘取规则由多个摘取单元构成，它们之间的基本结构如下*/
+  "extract_rule": {
+      "category": "crawled",/*该节点存储到hbase的表名称*/
+      "rule": {/*具体规则*/
+        "title": {/*一个摘取单元，规则参考上面的说明*/
+          "base": "content",
+          "mode": "css",
+          "expression": "title",
+          "pick": "text",
+          "index": 1,
+      'subset':{/*子集*/
+                'category':'comment',/*属于comment（存储到comment）*/
+                'relate':'#title#',/*与上级关联*/
+                'mapping':false,/*子集类型，mapping为true将分到另外的表中单独存储*/
+                'rule':{
+                    'profile': {'base':'content','mode':'css','expression':'.classname','pick':'@href','index':1},/*摘取单元*/
+                    'message': {'base':'content','mode':'css','expression':'.classname','pick':'@alt','index':1}	                    
+                  },
+        'require':['profile']/*必须字段*/
+              }
+        }
+      }
+    ,
+    'require':['title']/*必须字段，如果里面的值为数组，表示这个数组内的值有任意一个就满足要求，例如[[a,b],c]*/
+    }
+```
 
 #【联系作者】
 * Email: <successage@gmail.com>,
