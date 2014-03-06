@@ -1,6 +1,6 @@
 #【NEOCrawler 介绍】
 
-NEOCrawler是nodejs、redis、phantomjs实现的爬虫系统。
+NEOCrawler，中文名：牛抓，是nodejs、redis、phantomjs实现的爬虫系统。
 
 * nodejs的非阻塞、异步的特点，用于开发IO密集CPU需求不高的系统表现很出色；
 * 网址调度中心，可以控制一定时间后更新抓取，可以限制一个时间片内的并发连接数；
