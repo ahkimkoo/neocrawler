@@ -294,13 +294,34 @@ extractor.prototype.cssSelector = function($,expression,pick,index){
 //    logger.debug('css expression: '+expression);
     if(!index)index=1;
     var real_index = parseInt(index) - 1;
-    if(real_index<0)real_index=0;
+    //if(real_index<0)real_index=0;
     var tmp_val = $.find(expression);
     if(!pick)return tmp_val;
     if(typeof(tmp_val)==='object'){
-        var val = tmp_val.eq(real_index);
-    }else var val = tmp_val;
-
+        if(real_index>=0){
+            var val = tmp_val.eq(real_index);
+            return this.cssSelectorPicker(val,pick);
+        }else{
+            var arrayResult = [];
+            for(var i=0;i<tmp_val.length;i++){
+                var val = tmp_val.eq(i);
+                arrayResult.push(this.cssSelectorPicker(val,pick));
+            }
+            if(arrayResult.length==1)arrayResult = arrayResult[0];
+            return arrayResult;
+        }
+    }else {
+        var val = tmp_val;
+        return this.cssSelectorPicker(val,pick);
+    }
+}
+/**
+ * pick value/attribute from element
+ * @param val
+ * @param pick
+ * @returns {*}
+ */
+extractor.prototype.cssSelectorPicker = function(val,pick){
     var result;
     if(pick.startsWith('@')){
         result = val.attr(pick.slice(1));
@@ -320,6 +341,7 @@ extractor.prototype.cssSelector = function($,expression,pick,index){
     if(result)result = result.replace(/[\r\n\t]/g, "").trim();
     return result;
 }
+
 /**
  * return matched group base expression
  * @param content
