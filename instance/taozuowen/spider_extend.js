@@ -5,6 +5,7 @@
 require('../../lib/jsextend.js');
 var util = require('util');
 var url = require('url');
+var crypto = require('crypto');
 var MongoClient = require('mongodb').MongoClient;
 
 var spider_extend = function(spiderCore){
@@ -13,9 +14,9 @@ var spider_extend = function(spiderCore){
 
     this.mongoTable = null;
     var spider_extend = this;
-    MongoClient.connect("mongodb://192.168.1.5:27017/pengtouba", function(err, db) {
+    MongoClient.connect("mongodb://10.1.1.122:27017/taozuowen", function(err, db) {
         if(err)throw err;
-        spider_extend.mongoTable = db.collection('numbers');
+        spider_extend.mongoTable = db.collection('articles');
     });
 }
 
@@ -67,41 +68,42 @@ spider_extend.prototype.pipeline = function(extracted_info){
         logger.warn('data of '+extracted_info['url']+' is empty.');
     }else{
         var data = extracted_info['extracted_data'];
-        if(data['name']||data['oid']){
-            var identify = 'name';
-            if(!data['name']||data['name'].trim()==''||data['name'].trim()=='无'){
-                identify = 'oid';
-                if(!data['oid']||data['oid'].trim()==''||data['oid'].trim()=='无'){
-                    logger.error('weixin data from '+extracted_info['url']+' is invalidate');
-                    return;
-                }
-            }
+        if(data['content']){
+            var _id = crypto.createHash('md5').update(extracted_info['url']).digest('hex');
+            var puerContent = data['content'].replace(/[^\u4e00-\u9fa5a-z0-9]/ig,'');
+            var simplefp = crypto.createHash('md5').update(puerContent).digest('hex');
 
-            if(data['logo'])data['logo'] = url.resolve(extracted_info['url'],data['logo']);
-            if(data['qrcode'])data['qrcode'] = url.resolve(extracted_info['url'],data['qrcode']);
-            if(!data['type'])data['type']='wx';
-            if(!data['subtype'])data['subtype']='pb';
             var currentTime = (new Date()).getTime();
             data['updated'] = currentTime;
             data['published'] = false;
+
+            //drop additional info
             if(data['$category'])delete data['$category'];
             if(data['$require'])delete data['$require'];
 
+            //format relation to array
             if(extracted_info['drill_relation']){
                 data['relation'] = extracted_info['drill_relation'].split('->');
             }
 
+            //get domain
             var urlibarr = extracted_info['origin']['urllib'].split(':');
             var domain = urlibarr[urlibarr.length-2];
             data['domain'] = domain;
 
-            logger.debug('get '+data[identify]+' from '+domain+'('+extracted_info['url']+')');
-
+            logger.debug('get '+data['title']+' from '+domain+'('+extracted_info['url']+')');
             data['url'] = extracted_info['url'];
 
-            var query = {'type':data['type']};
-            query[identify] = data[identify];
-
+            var query = {
+                "$or":[
+                    {
+                        '_id':_id
+                    },
+                    {
+                        'simplefp':simplefp
+                    }
+                ]
+            };
             spider_extend.mongoTable.findOne(query, function(err, item) {
                 if(err)throw err;
                 else{
@@ -110,21 +112,23 @@ spider_extend.prototype.pipeline = function(extracted_info){
                         (function(nlist){
                             for(var c=0;c<nlist.length;c++)
                             if(data[nlist[c]]&&item[nlist[c]]&&data[nlist[c]].length<item[nlist[c]].length)delete data[nlist[c]];
-                        })(['name','oid','nickname','keyword','slogan','description']);
+                        })(['title','content','tag','keywords']);
 
                         spider_extend.mongoTable.update({'_id':item['_id']},{$set:data}, {w:1}, function(err,result) {
-                            if(!err)logger.debug('update '+data[identify]+' to mongodb');
+                            if(!err)logger.debug('update '+data['title']+' to mongodb, '+data['url']+' --override-> '+item['url']);
                         });
                     }else{
+                        data['simplefp'] = simplefp;
+                        data['_id'] = _id;
                         data['created'] = currentTime;
                         spider_extend.mongoTable.insert(data,{w:1}, function(err, result) {
-                            if(!err)logger.debug('insert '+data[identify]+' to mongodb');
+                            if(!err)logger.debug('insert '+data['title']+' to mongodb');
                         });
                     }
                 }
             });
         }else{
-            logger.warn(extracted_info['url']+' is lack of name, drop it');
+            logger.warn(extracted_info['url']+' is lack of content, drop it');
         }
     }
 }
