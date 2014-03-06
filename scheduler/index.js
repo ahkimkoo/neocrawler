@@ -19,6 +19,7 @@ var scheduler = function(settings){
     this.max_weight = 100;
     this.total_rates = 0;
     this.driller_rules = {};//{"domain":{"alias":{"rules":"..."}}}
+    this.schedule_version = (new Date()).getTime();
     this.redis_cli0 = redis.createClient(this.settings['driller_info_redis_db'][1],this.settings['driller_info_redis_db'][0]);
     this.redis_cli1 = redis.createClient(this.settings['url_info_redis_db'][1],this.settings['url_info_redis_db'][0]);
 }
@@ -99,6 +100,7 @@ scheduler.prototype.refreshPriotities  = function(){
  */
 scheduler.prototype.doSchedule = function(){
     var scheduler =  this;
+    scheduler.schedule_version = (new Date()).getTime();
     var redis_cli = scheduler.redis_cli0;
         redis_cli.llen('queue:scheduled:all',function(err, queue_length) {
             if(err)throw(err);
@@ -133,7 +135,7 @@ scheduler.prototype.reSchedule = function(driller,index){
 
     for(var i=0;i<links.length;i++){
         (function(link){
-            scheduler.updateLinkState(link,'schedule',(new Date()).getTime(),function(bol){
+            scheduler.updateLinkState(link,'schedule',scheduler.schedule_version,function(bol){
                 if(bol){
                     scheduler.redis_cli0.rpush('queue:scheduled:all',link,function(err, value){
                         logger.debug('reschedule url: '+link);
@@ -144,9 +146,8 @@ scheduler.prototype.reSchedule = function(driller,index){
             });
         })(links[i])
     }
-    var ntime = (new Date()).getTime();
-    this.priotity_list[index]['first_schedule'] = ntime;
-    this.redis_cli0.hset(driller['key'],'first_schedule',ntime,function(err,value){
+    this.priotity_list[index]['first_schedule'] = this.schedule_version;
+    this.redis_cli0.hset(driller['key'],'first_schedule',this.schedule_version,function(err,value){
         if(err)logger.error('update first schedule time for '+driller['key']+' failure');
         else logger.debug('update first schedule time for '+driller['key']+' successful');
     });
