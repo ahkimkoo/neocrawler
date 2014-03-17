@@ -103,15 +103,21 @@ pipeline.prototype.save_content = function(pageurl,content,extracted_data,js_res
 //                { "column":"basic:url","timestamp":Date.now(),"$":pageurl},
 //                { "column":"basic:content","timestamp":Date.now(),"$":content}
 //                ];
-        var keylist = ['basic:spider','basic:url','basic:referer','basic:urllib','basic:drill_relation'];
-        var valuelist = [spider,pageurl,referer,urllib,drill_relation];
+        var keylist = ['basic:spider','basic:url','basic:referer','basic:urllib','basic:drill_relation','basic:updated'];
+        var valuelist = [spider,pageurl,referer,urllib,drill_relation,(new Date()).getTime().toString()];
         if(content&&!content.isEmpty()){
             keylist.push('basic:content');
             valuelist.push(content);
         }
         if(extracted_data&&!extracted_data.isEmpty()){
-            keylist.push('basic:data');
-            valuelist.push(JSON.stringify(extracted_data));
+            for(d in extracted_data){
+                if(extracted_data.hasOwnProperty(d)&&extracted_data[d]!=undefined){
+                    keylist.push('data:'+d);
+                    valuelist.push(typeof(extracted_data[d])=='object'?JSON.stringify(extracted_data[d]):extracted_data[d]);
+                }
+            }
+//            keylist.push('basic:data');
+//            valuelist.push(JSON.stringify(extracted_data));
         }
         if(js_result&&!js_result.isEmpty()){
             keylist.push('basic:jsresult');
@@ -126,6 +132,7 @@ pipeline.prototype.save_content = function(pageurl,content,extracted_data,js_res
 //            logger.debug('insert content extracted from '+pageurl);
 //        });
     }catch(e){
+        console.error(e);
         logger.error('use bench mode insert data , err: '+e);
         row.put('basic:spider',spider,function(err, success){
             logger.debug(pageurl+' update basic:spider ');
@@ -137,10 +144,15 @@ pipeline.prototype.save_content = function(pageurl,content,extracted_data,js_res
         row.put('basic:content',content,function(err, success){
             logger.debug(pageurl+' update basic:content ');
         });
-        if(extracted_data&&!extracted_data.isEmpty())
-        row.put('basic:data',JSON.stringify(extracted_data),function(err, success){
-            logger.debug(pageurl+' update basic:data ');
-        });
+        if(extracted_data&&!extracted_data.isEmpty()){
+            for(d in extracted_data){
+                if(extracted_data.hasOwnProperty(d)&&extracted_data[d]!=undefined){
+                    row.put('data:'+d,typeof(extracted_data[d])=='object'?JSON.stringify(extracted_data[d]):extracted_data[d],function(err, success){
+                        logger.debug(pageurl+' update data:'+d);
+                    });
+                }
+            }
+        }
         if(js_result&&!js_result.isEmpty())
         row.put('basic:jsresult',js_result,function(err, success){
             logger.debug(pageurl+' update basic:jsresult ');
@@ -153,6 +165,9 @@ pipeline.prototype.save_content = function(pageurl,content,extracted_data,js_res
         });
         row.put('basic:drill_relation',drill_relation,function(err, success){
             logger.debug(pageurl+' update basic:drill_relation ');
+        });
+        row.put('basic:updated',(new Date()).getTime().toString(),function(err, success){
+            logger.debug(pageurl+' update basic:updated ');
         });
     }
 }
