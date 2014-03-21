@@ -338,7 +338,8 @@ extractor.prototype.cssSelectorPicker = function(val,pick){
                 break;
         }
     }
-    if(result)result = result.replace(/[\r\n\t]/g, "").trim();
+    //if(result)result = result.replace(/[\r\n\t]/g, "").trim();
+    if(result)result = result.trim();
     return result;
 }
 
