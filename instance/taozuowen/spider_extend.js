@@ -68,7 +68,7 @@ spider_extend.prototype.pipeline = function(extracted_info){
         logger.warn('data of '+extracted_info['url']+' is empty.');
     }else{
         var data = extracted_info['extracted_data'];
-        if(data['content']){
+        if(data['content']&&data['content'].trim()!=""){
             var _id = crypto.createHash('md5').update(extracted_info['url']).digest('hex');
             var puerContent = data['content'].replace(/[^\u4e00-\u9fa5a-z0-9]/ig,'');
             var simplefp = crypto.createHash('md5').update(puerContent).digest('hex');
