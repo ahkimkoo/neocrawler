@@ -6,6 +6,7 @@ var redis = require("redis");
 var crypto = require('crypto');
 var url =  require("url");
 var util = require('util');
+var async = require('async');
 
 var spider = function(spiderCore){
     this.spiderCore = spiderCore;
@@ -126,7 +127,7 @@ spider.prototype.getDrillerRules = function(id){
 }
 
 ////get url////////////////////////////////////////////
-spider.prototype.getUrlQueue = function(){
+spider.prototype.getUrlQueue = function(callback){
     /*
      var urlinfo = {
      "url":"http://list.taobao.com/itemlist/sport2011a.htm?spm=1.6659421.a21471u.6.RQYJRM&&md=5221&cat=50071853&sd=0&as=0&viewIndex=1&atype=b&style=grid&same_info=1&tid=0&olu=yes&isnew=2&smc=1&navid=city&_input_charset=utf-8",
@@ -151,7 +152,7 @@ spider.prototype.getUrlQueue = function(){
             if(!link){
                 logger.debug('No candidate queue, '+spider.queue_length+' urls in crawling.');
                 if('no_queue_alert' in spider.spiderCore.spider_extend)spider.spiderCore.spider_extend.no_queue_alert();
-                return;
+                if(callback){callback(false);return;}
             };//no queue
                 var linkhash = crypto.createHash('md5').update(link).digest('hex');
                 redis_urlinfo_db.hgetall(linkhash,function(err, link_info){
@@ -196,8 +197,8 @@ spider.prototype.getUrlQueue = function(){
                                         "start_time":(new Date()).getTime()
                                     }
                                     logger.debug('new url: '+link);
-                                    spider.queue_length++;
                                     spider.spiderCore.emit('new_url_queue',urlinfo);
+                                    if(callback)callback(true);
                                 }
                         }
                     }
@@ -211,11 +212,21 @@ spider.prototype.getUrlQueue = function(){
  * @param spider
  */
 spider.prototype.checkQueue = function(spider){
-    logger.debug('Check queue, length: '+spider.queue_length);
-    var slide_count = this.spiderCore.settings['spider_concurrency'] - spider.queue_length;
-    for(var i=0;i<slide_count;i++){
-        spider.getUrlQueue();
-    }
+    async.whilst(
+        function() {
+            logger.debug('Check queue, length: '+spider.queue_length);
+            return spider.queue_length <= spider.spiderCore.settings['spider_concurrency'];
+        },
+        function(cb) {
+            spider.getUrlQueue(function(bol){
+                if(bol===true)spider.queue_length++;
+                cb();
+            });
+        },
+        function(err) {
+           //do nothing
+        }
+    );
 }
 /**
  * TOP Domain,e.g: www.baidu.com  -> baidu.com
