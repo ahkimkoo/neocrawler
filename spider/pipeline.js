@@ -97,6 +97,7 @@ pipeline.prototype.save_links = function(page_url,version,linkobjs,drill_relatio
 pipeline.prototype.save_content = function(pageurl,content,extracted_data,js_result,referer,urllib,drill_relation){
     var url_hash = crypto.createHash('md5').update(pageurl+'').digest('hex');
     var spider = os.hostname()+'-'+process.pid;
+    var start_time = (new Date()).getTime();
 
 //    var val_cells = [
 //                { "column":"basic:spider","timestamp":Date.now(),"$":spider},
@@ -126,7 +127,7 @@ pipeline.prototype.save_content = function(pageurl,content,extracted_data,js_res
         var row = this.hbase_table.getRow(url_hash);
     try{
         row.put(keylist,valuelist,function(err,success){
-                      logger.debug('insert content extracted from '+pageurl);
+                      logger.info('insert content extracted from '+pageurl+', cost: '+((new Date()).getTime() - start_time)+' ms');
                   });
 //        row.put(['basic:spider','basic:url','basic:content'],[spider,pageurl,content],function(err,success){
 //            logger.debug('insert content extracted from '+pageurl);

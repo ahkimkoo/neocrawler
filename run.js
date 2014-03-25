@@ -39,7 +39,7 @@ var settings = require('./instance/'+options['i']+'/'+'settings.json');
 settings['instance'] = options['i'];
 ////crawling action///////////////////////////////////////////////////////////
 var crawling = function(){
-	var logger = logging.getLogger('crawling',options['i'],'DEBUG');
+	var logger = logging.getLogger('crawling',options['i'],'INFO');
     settings['logger'] = logger;
     settings['instance'] = options['i'];
     var spider = new (require('./spider'))(settings);
