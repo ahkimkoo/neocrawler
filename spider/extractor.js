@@ -63,7 +63,12 @@ extractor.prototype.wash_link = function(pageurl,links){
         if(!links[i])continue;
         var link = links[i].trim();
         if(!(link.startsWith('#')||link.startsWith('javascript')||link.startsWith('void('))){
-            cleaned_link.push(url.resolve(pageurl,link));
+            try{
+                cleaned_link.push(url.resolve(pageurl,link));
+            }catch(e){
+                logger.error('Url resolve error: '+pageurl+', '+link);
+            }
+
         }
     }
     return cleaned_link.unique();
