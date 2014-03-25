@@ -54,7 +54,7 @@ spiderCore.prototype.start = function(){
     });
     //when downloading is finish
     this.on('crawled',function(crawled_info){
-        logger.debug('crawl '+crawled_info['url']+' finish, proxy:'+crawled_info['remote_proxy']+', cost:'+((new Date()).getTime() - parseInt(crawled_info['origin']['start_time']))+'ms');
+        logger.info('crawl '+crawled_info['url']+' finish, proxy:'+crawled_info['remote_proxy']+', cost:'+((new Date()).getTime() - parseInt(crawled_info['origin']['start_time']))+'ms');
         if(this.extractor.validateContent(crawled_info)){
             //if(crawled_info['content'].length<500)logger.warn(util.format('Strange content, length:%s, url:%s',crawled_info['content'].length,crawled_info['url']));
             var extracted_info = this.extractor.extract(crawled_info);

@@ -150,7 +150,7 @@ spider.prototype.getUrlQueue = function(callback){
         redis_driller_db.lpop('queue:scheduled:all',function(err, link){
             //2----------------------------------------------------------------------------------------
             if(!link){
-                logger.debug('No candidate queue, '+spider.queue_length+' urls in crawling.');
+                logger.info('No candidate queue, '+spider.queue_length+' urls in crawling.');
                 if('no_queue_alert' in spider.spiderCore.spider_extend)spider.spiderCore.spider_extend.no_queue_alert();
                 if(callback){callback(false);return;}
             };//no queue
@@ -196,7 +196,7 @@ spider.prototype.getUrlQueue = function(callback){
                                         "stoppage":drillerinfo['stoppage'],
                                         "start_time":(new Date()).getTime()
                                     }
-                                    logger.debug('new url: '+link);
+                                    logger.info('new url: '+link);
                                     spider.spiderCore.emit('new_url_queue',urlinfo);
                                     if(callback)callback(true);
                                 }
@@ -212,14 +212,16 @@ spider.prototype.getUrlQueue = function(callback){
  * @param spider
  */
 spider.prototype.checkQueue = function(spider){
+    var breakTt = false;
     async.whilst(
         function() {
             logger.debug('Check queue, length: '+spider.queue_length);
-            return spider.queue_length <= spider.spiderCore.settings['spider_concurrency'];
+            return spider.queue_length <= spider.spiderCore.settings['spider_concurrency'] && breakTt !== true;
         },
         function(cb) {
             spider.getUrlQueue(function(bol){
                 if(bol===true)spider.queue_length++;
+                else breakTt = true;
                 cb();
             });
         },

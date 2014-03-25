@@ -107,7 +107,7 @@ scheduler.prototype.doSchedule = function(){
             var balance = scheduler.settings['schedule_quantity_limitation'] - queue_length;
             if(balance<0)balance=0;
             var avg_rate = balance/scheduler.total_rates;
-            logger.debug(util.format('Schedule, queue length: %s, balance: %s, avg_rate: %s',queue_length,balance,avg_rate));
+            logger.info(util.format('Schedule, queue length: %s, balance: %s, avg_rate: %s',queue_length,balance,avg_rate));
             scheduler.emit('schedule_circle',-1,avg_rate,0);
         });
 }
@@ -138,7 +138,7 @@ scheduler.prototype.reSchedule = function(driller,index){
             scheduler.updateLinkState(link,'schedule',scheduler.schedule_version,function(bol){
                 if(bol){
                     scheduler.redis_cli0.rpush('queue:scheduled:all',link,function(err, value){
-                        logger.debug('reschedule url: '+link);
+                        logger.info('reschedule url: '+link);
                     });
                 }else{
                     logger.warn(util.format('reschedule(%s) failure, can not update link state',link));
@@ -225,7 +225,7 @@ scheduler.prototype.doScheduleExt = function(index,avg_rate,more){
                     logger.debug('Schedule '+xdriller['key']+', '+count+'/'+ct+', left '+left);
                     scheduler.emit('schedule_circle',index,avg_rate,left);
                     if(index>=scheduler.priotity_list.length-1){
-                        logger.debug('schedule round finish, sleep '+scheduler.settings['schedule_interval']+' s');
+                        logger.info('schedule round finish, sleep '+scheduler.settings['schedule_interval']+' s');
                         setTimeout(function(){scheduler.doSchedule()},scheduler.settings['schedule_interval']*1000);
                     }
                 }
@@ -356,10 +356,10 @@ scheduler.prototype.checkURL = function(url,interval,callback){
             if(bol){
                 redis_cli0.rpush('queue:scheduled:all',url,function(err,value){
                     if(err){
-                        logger.debug('Append '+url+' to queue failure');
+                        logger.warn('Append '+url+' to queue failure');
                         return callback(false);
                     }else{
-                        logger.debug('Append '+url+' to queue successful');
+                        logger.info('Append '+url+' to queue successful');
                         return callback(true);
                     }
                 });
