@@ -48,7 +48,7 @@ var crawling = function(){
 }
 ////proxy Service////////////////////////////////////////////////////////////
 var proxyService = function(){
-	var logger = logging.getLogger('proxy-service',options['i'],'DEBUG');
+	var logger = logging.getLogger('proxy-service',options['i'],'INFO');
 	settings['logger'] = logger;
 	settings['port'] = parseInt(options['p']);
 	var proxyRouter = new (require('./proxyrouter'))(settings);
@@ -57,7 +57,7 @@ var proxyService = function(){
 }
 ////config service////////////////////////////////////////////////////////////
 var configService = function(){
-	var logger = logging.getLogger('config-service',options['i'],'DEBUG');
+	var logger = logging.getLogger('config-service',options['i'],'INFO');
 	settings['logger'] = logger;
 	settings['port'] = parseInt(options['p']);
 	var webConfig = new(require('./webconfig'))(settings);
@@ -66,7 +66,7 @@ var configService = function(){
 }
 ////scheduler///////////////////////////////////////////////////////////////
 var schedule = function(){
-    var logger = logging.getLogger('schedule',options['i'],'DEBUG');
+    var logger = logging.getLogger('schedule',options['i'],'INFO');
     settings['logger'] = logger;
     var scheduler = new (require('./scheduler'))(settings);
 
