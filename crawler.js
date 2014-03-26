@@ -18,7 +18,7 @@ var spawnIt = function(tryTimes){
 
     runner.on('exit', function (code, signal) {
         console.log('Child process exit ：' + code+', '+signal);
-        if(code>0&&tryTimes<500){
+        if(code!==0&&tryTimes<500){
             console.log('Restart, times: '+(tryTimes++));
             process.nextTick(function(){spawnIt(tryTimes)});
             spawn = null;
