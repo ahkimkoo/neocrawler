@@ -164,17 +164,17 @@ spider.prototype.getUrlQueue = function(callback){
                         if(urlinfo!=null)spider.spiderCore.emit('new_url_queue',urlinfo);
                         else{
                             logger.error(link+' can not match any driller rule, ignore it.');
-                            spider.getUrlQueue();
+                            spider.getUrlQueue(callback);
                         }
                     }else{
                         if(!link_info['trace']){
                             logger.warn(link+', url info is incomplete');
-                            spider.getUrlQueue();
+                            spider.getUrlQueue(callback);
                         }else{
                             var drillerinfo = spider.getDrillerRules(link_info['trace']);
                                 if(drillerinfo==null){
                                     logger.warn(link+', has no driller info!');
-                                    spider.getUrlQueue();
+                                    spider.getUrlQueue(callback);
                                 }else{
                                     var urlinfo = {
                                         "url":link,
@@ -226,7 +226,7 @@ spider.prototype.checkQueue = function(spider){
             });
         },
         function(err) {
-           //do nothing
+            if(err)logger.error('Exception in check queue.');
         }
     );
 }
