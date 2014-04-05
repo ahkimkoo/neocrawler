@@ -219,12 +219,20 @@ downloader.prototype.downloadIt = function(urlinfo){
 
             page_encoding = page_encoding.toLowerCase().replace('\-','')
             if(!compressed || typeof unzip == 'undefined'){
-                result["content"] = iconv.decode(bufferHelper.toBuffer(),page_encoding);//page_encoding
+                if(urlinfo['format']=='binary'){
+                    result["content"] = bufferHelper.toBuffer();
+                }else{
+                    result["content"] = iconv.decode(bufferHelper.toBuffer(),page_encoding);//page_encoding
+                }
                 spiderCore.emit('crawled',result);
             }else{
                 unzip(bufferHelper.toBuffer(), function(err, buff) {
                     if (!err && buff) {
-                        result["content"] = iconv.decode(buff,page_encoding);
+                        if(urlinfo['format']=='binary'){
+                            result["content"] = buff;
+                        }else{
+                            result["content"] = iconv.decode(buff,page_encoding);
+                        }
                         spiderCore.emit('crawled',result);
                     }
                 });

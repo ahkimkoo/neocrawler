@@ -180,16 +180,24 @@ pipeline.prototype.save =function(extracted_info){
     if(this.spiderCore.settings['test']){
         var fs = require('fs');
         var path = require('path');
-        var htmlfile = path.join(__dirname,'..', 'instance',this.spiderCore.settings['instance'],'logs','debug-page.html');
-        var resultfile = path.join(__dirname,'..', 'instance',this.spiderCore.settings['instance'],'logs','debug-result.json');
-        fs.writeFile(htmlfile,extracted_info['content'],'utf8', function (err) {
-            if (err)throw err;
-            logger.debug('Content saved, '+htmlfile);
-        });
-        fs.writeFile(resultfile,JSON.stringify(extracted_info),'utf8',function(err){
-            if (err)throw err;
-            logger.debug('Crawling result saved, '+resultfile);
-        });
+        if(extracted_info['origin']['format']=='binary'){
+            var dumpfile = path.join(__dirname,'..', 'instance',this.spiderCore.settings['instance'],'logs','dumpfile.jpg');
+            fs.writeFile(dumpfile,extracted_info['content'],'utf8',function(err){
+                if (err)throw err;
+                logger.debug('Crawling file saved, '+resultfile);
+            });
+        }else{
+            var htmlfile = path.join(__dirname,'..', 'instance',this.spiderCore.settings['instance'],'logs','debug-page.html');
+            var resultfile = path.join(__dirname,'..', 'instance',this.spiderCore.settings['instance'],'logs','debug-result.json');
+            fs.writeFile(htmlfile,extracted_info['content'],'utf8', function (err) {
+                if (err)throw err;
+                logger.debug('Content saved, '+htmlfile);
+            });
+            fs.writeFile(resultfile,JSON.stringify(extracted_info),'utf8',function(err){
+                if (err)throw err;
+                logger.debug('Crawling result saved, '+resultfile);
+            });
+        }
     }else{
         if(extracted_info['drill_link'])this.save_links(extracted_info['url'],extracted_info['origin']['version'],extracted_info['drill_link'],extracted_info['drill_relation']);
         if(this.spiderCore.settings['save_content_to_hbase']===true){
