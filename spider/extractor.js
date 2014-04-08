@@ -113,7 +113,7 @@ extractor.prototype.arrange_link = function(links){
             var driller_rule = matched_driller[1];
             if(typeof(driller_rule)!='object')driller_rule = JSON.parse(driller_rule);
             if(linkobj[driller_lib]==undefined)linkobj[driller_lib]=[];
-            if(driller_rule['id_parameter']){
+            if(driller_rule['id_parameter']&&driller_rule['id_parameter'].length>0){
                 var id_parameter = driller_rule['id_parameter'];
                 var urlobj = url.parse(link);
                 var parameters = querystring.parse(urlobj.query);
@@ -127,6 +127,11 @@ extractor.prototype.arrange_link = function(links){
                 link = url.format(urlobj);
             }
             linkobj[driller_lib].push(link);
+        }
+    }
+    for(var i in linkobj){
+        if(linkobj.hasOwnProperty(i)){
+            linkobj[i] = linkobj[i].unique();
         }
     }
     return linkobj;
