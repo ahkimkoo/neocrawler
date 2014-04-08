@@ -3,6 +3,7 @@
 .idea
 *.log
 **/logs/debug-*
+**/logs/*.log*
 node_modules/*
 /doc/statistic/target/
 .svn

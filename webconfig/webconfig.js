@@ -79,8 +79,18 @@ webconfig.prototype.launch = function(settings){
 	if ('development' == app.get('env')) {
 		app.use(express.errorHandler());
 	}
+	
+        // Authenticator
+        //app.use(express.basicAuth('config','config123'));//for 2.x
+	if(settings['config_web_auth']){
+	var basicAuth = express.basicAuth(function(username, password) {
+  		return (username == settings['config_web_auth'][0] && password == settings['config_web_auth'][1]);
+	},'Restrict area, please identify');	
+	
+	app.all("*", basicAuth);
+	}
 
-	app.get('/', routes.index);
+        app.get('/', routes.index);
 	controller.mapRoute(app);
 
 	console.log('create server.');

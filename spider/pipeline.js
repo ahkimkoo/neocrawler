@@ -193,6 +193,7 @@ pipeline.prototype.save =function(extracted_info){
                 if (err)throw err;
                 logger.debug('Content saved, '+htmlfile);
             });
+	    delete extracted_info['content'];
             fs.writeFile(resultfile,JSON.stringify(extracted_info),'utf8',function(err){
                 if (err)throw err;
                 logger.debug('Crawling result saved, '+resultfile);
