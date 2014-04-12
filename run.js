@@ -37,9 +37,12 @@ var options = userArgv.argv;
 if(options['h']){userArgv.showHelp();process.exit();}
 var settings = require('./instance/'+options['i']+'/'+'settings.json');
 settings['instance'] = options['i'];
+////log level/////////////////////////////////////////////////////////////////
+var log_level = 'DEBUG';
+if(settings['log_level'])log_level = settings['log_level'];
 ////crawling action///////////////////////////////////////////////////////////
 var crawling = function(){
-	var logger = logging.getLogger('crawling',options['i'],'INFO');
+	var logger = logging.getLogger('crawling',options['i'],log_level);
     settings['logger'] = logger;
     settings['instance'] = options['i'];
     var spider = new (require('./spider'))(settings);
@@ -48,7 +51,7 @@ var crawling = function(){
 }
 ////proxy Service////////////////////////////////////////////////////////////
 var proxyService = function(){
-	var logger = logging.getLogger('proxy-service',options['i'],'INFO');
+	var logger = logging.getLogger('proxy-service',options['i'],log_level);
 	settings['logger'] = logger;
 	settings['port'] = parseInt(options['p']);
 	var proxyRouter = new (require('./proxyrouter'))(settings);
@@ -57,7 +60,7 @@ var proxyService = function(){
 }
 ////config service////////////////////////////////////////////////////////////
 var configService = function(){
-	var logger = logging.getLogger('config-service',options['i'],'INFO');
+	var logger = logging.getLogger('config-service',options['i'],log_level);
 	settings['logger'] = logger;
 	settings['port'] = parseInt(options['p']);
 	var webConfig = new(require('./webconfig'))(settings);
@@ -66,7 +69,7 @@ var configService = function(){
 }
 ////scheduler///////////////////////////////////////////////////////////////
 var schedule = function(){
-    var logger = logging.getLogger('schedule',options['i'],'INFO');
+    var logger = logging.getLogger('schedule',options['i'],log_level);
     settings['logger'] = logger;
     var scheduler = new (require('./scheduler'))(settings);
 

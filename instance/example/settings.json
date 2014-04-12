@@ -13,5 +13,6 @@
     "spider_concurrency":5,
     "spider_request_delay":0,
     "schedule_interval":60,
-    "schedule_quantity_limitation":200
+    "schedule_quantity_limitation":200,
+    "log_level":"DEBUG"
 }
