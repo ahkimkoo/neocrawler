@@ -184,7 +184,7 @@ pipeline.prototype.save =function(extracted_info){
             var dumpfile = path.join(__dirname,'..', 'instance',this.spiderCore.settings['instance'],'logs','dumpfile.jpg');
             fs.writeFile(dumpfile,extracted_info['content'],'utf8',function(err){
                 if (err)throw err;
-                logger.debug('Crawling file saved, '+resultfile);
+                logger.debug('Crawling file saved, '+dumpfile);
             });
         }else{
             var htmlfile = path.join(__dirname,'..', 'instance',this.spiderCore.settings['instance'],'logs','debug-page.html');
