@@ -105,11 +105,11 @@ pipeline.prototype.save_content = function(pageurl,content,extracted_data,js_res
         'basic:updated' : (new Date()).getTime().toString()
     }
 
-    if(content&&!content.isEmpty()){
+    if(content&&!isEmpty(content)){
         dict['basic:content'] = content;
     }
 
-    if(extracted_data&&!extracted_data.isEmpty()){
+    if(extracted_data&&!isEmpty(extracted_data)){
         for(d in extracted_data){
             if(extracted_data.hasOwnProperty(d)&&extracted_data[d]!=undefined){
                 dict['data:'+d] = typeof(extracted_data[d])=='object'?JSON.stringify(extracted_data[d]):extracted_data[d];
@@ -117,7 +117,7 @@ pipeline.prototype.save_content = function(pageurl,content,extracted_data,js_res
         }
     }
 
-    if(js_result&&!js_result.isEmpty()){
+    if(js_result&&!isEmpty(js_result)){
         dict['basic:jsresult'] = js_result;
     }
 

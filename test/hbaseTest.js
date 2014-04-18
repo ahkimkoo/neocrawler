@@ -1,9 +1,10 @@
 /**
  * Created by cherokee on 14-4-18.
  */
+require('../lib/jsextend.js');
 
 var testOldAPI = function(){
-    var hbase = require('hbase');;
+    var hbase = require('hbase');
     var fs = require('fs');
     var path = require('path');
 
@@ -45,7 +46,8 @@ var testNewApi = function(){
         zookeeperRoot: '/hbase'
     });
     fs.readFile('Chinese.jpg', function (err, data) {
-        client.putRow('subject_raw_doc', 'image', {'binary:doc':data,'basic:filename':'文件名是Chinese.jpg'}, function (err) {
+        var hdata = {"binary:doc":data,"basic:filename":"文件名是Chinese.jpg"};
+        client.putRow('subject_raw_doc', 'image',hdata , function (err) {
             if(err) throw err;
             console.log('file saved');
             client.getRow('subject_raw_doc',  'image', ['binary:doc','basic:filename'], function (err, row) {

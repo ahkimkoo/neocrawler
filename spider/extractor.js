@@ -192,7 +192,7 @@ extractor.prototype.extract = function(crawl_info){
         crawl_info['drill_relation'] = this.getDrillRelation($,crawl_info);
     }
 
-    if(extract_rule['rule']&&!extract_rule['rule'].isEmpty()){
+    if(extract_rule['rule']&&!isEmpty(extract_rule['rule'])){
         var extracted_data = this.extract_data(crawl_info['url'],crawl_info['content'],extract_rule,null,$.root());
         crawl_info['extracted_data'] = extracted_data;
     }
@@ -245,11 +245,11 @@ extractor.prototype.extract_data = function(url,content,extract_rule,uppper_data
                                     result_arr.push(extractor.extract_data(url,content,rule['subset'],data,sub_dom));
                                 });
                             }
-                            if(!result_arr.isEmpty())data[k] = result_arr;
+                            if(!isEmpty(result_arr))data[k] = result_arr;
                         })(i);
                     }else{
                         var tmp_result = this.cssSelector(baser,rule['expression'],pick,rule['index']);
-                        if(tmp_result&&!tmp_result.isEmpty())data[i] = tmp_result;
+                        if(tmp_result&&!isEmpty(tmp_result))data[i] = tmp_result;
                     }
 
             }
@@ -279,7 +279,7 @@ extractor.prototype.extract_data = function(url,content,extract_rule,uppper_data
                 }
             }
         }
-        if(!lacks.isEmpty()){
+        if(!isEmpty(lacks)){
             logger.error(url + ' extracted data lacks of '+lacks.join(','));
             extractor.spiderCore.spider.redis_cli2.zadd('incomplete:data:url',(new Date()).getTime(),url,function(err,result){
                 //nothing

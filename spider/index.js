@@ -41,7 +41,7 @@ spiderCore.prototype.start = function(){
     this.on('standby',function(middleware){
         logger.debug(middleware+' stand by');
         delete this.unavailable_middlewares[middleware];
-        if(this.unavailable_middlewares.isEmpty()){
+        if(isEmpty(this.unavailable_middlewares)){
             logger.debug('All middlewares stand by');
             this.removeAllListeners('standby');
             this.spider.refreshDrillerRules();
@@ -103,7 +103,7 @@ spiderCore.prototype.test = function(link){
     this.on('standby',function(middleware){
         logger.debug(middleware+' stand by');
         delete this.unavailable_middlewares[middleware];
-        if(this.unavailable_middlewares.isEmpty()){
+        if(isEmpty(this.unavailable_middlewares)){
             logger.debug('All middlewares stand by');
             this.removeAllListeners('standby');
             this.spider.refreshDrillerRules();
