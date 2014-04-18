@@ -4,7 +4,7 @@
  */
 var crypto = require('crypto');
 var redis = require("redis");
-var hbase = require('hbase');
+var HBase = require('hbase-client');
 var os = require("os");
 require('../lib/jsextend.js');
 
@@ -16,11 +16,8 @@ var pipeline = function(spiderCore){
 ////report to spidercore standby////////////////////////
 pipeline.prototype.assembly = function(){
     if(this.spiderCore.settings['save_content_to_hbase']===true){
-        this.hbase_cli = hbase({
-            host:this.spiderCore.settings['crawled_hbase_db'][0],
-            port:this.spiderCore.settings['crawled_hbase_db'][1]
-        });
-        this.hbase_table = this.hbase_cli.getTable('crawled');
+        this.hbase_cli = HBase.create(this.spiderCore.settings['crawled_hbase_conf']);
+        this.HBASE_TABLE = this.spiderCore.settings['crawled_hbase_table'];
     }
 
     this.redis_cli0 = redis.createClient(this.spiderCore.settings['driller_info_redis_db'][1],this.spiderCore.settings['driller_info_redis_db'][0]);
@@ -99,78 +96,35 @@ pipeline.prototype.save_content = function(pageurl,content,extracted_data,js_res
     var spider = os.hostname()+'-'+process.pid;
     var start_time = (new Date()).getTime();
 
-//    var val_cells = [
-//                { "column":"basic:spider","timestamp":Date.now(),"$":spider},
-//                { "column":"basic:url","timestamp":Date.now(),"$":pageurl},
-//                { "column":"basic:content","timestamp":Date.now(),"$":content}
-//                ];
-        var keylist = ['basic:spider','basic:url','basic:referer','basic:urllib','basic:drill_relation','basic:updated'];
-        var valuelist = [spider,pageurl,referer,urllib,drill_relation,(new Date()).getTime().toString()];
-        if(content&&!content.isEmpty()){
-            keylist.push('basic:content');
-            valuelist.push(content);
-        }
-        if(extracted_data&&!extracted_data.isEmpty()){
-            for(d in extracted_data){
-                if(extracted_data.hasOwnProperty(d)&&extracted_data[d]!=undefined){
-                    keylist.push('data:'+d);
-                    valuelist.push(typeof(extracted_data[d])=='object'?JSON.stringify(extracted_data[d]):extracted_data[d]);
-                }
-            }
-//            keylist.push('basic:data');
-//            valuelist.push(JSON.stringify(extracted_data));
-        }
-        if(js_result&&!js_result.isEmpty()){
-            keylist.push('basic:jsresult');
-            valuelist.push(js_result);
-        }
-        var row = this.hbase_table.getRow(url_hash);
-    try{
-        row.put(keylist,valuelist,function(err,success){
-                      logger.info('insert content extracted from '+pageurl+', cost: '+((new Date()).getTime() - start_time)+' ms');
-                  });
-//        row.put(['basic:spider','basic:url','basic:content'],[spider,pageurl,content],function(err,success){
-//            logger.debug('insert content extracted from '+pageurl);
-//        });
-    }catch(e){
-        console.error(e);
-        logger.error('use bench mode insert data , err: '+e);
-        row.put('basic:spider',spider,function(err, success){
-            logger.debug(pageurl+' update basic:spider ');
-        });
-        row.put('basic:url',pageurl,function(err, success){
-            logger.debug(pageurl+' update basic:url ');
-        });
-        if(content&&!content.isEmpty())
-        row.put('basic:content',content,function(err, success){
-            logger.debug(pageurl+' update basic:content ');
-        });
-        if(extracted_data&&!extracted_data.isEmpty()){
-            for(d in extracted_data){
-                if(extracted_data.hasOwnProperty(d)&&extracted_data[d]!=undefined){
-                    row.put('data:'+d,typeof(extracted_data[d])=='object'?JSON.stringify(extracted_data[d]):extracted_data[d],function(err, success){
-                        logger.debug(pageurl+' update data:'+d);
-                    });
-                }
-            }
-        }
-        if(js_result&&!js_result.isEmpty())
-        row.put('basic:jsresult',js_result,function(err, success){
-            logger.debug(pageurl+' update basic:jsresult ');
-        });
-        row.put('basic:referer',referer,function(err, success){
-            logger.debug(pageurl+' update basic:referer ');
-        });
-        row.put('basic:urllib',urllib,function(err, success){
-            logger.debug(pageurl+' update basic:urllib ');
-        });
-        row.put('basic:drill_relation',drill_relation,function(err, success){
-            logger.debug(pageurl+' update basic:drill_relation ');
-        });
-        row.put('basic:updated',(new Date()).getTime().toString(),function(err, success){
-            logger.debug(pageurl+' update basic:updated ');
-        });
+    var dict = {
+        'basic:spider' : spider,
+        'basic:url' : pageurl,
+        'basic:referer' : referer,
+        'basic:urllib' : urllib,
+        'basic:drill_relation': drill_relation,
+        'basic:updated' : (new Date()).getTime().toString()
     }
+
+    if(content&&!content.isEmpty()){
+        dict['basic:content'] = content;
+    }
+
+    if(extracted_data&&!extracted_data.isEmpty()){
+        for(d in extracted_data){
+            if(extracted_data.hasOwnProperty(d)&&extracted_data[d]!=undefined){
+                dict['data:'+d] = typeof(extracted_data[d])=='object'?JSON.stringify(extracted_data[d]):extracted_data[d];
+            }
+        }
+    }
+
+    if(js_result&&!js_result.isEmpty()){
+        dict['basic:jsresult'] = js_result;
+    }
+
+    this.hbase_cli.putRow(this.HBASE_TABLE, url_hash, dict, function (err) {
+        if(err)logger.error('Data insert to hbase error: '+err);
+        else logger.debug('Data insert to hbase cost '+((new Date()).getTime()-start_time)+' ms');
+    });
 }
 /**
  * pipeline save entrance
