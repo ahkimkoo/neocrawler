@@ -36,14 +36,16 @@ NEOCrawler，中文名：牛抓，是nodejs、redis、phantomjs实现的爬虫�
     "use_proxy":false,/*是否使用代理服务*/
     "proxy_router":"127.0.0.1:2013",/*使用代理服务的情况下，代理服务的路由中心地址*/
     "download_timeout":60,/*下载超时时间，秒，不等同于相应超时*/
-    "save_content_to_hbase":false,/*是否将抓取信息存储到hbase*/
-    "crawled_hbase_db":["127.0.0.1",8080,"crawled"],/*hbase rest服务地址及存储的表*/
+    "save_content_to_hbase":false,/*是否将抓取信息存储到hbase，目前只在0.94下测试过*/
+    "crawled_hbase_conf":{"zookeeperHosts": ["localhost:2181"],"zookeeperRoot": "/hbase"},/*hbase的配置*/
+    "crawled_hbase_table":"crawled",/*抓取的数据保存在hbase的表*/
     "statistic_mysql_db":["127.0.0.1",3306,"crawling","crawler","123"],/*用来存储抓取日志分析结果，需要结合flume来实现，一般不使用此项*/
     "check_driller_rules_interval":120,/*多久检测一次网址规则的变化以便热刷新到运行中的爬虫*/
     "spider_concurrency":5,/*爬虫的抓取页面并发请求数*/
     "spider_request_delay":0,/*两个并发请求之间的间隔时间，秒*/
     "schedule_interval":60,/*调度器两次调度的间隔时间*/
-    "schedule_quantity_limitation":200/*调度器给爬虫的最大网址待抓取数量*/
+    "schedule_quantity_limitation":200,/*调度器给爬虫的最大网址待抓取数量*/
+    "log_level":"DEBUG"/*日志级别*/
 }
 ```
 #【运行】
@@ -164,4 +166,4 @@ NEOCrawler，中文名：牛抓，是nodejs、redis、phantomjs实现的爬虫�
 #【联系作者】
 * Email: <successage@gmail.com>,
 * Blog: <http://my.oschina.net/waterbear>
-* QQ: 419117039 
+* QQ: 419117039
