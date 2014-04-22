@@ -9,6 +9,7 @@
     "save_content_to_hbase":false,
     "crawled_hbase_conf":{"zookeeperHosts": ["localhost:2222"],"zookeeperRoot": "/hbase"},
     "crawled_hbase_table":"crawled",
+    "crawled_hbase_bin_table":"crawled_bin",
     "statistic_mysql_db":["127.0.0.1",3306,"crawling","crawler","123"],
     "check_driller_rules_interval":120,
     "spider_concurrency":5,

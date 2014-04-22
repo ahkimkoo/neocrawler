@@ -39,6 +39,7 @@ NEOCrawler，中文名：牛抓，是nodejs、redis、phantomjs实现的爬虫�
     "save_content_to_hbase":false,/*是否将抓取信息存储到hbase，目前只在0.94下测试过*/
     "crawled_hbase_conf":{"zookeeperHosts": ["localhost:2181"],"zookeeperRoot": "/hbase"},/*hbase的配置*/
     "crawled_hbase_table":"crawled",/*抓取的数据保存在hbase的表*/
+    "crawled_hbase_bin_table":"crawled_bin",/*抓取的二进制数据保存在hbase的表*/
     "statistic_mysql_db":["127.0.0.1",3306,"crawling","crawler","123"],/*用来存储抓取日志分析结果，需要结合flume来实现，一般不使用此项*/
     "check_driller_rules_interval":120,/*多久检测一次网址规则的变化以便热刷新到运行中的爬虫*/
     "spider_concurrency":5,/*爬虫的抓取页面并发请求数*/

@@ -1,1 +1,2 @@
 create 'crawled',{NAME => 'basic', VERSIONS => 1},{NAME=>"data",VERSIONS=>"1"},{NAME => 'extra', VERSIONS => 1}
+create 'crawled_bin',{NAME => 'basic', VERSIONS => 1},{NAME=>"binary",VERSIONS=>"1"}

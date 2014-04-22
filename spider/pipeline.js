@@ -18,6 +18,7 @@ pipeline.prototype.assembly = function(){
     if(this.spiderCore.settings['save_content_to_hbase']===true){
         this.hbase_cli = HBase.create(this.spiderCore.settings['crawled_hbase_conf']);
         this.HBASE_TABLE = this.spiderCore.settings['crawled_hbase_table'];
+        this.HBASE_BIN_TABLE = this.spiderCore.settings['crawled_hbase_bin_table'];
     }
 
     this.redis_cli0 = redis.createClient(this.spiderCore.settings['driller_info_redis_db'][1],this.spiderCore.settings['driller_info_redis_db'][0]);
@@ -122,10 +123,32 @@ pipeline.prototype.save_content = function(pageurl,content,extracted_data,js_res
     }
 
     this.hbase_cli.putRow(this.HBASE_TABLE, url_hash, dict, function (err) {
-        if(err)logger.error('Data insert to hbase error: '+err);
-        else logger.debug('Data insert to hbase cost '+((new Date()).getTime()-start_time)+' ms');
+        if(err)logger.error(pageurl+', data insert to hbase error: '+err);
+        else logger.debug(pageurl+', data insert to hbase cost '+((new Date()).getTime()-start_time)+' ms');
     });
 }
+
+pipeline.prototype.save_binary = function(pageurl,content,referer,urllib,drill_relation){
+    var url_hash = crypto.createHash('md5').update(pageurl+'').digest('hex');
+    var spider = os.hostname()+'-'+process.pid;
+    var start_time = (new Date()).getTime();
+
+    var dict = {
+        'basic:spider' : spider,
+        'basic:url' : pageurl,
+        'binary:file': content,
+        'basic:referer' : referer,
+        'basic:urllib' : urllib,
+        'basic:drill_relation': drill_relation,
+        'basic:updated' : (new Date()).getTime().toString()
+    }
+
+    this.hbase_cli.putRow(this.HBASE_BIN_TABLE, url_hash, dict, function (err) {
+        if(err)logger.error(pageurl+', data insert to hbase error: '+err);
+        else logger.debug(pageurl+', data insert to hbase cost '+((new Date()).getTime()-start_time)+' ms');
+    });
+}
+
 /**
  * pipeline save entrance
  * @param extracted_info
@@ -156,9 +179,13 @@ pipeline.prototype.save =function(extracted_info){
     }else{
         if(extracted_info['drill_link'])this.save_links(extracted_info['url'],extracted_info['origin']['version'],extracted_info['drill_link'],extracted_info['drill_relation']);
         if(this.spiderCore.settings['save_content_to_hbase']===true){
-            var html_content = extracted_info['content'];
-            if(!extracted_info['origin']['save_page'])html_content = false;
-            this.save_content(extracted_info['url'],html_content,extracted_info['extracted_data'],extracted_info['js_result'],extracted_info['origin']['referer'],extracted_info['origin']['urllib'],extracted_info['drill_relation']);
+            if(extracted_info['origin']['format']=='binary'){
+                this.save_binary(extracted_info['url'],extracted_info['content'],extracted_info['origin']['referer'],extracted_info['origin']['urllib'],extracted_info['drill_relation']);
+            }else{
+                var html_content = extracted_info['content'];
+                if(!extracted_info['origin']['save_page'])html_content = false;
+                this.save_content(extracted_info['url'],html_content,extracted_info['extracted_data'],extracted_info['js_result'],extracted_info['origin']['referer'],extracted_info['origin']['urllib'],extracted_info['drill_relation']);
+            }
         }
         if('pipeline' in this.spiderCore.spider_extend)this.spiderCore.spider_extend.pipeline(extracted_info);//spider extend
     }

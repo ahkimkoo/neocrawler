@@ -61,5 +61,21 @@ var testNewApi = function(){
     });
 }
 
-
-testNewApi();
+var testDownload = function(){
+    var HBase = require('hbase-client');
+    var fs = require('fs');
+    var client = HBase.create({
+        zookeeperHosts: [
+            'backee:2222'
+        ],
+        zookeeperRoot: '/hbase'
+    });
+        client.getRow('crawled_bin',  '9c5fdedc48feac1c2df7cd923ba25275', ['binary:file','basic:url'], function (err, row) {
+            if(err) throw err;
+            fs.writeFile('copy-Chinese.jpg',row['binary:file'], function (err) {
+                if(err) throw err;
+                console.log('dump from db' + row['basic:url']);
+            });
+        });
+}
+testDownload();
