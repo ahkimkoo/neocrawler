@@ -289,16 +289,17 @@ scheduler.prototype.transformLink = function(link,urllib){
         if(typeof(driller_rule)!='object')driller_rule = JSON.parse(driller_rule);
         if(driller_rule['id_parameter']){
             var id_parameter = JSON.parse(driller_rule['id_parameter']);
-
-            var parameters = querystring.parse(urlobj.query);
-            var new_parameters = {};
-            for(var x=0;x<id_parameter.length;x++){
-                var param_name = id_parameter[x];
-                if(x==0&&param_name=='#')break;
-                if(parameters.hasOwnProperty(param_name))new_parameters[param_name] = parameters[param_name];
+            if(Array.isArray(id_parameter)&&id_parameter.length>0){
+                var parameters = querystring.parse(urlobj.query);
+                var new_parameters = {};
+                for(var x=0;x<id_parameter.length;x++){
+                    var param_name = id_parameter[x];
+                    if(x==0&&param_name=='#')break;
+                    if(parameters.hasOwnProperty(param_name))new_parameters[param_name] = parameters[param_name];
+                }
+                urlobj.search = querystring.stringify(new_parameters);
+                final_link = urlUtil.format(urlobj);
             }
-            urlobj.search = querystring.stringify(new_parameters);
-            final_link = urlUtil.format(urlobj);
         }
     }
     return final_link
@@ -319,8 +320,8 @@ scheduler.prototype.checkURL = function(url,interval,callback){
     var redis_cli1 = this.redis_cli1;
     var kk = crypto.createHash('md5').update(url).digest('hex');
     redis_cli1.hgetall(kk,function(err,values){
-        if(err)return callback(false);
-        if(!values)return callback(false);
+        if(err){return callback(false);}
+        if(!values){logger.error(url+' not exists in urlinfo');return callback(false);}
 
         if(values['trace']){
             var t_url = scheduler.transformLink(url,values['trace']);
