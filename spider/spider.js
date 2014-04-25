@@ -332,11 +332,15 @@ spider.prototype.retryCrawl = function(urlinfo){
  * @param link
  * @param state
  */
-spider.prototype.updateLinkState = function(link,state){
+spider.prototype.updateLinkState = function(link,state,callback){
     var spider = this;
     var urlhash = crypto.createHash('md5').update(link+'').digest('hex');
     this.redis_cli1.hgetall(urlhash,function(err,link_info){
-        if(err){logger.error('get state of link('+link+') fail: '+err);return;}
+        if(err){
+            logger.error('get state of link('+link+') fail: '+err);
+            if(callback)callback(err);
+            return;
+        }
         if(link_info){
             var t_record = link_info['records'];
             var records = [];
@@ -348,16 +352,26 @@ spider.prototype.updateLinkState = function(link,state){
                 }
             }
             records.push(state);
-            spider.redis_cli1.hmset(urlhash,{'records':JSON.stringify(records),'last':(new Date()).getTime(),'status':state},function(err,link_info){
-                if(err)logger.error('update state of link('+link+') fail: '+err);
-                else logger.debug('update state of link('+link+') success: '+state);
-            });
-
-            if(state=='crawled_finish'){
-                spider.redis_cli2.zrem('fail:'+link_info['trace'],link,function(err,result){
-                    logger.debug('remove '+link+' from fail:'+link_info['trace']);
+            async.parallel([
+                    function(cb){
+                        spider.redis_cli1.hmset(urlhash,{'records':JSON.stringify(records),'last':(new Date()).getTime(),'status':state},function(err,link_info){
+                            if(err)logger.error('update state of link('+link+') fail: '+err);
+                            else logger.debug('update state of link('+link+') success: '+state);
+                            cb(err);
+                        });
+                    },
+                    function(cb){
+                        if(state=='crawled_finish'){
+                            spider.redis_cli2.zrem('fail:'+link_info['trace'],link,function(err,result){
+                                logger.debug('remove '+link+' from fail:'+link_info['trace']);
+                                cb(err);
+                            });
+                        }else cb(null);
+                    }
+                ],
+                function(err, results){
+                    if(callback)callback(err);
                 });
-            }
         }else{
             var trace = spider.detectLink(link);
             if(trace!=''){
@@ -371,17 +385,31 @@ spider.prototype.updateLinkState = function(link,state){
                     'last':(new Date()).getTime(),
                     'status':state
                 }
-                spider.redis_cli1.hmset(urlhash,urlinfo,function(err, value){
-                    if (err) throw(err);
-                    logger.debug('save new url info: '+link);
-                });
 
-                if(state==='crawled_finish'){
-                    spider.redis_cli2.zrem('fail:'+urlinfo['trace'],link,function(err,result){
-                        logger.debug('remove '+link+' from fail:'+urlinfo['trace']);
+                async.parallel([
+                        function(cb){
+                            spider.redis_cli1.hmset(urlhash,urlinfo,function(err, value){
+                                if (err) throw(err);
+                                logger.debug('save new url info: '+link);
+                                cb(err);
+                            });
+                        },
+                        function(cb){
+                            if(state==='crawled_finish'){
+                                spider.redis_cli2.zrem('fail:'+urlinfo['trace'],link,function(err,result){
+                                    logger.debug('remove '+link+' from fail:'+urlinfo['trace']);
+                                    cb(err);
+                                });
+                            }else cb(null);
+                        }
+                    ],
+                    function(err, results){
+                        if(callback)callback(err);
                     });
-                }
-            }else logger.error(link+' can not match any rules, ignore updating.');
+            }else {
+                logger.error(link+' can not match any rules, ignore updating.');
+                if(callback)callback(err);
+            }
         }
     });
 }

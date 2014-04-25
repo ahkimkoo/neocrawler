@@ -4,7 +4,9 @@
 var util = require('util');
 var events = require('events');
 var path = require('path');
+var async = require('async');
 require('../lib/jsextend.js');
+
 
 var logger;
 ////spider core/////////////////////////////////////////
@@ -37,6 +39,7 @@ spiderCore.prototype.assembly = function(){
 
 ////start///////////////////////////////////////////////
 spiderCore.prototype.start = function(){
+    var spiderCore = this;
     //when every middleware is ready
     this.on('standby',function(middleware){
         logger.debug(middleware+' stand by');
@@ -59,13 +62,25 @@ spiderCore.prototype.start = function(){
             //if(crawled_info['content'].length<500)logger.warn(util.format('Strange content, length:%s, url:%s',crawled_info['content'].length,crawled_info['url']));
             var extracted_info = this.extractor.extract(crawled_info);
             if('extract' in this.spider_extend)extracted_info = this.spider_extend.extract(extracted_info);//spider extend
-            this.pipeline.save(extracted_info);
-            this.spider.updateLinkState(crawled_info['url'],'crawled_finish');
-            this.emit('slide_queue');
-            if('crawl_finish_alert' in this.spider_extend)this.spider_extend.crawl_finish_alert(crawled_info);
+            //saving
+            async.series([
+                function(callback){
+                    spiderCore.pipeline.save(extracted_info,callback);
+                },
+                function(callback){
+                    spiderCore.spider.updateLinkState(crawled_info['url'],'crawled_finish',callback);
+                },
+                function(callback){
+                    if('crawl_finish_alert' in spiderCore.spider_extend)spiderCore.spider_extend.crawl_finish_alert(crawled_info);
+                    callback();
+                }
+            ],
+            function(err, results){
+                spiderCore.emit('slide_queue');
+            });
         }else{
             logger.error(util.format('invalidate content %s',crawled_info['url']));
-            this.spider.retryCrawl(crawled_info['origin']);
+            spiderCore.spider.retryCrawl(crawled_info['origin']);
         }
     });
     //when downloading is failure

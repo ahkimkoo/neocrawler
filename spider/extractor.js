@@ -381,8 +381,10 @@ extractor.prototype.regexSelector = function(content,expression,index){
 extractor.prototype.validateContent = function(crawl_info){
     var result = true;
     var statusCode = parseInt(crawl_info['statusCode']);
+    var limitation = 500;
+    if(crawl_info['origin']['format']=='binary')limitation = 20;
     if(statusCode===200){
-        if(crawl_info['content'].length<500){
+        if(crawl_info['content'].length<limitation){
             logger.error(util.format('Too little content: %s, length:%s',crawl_info['url'],crawl_info['content'].length));
             result = false;
         }
