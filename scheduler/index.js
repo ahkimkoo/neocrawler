@@ -7,7 +7,6 @@ var redis = require("redis");
 var crypto = require('crypto');
 var urlUtil =  require("url");
 var querystring = require('querystring');
-var url =  require("url");
 var async = require('async');
 
 var scheduler = function(settings){
@@ -254,7 +253,7 @@ scheduler.prototype.__getTopLevelDomain = function(domain){
  * @returns {string}
  */
 scheduler.prototype.detectLink = function(link){
-    var urlobj = url.parse(link);
+    var urlobj = urlUtil.parse(link);
     var result = '';
     var domain = this.__getTopLevelDomain(urlobj['hostname']);
     if(this.driller_rules[domain]!=undefined){

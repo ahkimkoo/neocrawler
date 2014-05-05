@@ -7,6 +7,9 @@ var redis = require("redis");
 var HBase = require('hbase-client');
 var os = require("os");
 var async = require('async');
+var urlUtil =  require("url");
+var querystring = require('querystring');
+var util = require('util');
 require('../lib/jsextend.js');
 
 var pipeline = function(spiderCore){
@@ -44,11 +47,21 @@ pipeline.prototype.save_links = function(page_url,version,linkobjs,drill_relatio
     var aliasArr = Object.keys(linkobjs);
     var linkCount = 0;
     var index = 0;
+    if(!version)version = (new Date()).getTime();
     async.whilst(
         function () { return index < aliasArr.length; },
         function (cb) {
             var alias = aliasArr[index];
             var links = linkobjs[alias];
+            var t_alias_arr = alias.split(':');
+            var drill_alias = t_alias_arr[3];
+            var domain = t_alias_arr[2];
+            if(!spiderCore.spider.driller_rules[domain]||!spiderCore.spider.driller_rules[domain][drill_alias]){
+                logger.error(alias+' not in configuration');
+                cb(new Error('Drill rule not found'));
+            }
+            var t_driller_rules = spiderCore.spider.driller_rules[domain][drill_alias];
+            if(typeof(t_driller_rules)!='object')t_driller_rules = JSON.parse(t_driller_rules);
             ////////////////////////////////link array/////////////////////////
             var sindex = 0;
             async.whilst(
@@ -58,35 +71,82 @@ pipeline.prototype.save_links = function(page_url,version,linkobjs,drill_relatio
                     linkCount++;
                     /////save a link/////////////////////
                     async.waterfall([
-                        ////save link to urllib////////////
+                        //transform link////////////////////////////////
                         function(mcb){
-                            redis_cli0.rpush(alias,link,function(err, value){
-                                    if(err)throw(err);
-                                    logger.debug('push url: '+link+' to urllib: '+alias);
-                                    mcb(err,value);
-                            });
+                            var final_link = link;
+                            var urlobj = urlUtil.parse(link);
+                            if(t_driller_rules['id_parameter']){
+                                var id_parameter = t_driller_rules['id_parameter'];
+                                if(typeof(id_parameter)!='object')id_parameter = JSON.parse(id_parameter);
+                                if(Array.isArray(id_parameter)&&id_parameter.length>0){
+                                    var parameters = querystring.parse(urlobj.query);
+                                    var new_parameters = {};
+                                    for(var x=0;x<id_parameter.length;x++){
+                                        var param_name = id_parameter[x];
+                                        if(x==0&&param_name=='#')break;
+                                        if(parameters.hasOwnProperty(param_name))new_parameters[param_name] = parameters[param_name];
+                                    }
+                                    urlobj.search = querystring.stringify(new_parameters);
+                                    final_link = urlUtil.format(urlobj);
+                                }
+                            }
+                            return mcb(null,final_link);
                         },
                         ////get url info //////////////
-                        function(value, mcb){
-                            var urlhash = crypto.createHash('md5').update(link+'').digest('hex');
+                        function(final_link, mcb){
+                            if(final_link!=link)logger.debug('Transform: ' + link + ' -> '+final_link);
+                            var urlhash = crypto.createHash('md5').update(final_link+'').digest('hex');
                             redis_cli1.hgetall(urlhash,function(err, value){
-                                mcb(err,urlhash,value);
+                                mcb(err,final_link,urlhash,value);
                             });
                         },
-                        ////update urlinfo///////////////////////////////////////////////////////////////////////////
-                        function(urlhash,value, mcb){
-                            if(value){
-                                logger.debug('url info exists, '+link+', just update the version');
-                                if(version>parseInt(value['version'])||isNaN(parseInt(value['version']))){
-                                    redis_cli1.hset(urlhash,'version',version,function(err, svalue){
-                                        if(err){loggeer.error(err);}
-                                        logger.debug('update url('+link+') version, '+value['version']+' -> '+version);
-                                        mcb(err, 'done');
-                                    });
-                                }else {
-                                    logger.debug(link+' keep the version: '+value['version']);
-                                    mcb(null, 'done');
+                        //check url////////////////////////
+                        function(final_link,urlhash,values,mcb){
+                            var validate = true;
+                            if(values){
+                                var status = values['status'];
+                                var records = JSON.parse(values['records']);
+                                var last = parseInt(values['last']);
+                                var t_version = parseInt(values['version']);
+                                var type = values['type'];
+
+                                if(status!='crawled_failure'){
+                                    var real_interval = t_driller_rules['schedule_interval']*1000;
+                                    if(status=='crawling'||status=='schedule'){
+                                        real_interval = 10*60*1000;//url request hang up or interrupted, give opportunity to crawl after 10 minutes.
+                                    }
+                                    if(status=='hit'){
+                                        real_interval = 2*24*60*60*1000;//probably schedule lost, give opportunity to crawl after 2 days.
+                                    }
+                                    if(status=='crawled_finish'&&type=='branch'&&version>last){
+                                        real_interval = 0;
+                                        logger.debug(final_link +' got new version after last crawling');
+                                    }
+                                    if((new Date()).getTime()-last<real_interval){
+                                        logger.debug(util.format('ignore %s, last event time:%s, status:%s',final_link,last,status));
+                                        validate = false;
+                                    }else{
+                                        logger.debug(final_link+' should insert into urlqueue');
+                                    }
                                 }
+                                //version update////////////////////////////////////////////////////////////////
+                                logger.debug('url info exists, '+link+', just update the version');
+                                var ctc = {};
+                                if(validate)ctc['status'] = 'hit';
+                                if(version>t_version||isNaN(t_version)){
+                                    ctc['version'] = version;
+                                    logger.debug('update url('+final_link+') version, '+t_version+' -> '+version);
+                                }else {
+                                    logger.debug(final_link+' keep the version: '+values['version']);
+                                }
+                                if(!isEmpty(ctc)){
+                                    redis_cli1.hmset(urlhash,ctc,function(err, svalue){
+                                        if(err){loggeer.error(err);}
+                                        logger.debug('update url('+final_link+') version, '+t_version+' -> '+version);
+                                        mcb(err,final_link,validate);
+                                    });
+                                }else mcb(null,final_link,validate);
+                                //////////////////////////////////////////////////////////////////////////////
                             }else{
                                 var vv = {
                                     'url':link,
@@ -101,10 +161,20 @@ pipeline.prototype.save_links = function(page_url,version,linkobjs,drill_relatio
                                 }
                                 redis_cli1.hmset(urlhash,vv,function(err, value){
                                     if (err) throw(err);
-                                    logger.debug(' save url('+link+') to urlinfo.');
-                                    mcb(err, 'done');
+                                    logger.debug(' save new url('+link+') to urlinfo.');
+                                    mcb(null,final_link,true);
                                 });
                             }
+                        },
+                        ////save link to urllib////////////
+                        function(final_link,validate,mcb){
+                            if(validate){
+                                redis_cli0.rpush(alias,final_link,function(err, value){
+                                    if(err)throw(err);
+                                    logger.debug('push url: '+link+' to urllib: '+alias);
+                                    mcb(err,value);
+                                });
+                            }else mcb(null,'done');
                         }
                     ], function (err, result) {
                         sindex++;
