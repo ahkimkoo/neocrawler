@@ -27,11 +27,17 @@ pipeline.prototype.assembly = function(){
 
     this.redis_cli0 = redis.createClient(this.spiderCore.settings['driller_info_redis_db'][1],this.spiderCore.settings['driller_info_redis_db'][0]);
     this.redis_cli1 = redis.createClient(this.spiderCore.settings['url_info_redis_db'][1],this.spiderCore.settings['url_info_redis_db'][0]);
-    var spider = this;
+    this.redis_cli2 = redis.createClient(this.spiderCore.settings['url_report_redis_db'][1],this.spiderCore.settings['url_report_redis_db'][0]);
+    var pipeline = this;
     var spiderCore = this.spiderCore;
     this.redis_cli0.select(this.spiderCore.settings['driller_info_redis_db'][2], function(err,value) {
-        spider.redis_cli1.select(spiderCore.settings['url_info_redis_db'][2], function(err,value) {
-            spiderCore.emit('standby','pipeline');
+        if(err)throw err;
+        pipeline.redis_cli1.select(spiderCore.settings['url_info_redis_db'][2], function(err,value) {
+            if(err)throw err;
+            pipeline.redis_cli2.select(spiderCore.settings['url_report_redis_db'][2], function(err,value) {
+                if(err)throw err;
+                spiderCore.emit('standby','pipeline');
+            });
         });
     });
 }
@@ -206,6 +212,7 @@ pipeline.prototype.save_content = function(pageurl,content,extracted_data,js_res
     var url_hash = crypto.createHash('md5').update(pageurl+'').digest('hex');
     var spider = os.hostname()+'-'+process.pid;
     var start_time = (new Date()).getTime();
+    var self = this;
 
     var dict = {
         'basic:spider' : spider,
@@ -233,9 +240,21 @@ pipeline.prototype.save_content = function(pageurl,content,extracted_data,js_res
     }
 
     this.hbase_cli.putRow(this.HBASE_TABLE, url_hash, dict, function (err) {
-        if(err)logger.error(pageurl+', data insert to hbase error: '+err);
-        else logger.info(pageurl+', data insert to hbase cost '+((new Date()).getTime()-start_time)+' ms');
-        if(callback)callback(null);
+        if(err){
+            logger.error(pageurl+', data insert to hbase error: '+err);
+            self.redis_cli2.zadd('stuck:'+urllib,(new Date()).getTime(),pageurl,function(err,result){
+                if(err)throw err;
+                logger.debug('append '+pageurl+' to stuck record');
+                if(callback)callback(err);
+            });
+        }else{
+            logger.info(pageurl+', data insert to hbase cost '+((new Date()).getTime()-start_time)+' ms');
+            self.redis_cli2.zrem('stuck:'+urllib,pageurl,function(err,result){
+                if(err)throw err;
+                logger.debug('remove '+pageurl+' from stuck record');
+                if(callback)callback(err);
+            });
+        }
     });
 }
 
@@ -243,6 +262,7 @@ pipeline.prototype.save_binary = function(pageurl,content,referer,urllib,drill_r
     var url_hash = crypto.createHash('md5').update(pageurl+'').digest('hex');
     var spider = os.hostname()+'-'+process.pid;
     var start_time = (new Date()).getTime();
+    var self = this;
 
     var dict = {
         'basic:spider' : spider,
@@ -255,9 +275,21 @@ pipeline.prototype.save_binary = function(pageurl,content,referer,urllib,drill_r
     }
 
     this.hbase_cli.putRow(this.HBASE_BIN_TABLE, url_hash, dict, function (err) {
-        if(err)logger.error(pageurl+', data insert to hbase error: '+err);
-        else logger.info(pageurl+', data insert to hbase cost '+((new Date()).getTime()-start_time)+' ms');
-        if(callback)callback(null);
+        if(err){
+            logger.error(pageurl+', data insert to hbase error: '+err);
+            self.redis_cli2.zadd('stuck:'+urllib,(new Date()).getTime(),pageurl,function(err,result){
+                if(err)throw err;
+                logger.debug('append '+pageurl+' to stuck record');
+                if(callback)callback(err);
+            });
+        }else{
+            logger.info(pageurl+', data insert to hbase cost '+((new Date()).getTime()-start_time)+' ms');
+            self.redis_cli2.zrem('stuck:'+urllib,pageurl,function(err,result){
+                if(err)throw err;
+                logger.debug('remove '+pageurl+' from stuck record');
+                if(callback)callback(err);
+            });
+        }
     });
 }
 
