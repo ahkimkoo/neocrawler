@@ -244,6 +244,7 @@ downloader.prototype.downloadIt = function(urlinfo){
         if(req){
             logger.error('download timeout, '+pageLink);
             req.destroy();
+            spiderCore.emit('crawling_failure',urlinfo,'download timeout');
         }
     },spiderCore.settings['download_timeout']*1000);
 
