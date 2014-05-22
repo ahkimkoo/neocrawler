@@ -25,31 +25,28 @@ util.inherits(spiderCore, events.EventEmitter);//eventemitter inherits
  * initialization
  */
 spiderCore.prototype.assembly = function(){
-    this.unavailable_middlewares = {
-        'spider':true,
-        'downloader':true,
-        'extractor':true,
-        'pipeline':true
-    }
-    this.spider.assembly();
-    this.downloader.assembly();
-    this.extractor.assembly();
-    this.pipeline.assembly();
+    var self = this;
+    async.series([
+        function(callback){
+            self.spider.assembly(callback);
+        },
+        function(callback){
+            self.downloader.assembly(callback);
+        },
+        function(callback){
+            self.extractor.assembly(callback);
+        },
+        function(callback){
+            self.pipeline.assembly(callback);
+        }
+    ],function(err,result){
+        self.spider.refreshDrillerRules();
+    });
 }
 
 ////start///////////////////////////////////////////////
 spiderCore.prototype.start = function(){
     var spiderCore = this;
-    //when every middleware is ready
-    this.on('standby',function(middleware){
-        logger.debug(middleware+' stand by');
-        delete this.unavailable_middlewares[middleware];
-        if(isEmpty(this.unavailable_middlewares)){
-            logger.debug('All middlewares stand by');
-            this.removeAllListeners('standby');
-            this.spider.refreshDrillerRules();
-        }
-    });
     //when get a new url from candidate queue
     this.on('new_url_queue',function(urlinfo){
         this.spider.updateLinkState(urlinfo['url'],'crawling');

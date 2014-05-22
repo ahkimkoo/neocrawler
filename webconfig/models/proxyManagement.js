@@ -1,16 +1,23 @@
 
 // Proxy Management model
 
-var redis = require('redis');
+var myredis = require('../../lib/myredis.js');
 var async = require('async');
 //var settings = require('../../instance/webconfig/settings.json');
 
 var settings = global.settings;
 
-var client = redis.createClient(settings['proxy_info_redis_db'][1],settings['proxy_info_redis_db'][0]);
-
-client.select(settings['proxy_info_redis_db'][2]);
-
+var dbtype = 'redis';
+if(settings['use_ssdb'])dbtype = 'ssdb';
+var client;
+myredis.createClient(
+    settings['proxy_info_redis_db'][0],
+    settings['proxy_info_redis_db'][1],
+    settings['proxy_info_redis_db'][2],
+    dbtype,
+    function(err,cli){
+        client = cli;
+    });
 
 // available proxy list
 PROXY_P_PREFIX = 'proxy:public:available:';

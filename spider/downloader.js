@@ -30,7 +30,7 @@ var downloader = function(spiderCore){
 util.inherits(downloader, events.EventEmitter);//eventemitter inherits
 
 ////report to spidercore standby////////////////////////
-downloader.prototype.assembly = function(){
+downloader.prototype.assembly = function(callback){
     /*
     var downloader = this;
     var MIN_PROXY_LENGTH = 1000;
@@ -83,7 +83,7 @@ downloader.prototype.assembly = function(){
         this.spiderCore.emit('standby','downloader');
     }
     */
-    this.spiderCore.emit('standby','downloader');
+    if(callback)callback(null,'done');
 }
 /**
  * refresh proxy list from redis db

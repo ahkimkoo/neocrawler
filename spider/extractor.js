@@ -18,8 +18,8 @@ var extractor = function(spiderCore){
 }
 
 ////report to spidercore standby////////////////////////
-extractor.prototype.assembly = function(){
-    this.spiderCore.emit('standby','extractor');
+extractor.prototype.assembly = function(callback){
+    if(callback)callback(null,'done');
 }
 
 /**

@@ -2,11 +2,12 @@
  * Created by james on 13-12-5.
  * spider middleware
  */
-var redis = require("redis");
+
 var crypto = require('crypto');
 var url =  require("url");
 var util = require('util');
 var async = require('async');
+var myredis = require('../lib/myredis.js');
 
 var spider = function(spiderCore){
     this.spiderCore = spiderCore;
@@ -17,21 +18,46 @@ var spider = function(spiderCore){
 }
 
 ////report to spidercore standby////////////////////////
-spider.prototype.assembly = function(){
-    this.redis_cli0 = redis.createClient(this.spiderCore.settings['driller_info_redis_db'][1],this.spiderCore.settings['driller_info_redis_db'][0]);
-    this.redis_cli1 = redis.createClient(this.spiderCore.settings['url_info_redis_db'][1],this.spiderCore.settings['url_info_redis_db'][0]);
-    this.redis_cli2 = redis.createClient(this.spiderCore.settings['url_report_redis_db'][1],this.spiderCore.settings['url_report_redis_db'][0]);
-    var spider = this;
-    var spiderCore = this.spiderCore;
-    this.redis_cli0.select(this.spiderCore.settings['driller_info_redis_db'][2], function(err,value) {
-        if(err)throw err;
-        spider.redis_cli1.select(spiderCore.settings['url_info_redis_db'][2], function(err,value) {
-            if(err)throw err;
-            spider.redis_cli2.select(spiderCore.settings['url_report_redis_db'][2], function(err,value) {
-                if(err)throw err;
-                spiderCore.emit('standby','spider');
-            });
-        });
+spider.prototype.assembly = function(callback){
+    var self = this;
+    var dbtype = 'redis';
+    if(this.spiderCore.settings['use_ssdb'])dbtype = 'ssdb';
+    async.series([
+        function(cb){
+            myredis.createClient(
+                self.spiderCore.settings['driller_info_redis_db'][0],
+                self.spiderCore.settings['driller_info_redis_db'][1],
+                self.spiderCore.settings['driller_info_redis_db'][2],
+                dbtype,
+                function(err,cli){
+                    self.redis_cli0 = cli;
+                    cb(err);
+                });
+        },
+        function(cb){
+            myredis.createClient(
+                self.spiderCore.settings['url_info_redis_db'][0],
+                self.spiderCore.settings['url_info_redis_db'][1],
+                self.spiderCore.settings['url_info_redis_db'][2],
+                dbtype,
+                function(err,cli){
+                    self.redis_cli1 = cli;
+                    cb(err);
+                });
+        },
+        function(cb){
+            myredis.createClient(
+                self.spiderCore.settings['url_report_redis_db'][0],
+                self.spiderCore.settings['url_report_redis_db'][1],
+                self.spiderCore.settings['url_report_redis_db'][2],
+                dbtype,
+                function(err,cli){
+                    self.redis_cli2 = cli;
+                    cb(err);
+                });
+        }
+    ],function(err,result){
+        if(callback)callback(null,'done');
     });
 }
 /**

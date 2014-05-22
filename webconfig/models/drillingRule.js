@@ -1,15 +1,24 @@
 
 // Drilling rule model
 
-var redis = require('redis');
+var myredis = require('../../lib/myredis.js');
 var async = require('async');
 //var settings = require('../../instance/webconfig/settings.json');
 
 var settings = global.settings;
 
-var client = redis.createClient(settings['driller_info_redis_db'][1],settings['driller_info_redis_db'][0]);
+var dbtype = 'redis';
+if(settings['use_ssdb'])dbtype = 'ssdb';
+var client;
 
-client.select(settings['driller_info_redis_db'][2]);
+myredis.createClient(
+    settings['driller_info_redis_db'][0],
+    settings['driller_info_redis_db'][1],
+    settings['driller_info_redis_db'][2],
+    dbtype,
+    function(err,cli){
+        client = cli;
+    });
 
 var UPDATED_TIME = "updated:driller:rule";
 

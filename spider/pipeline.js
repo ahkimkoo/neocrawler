@@ -18,28 +18,18 @@ var pipeline = function(spiderCore){
 }
 
 ////report to spidercore standby////////////////////////
-pipeline.prototype.assembly = function(){
+pipeline.prototype.assembly = function(callback){
+    var spiderCore = this.spiderCore;
     if(this.spiderCore.settings['save_content_to_hbase']===true){
         this.hbase_cli = HBase.create(this.spiderCore.settings['crawled_hbase_conf']);
         this.HBASE_TABLE = this.spiderCore.settings['crawled_hbase_table'];
         this.HBASE_BIN_TABLE = this.spiderCore.settings['crawled_hbase_bin_table'];
     }
 
-    this.redis_cli0 = redis.createClient(this.spiderCore.settings['driller_info_redis_db'][1],this.spiderCore.settings['driller_info_redis_db'][0]);
-    this.redis_cli1 = redis.createClient(this.spiderCore.settings['url_info_redis_db'][1],this.spiderCore.settings['url_info_redis_db'][0]);
-    this.redis_cli2 = redis.createClient(this.spiderCore.settings['url_report_redis_db'][1],this.spiderCore.settings['url_report_redis_db'][0]);
-    var pipeline = this;
-    var spiderCore = this.spiderCore;
-    this.redis_cli0.select(this.spiderCore.settings['driller_info_redis_db'][2], function(err,value) {
-        if(err)throw err;
-        pipeline.redis_cli1.select(spiderCore.settings['url_info_redis_db'][2], function(err,value) {
-            if(err)throw err;
-            pipeline.redis_cli2.select(spiderCore.settings['url_report_redis_db'][2], function(err,value) {
-                if(err)throw err;
-                spiderCore.emit('standby','pipeline');
-            });
-        });
-    });
+    this.redis_cli0 = spiderCore.spider.redis_cli0;
+    this.redis_cli1 = spiderCore.spider.redis_cli1;
+    this.redis_cli2 = spiderCore.spider.redis_cli2;
+    if(callback)callback(null,'done');
 }
 /**
  * save links to redis db

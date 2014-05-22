@@ -3,7 +3,7 @@
  */
 var util = require('util');
 var events = require('events');
-var redis = require("redis");
+var myredis = require('../lib/myredis.js');
 var crypto = require('crypto');
 var urlUtil =  require("url");
 var querystring = require('querystring');
@@ -19,19 +19,41 @@ var scheduler = function(settings){
     this.total_rates = 0;
     this.driller_rules = {};//{"domain":{"alias":{"rules":"..."}}}
     this.schedule_version = (new Date()).getTime();
-    this.redis_cli0 = redis.createClient(this.settings['driller_info_redis_db'][1],this.settings['driller_info_redis_db'][0]);
-    this.redis_cli1 = redis.createClient(this.settings['url_info_redis_db'][1],this.settings['url_info_redis_db'][0]);
 }
 util.inherits(scheduler, events.EventEmitter);//eventemitter inherits
 /**
  * assembly: initializing
  */
 scheduler.prototype.assembly = function(){
-    var scheduler = this;
-    scheduler.redis_cli0.select(this.settings['driller_info_redis_db'][2], function(err,value) {
-        scheduler.redis_cli1.select(scheduler.settings['url_info_redis_db'][2], function(err,value) {
-            scheduler.emit('standby','schedule');
-        });
+    var self = this;
+    var dbtype = 'redis';
+    if(self.settings['use_ssdb'])dbtype = 'ssdb';
+    async.series([
+        function(cb){
+            myredis.createClient(
+                self.settings['driller_info_redis_db'][0],
+                self.settings['driller_info_redis_db'][1],
+                self.settings['driller_info_redis_db'][2],
+                dbtype,
+                function(err,cli){
+                    self.redis_cli0 = cli;
+                    cb(err);
+                });
+        },
+        function(cb){
+            myredis.createClient(
+                self.settings['url_info_redis_db'][0],
+                self.settings['url_info_redis_db'][1],
+                self.settings['url_info_redis_db'][2],
+                dbtype,
+                function(err,cli){
+                    self.redis_cli1 = cli;
+                    cb(err);
+                });
+        }
+    ],function(err,result){
+        logger.debug('scheduler stand by');
+        this.refreshPriotities();
     });
 }
 /**
@@ -444,12 +466,6 @@ scheduler.prototype.updateLinkState = function(link,state,version,callback){
  */
 scheduler.prototype.start = function(){
     var scheduler = this;
-    //after module initial
-    this.once('standby',function(middleware){
-        logger.debug(middleware+' stand by');
-        this.refreshPriotities();
-    });
-
     //when refresh priority list finished
     this.on('priorities_loaded',function(priotity_list){
         this.priotity_list.sort(function(a,b){
