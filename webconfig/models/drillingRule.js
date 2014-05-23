@@ -30,7 +30,7 @@ var drillingRule = {
 		var self = this;
 		var keys = [];
 		// retrieve all of keys that match rule*
-		client.keys('driller*', function(err, keys){
+		client.hlist('driller*', function(err, keys){
 			if(err){
 					console.log('ERROR:', err);
 				}else{
@@ -78,7 +78,7 @@ var drillingRule = {
 		var keys = [];
 		var regex = 'driller:*' + condition + '*';
 		// retrieve all of keys that match rule*
-		client.keys(regex, function(err, keys){
+		client.hlist(regex, function(err, keys){
 			if(err){
 					console.log('ERROR:', err);
 				}else{
