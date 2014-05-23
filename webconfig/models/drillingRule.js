@@ -82,7 +82,6 @@ var drillingRule = {
 			if(err){
 					console.log('ERROR:', err);
 				}else{
-					console.log("keys : ", keys); 	
 
 					var callFunctions = new Array();
 
@@ -148,7 +147,7 @@ var drillingRule = {
 
 	// destroy a rule
 	destroy: function(id, fn){
-		client.del(id, function(err, obj){
+		client.hclear(id, function(err, obj){
 			if(err) {
 				console.log(err);
 				return fn(err);
