@@ -146,7 +146,7 @@ var drillingRule = {
 	},
 
 	// destroy a rule
-	destroy: function(id, fn){
+	destroy: function(id, fn){console.log(id);
 		client.hclear(id, function(err, obj){
 			if(err) {
 				console.log(err);

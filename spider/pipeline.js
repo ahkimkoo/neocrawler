@@ -99,9 +99,9 @@ pipeline.prototype.save_links = function(page_url,version,linkobjs,drill_relatio
                         //check url////////////////////////
                         function(final_link,urlhash,values,mcb){
                             var validate = true;
-                            if(values){
+                            if(values&&!isEmpty(values)){
                                 var status = values['status'];
-                                var records = JSON.parse(values['records']);
+                                var records = values['records']?JSON.parse(values['records']):[];
                                 var last = parseInt(values['last']);
                                 var t_version = parseInt(values['version']);
                                 var type = values['type'];

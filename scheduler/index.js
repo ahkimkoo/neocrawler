@@ -8,6 +8,7 @@ var crypto = require('crypto');
 var urlUtil =  require("url");
 var querystring = require('querystring');
 var async = require('async');
+require('../lib/jsextend.js');
 
 var scheduler = function(settings){
     events.EventEmitter.call(this);//eventemitter inherits
@@ -53,7 +54,7 @@ scheduler.prototype.assembly = function(){
         }
     ],function(err,result){
         logger.debug('scheduler stand by');
-        this.refreshPriotities();
+        self.refreshPriotities();
     });
 }
 /**
@@ -66,7 +67,7 @@ scheduler.prototype.refreshPriotities  = function(){
             if (err)throw(err);
             if(this.priotities_updated!==parseInt(value)){//driller is changed
                 logger.debug('driller rules is changed');
-                redis_cli.keys('driller:*',function(err,values){
+                redis_cli.hlist('driller:*',function(err,values){
                     if (err)throw(err);
                     scheduler.tmp_driller_rules = {};
                     scheduler.tmp_priority_list = [];
@@ -76,7 +77,7 @@ scheduler.prototype.refreshPriotities  = function(){
                         (function(key,scheduler){
                             redis_cli.hgetall(key, function(err,value){//for synchronized using object variable
                                 if(scheduler.tmp_priotities==undefined)scheduler.tmp_priotities = {'items':{},nums:[]};
-                                var isActive = JSON.parse(value['active']);
+                                var isActive = value['active']=='true'||value['active']==true||value['active']=='1'||value['active']==1?true:false;
                                 if(isActive){
                                     ////for drill_rules
                                     if(scheduler.tmp_driller_rules==undefined)scheduler.tmp_driller_rules = {};
@@ -342,7 +343,7 @@ scheduler.prototype.checkURL = function(url,interval,callback){
     var kk = crypto.createHash('md5').update(url).digest('hex');
     redis_cli1.hgetall(kk,function(err,values){
         if(err){return callback(false);}
-        if(!values){logger.error(url+' not exists in urlinfo');return callback(false);}
+        if(!values||isEmpty(values)){logger.error(url+' not exists in urlinfo');return callback(false);}
 
         if(values['trace']){
             var t_url = scheduler.transformLink(url,values['trace']);
@@ -353,9 +354,9 @@ scheduler.prototype.checkURL = function(url,interval,callback){
         }
 
         var status = values['status'];
-        var records = JSON.parse(values['records']);
-        var last = parseInt(values['last']);
-        var version = parseInt(values['version']);
+        var records = values['records']?JSON.parse(values['records']):[];
+        var last = values['last']?parseInt(values['last']):0;
+        var version = values['version']?parseInt(values['version']):0;
         var type = values['type'];
 
         if(status!='crawled_failure'&&status!='hit'){
@@ -401,7 +402,7 @@ scheduler.prototype.updateLinkState = function(link,state,version,callback){
     var urlhash = crypto.createHash('md5').update(link+'').digest('hex');
     this.redis_cli1.hgetall(urlhash,function(err,link_info){
         if(err){logger.error('get state of link('+link+') fail: '+err);return callback(false);}
-        if(link_info){
+        if(link_info&&!isEmpty(link_info)){
             var t_record = link_info['records'];
             var records = [];
             if(t_record!=''&&t_record!='[]'){

@@ -91,7 +91,7 @@ spider.prototype.refreshDrillerRules = function(){
             if (err)throw(err);
             if(this.driller_rules_updated!==parseInt(value)){//driller is changed
                 logger.debug('driller rules is changed');
-                redis_cli.keys('driller:*',function(err,values){
+                redis_cli.hlist('driller:*',function(err,values){
                     if (err)throw(err);
                     spider.tmp_driller_rules = {};
                     spider.tmp_driller_rules_length = values.length;
@@ -184,7 +184,7 @@ spider.prototype.getUrlQueue = function(callback){
                 redis_urlinfo_db.hgetall(linkhash,function(err, link_info){
                     //4---------------------------------------------------------------------------------
                     if(err)throw(err);
-                    if(!link_info){
+                    if(!link_info||isEmpty(link_info)){
                         logger.warn(link+' has no url info, '+linkhash+', we try to match it');
                         var urlinfo = spider.wrapLink(link);
                         if(urlinfo!=null)spider.spiderCore.emit('new_url_queue',urlinfo);
@@ -367,7 +367,7 @@ spider.prototype.updateLinkState = function(link,state,callback){
             if(callback)callback(err);
             return;
         }
-        if(link_info){
+        if(link_info&&!isEmpty(link_info)){
             var t_record = link_info['records'];
             var records = [];
             if(t_record!=''&&t_record!='[]'){

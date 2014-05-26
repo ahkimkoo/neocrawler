@@ -37,7 +37,7 @@ var async = require('async');
 var dumpdb = function(db){
     var redis_cli = redis.createClient(options['p'],options['h']);
     redis_cli.select(db, function(err,result) {
-        redis_cli.keys('driller:*',function(err,keyList){
+        redis_cli.hlist('driller:*',function(err,keyList){
             for(var i=0;i<keyList.length;i++){}
             var count = 0;
             var resultArray = [];
