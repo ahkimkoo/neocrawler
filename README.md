@@ -18,7 +18,7 @@ NEOCrawler，中文名：牛抓，是nodejs、redis、phantomjs实现的爬虫�
 
 #【运行环境准备】
 * 安装好nodejs 环境，从git仓库clone源码到本地，在文件夹位置打开命令提示符，运行“npm install”安装依赖的模块；
-* redis server安装。
+* redis server安装（同时支持redis和ssdb，从节约内存的角度考虑，可以使用ssdb，在setting.json可以指定类型，下面会提到）。
 * hbase环境，抓取到网页、摘取到的数据将存储到hbase，hbase安装完毕后要讲http rest服务开启，后面的配置中会用到，如果要使用其他的数据库存储，可以不安装hbase，下面的章节中将会讲到如何关闭hbase功能以及定制化自己的存储。
 
 #【实例配置】
@@ -46,7 +46,8 @@ NEOCrawler，中文名：牛抓，是nodejs、redis、phantomjs实现的爬虫�
     "spider_request_delay":0,/*两个并发请求之间的间隔时间，秒*/
     "schedule_interval":60,/*调度器两次调度的间隔时间*/
     "schedule_quantity_limitation":200,/*调度器给爬虫的最大网址待抓取数量*/
-    "log_level":"DEBUG"/*日志级别*/
+    "log_level":"DEBUG",/*日志级别*/
+    "use_ssdb":false/*是否使用ssdb*/
 }
 ```
 #【运行】
