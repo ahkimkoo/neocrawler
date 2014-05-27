@@ -22,6 +22,16 @@ var userArgv = require('optimist')
         'default' : 'dump',
         'describe' : 'Specify a file name , do not include suffix'
     })
+    .options('t', {
+        'alias' : 'type',
+        'default' : 'redis',
+        'describe' : 'Specify a DBtype: redis/ssdb'
+    })
+    .options('d', {
+        'alias' : 'db',
+        'default' : '0',
+        'describe' : 'Specify a db'
+    })
     .options('H', {
         'alias' : 'help',
         'describe' : 'Help infomation'
@@ -30,27 +40,35 @@ var userArgv = require('optimist')
 var options = userArgv.argv;
 if(options['H']){userArgv.showHelp();process.exit();}
 
-var redis = require("redis");
+var redis = require("../lib/myredis.js");
 var fs = require("fs");
-var async = require('async');
+var lineReader = require('../lib/line_reader.js');
 
 var restoredb = function(db){
-    var redis_cli = redis.createClient(options['p'],options['h']);
-    redis_cli.select(db, function(err,result) {
-        fs.readFile(options['f'],'utf8', function (err, data) {
-            if (err) throw err;
-            var resultArray = data.split('\n');
-            for(var i=0;i<resultArray.length;i++){
-                var key = resultArray[i++];
-                var value = JSON.parse(resultArray[i]);
-                console.log(key);
+    redis.createClient(options['h'],options['p'],db,options['t'],function(err,redis_cli)
+    {
+        if(err)throw err;
+        var count = 0;
+        var key,value;
+        lineReader.eachLine(options['f'], function(line, last,cb) {
+            if(count++%2==0){
+                key = line;
+                if(last){
+                    redis_cli.quit();
+                    cb(false);
+                }else cb();
+            }else {
+                value = JSON.parse(line);
                 redis_cli.hmset(key,value,function(err,status){
                     if(err)console.log(err);
-                    else console.log('restore db'+db+' '+key);
-                    redis_cli.quit();
+                    else console.log('restore db'+db+' '+key+' status:'+status);
+                    if(last){
+                        redis_cli.quit();
+                        cb(false);
+                    }else cb();
                 });
             }
         });
     });
 }
-restoredb(0);
+restoredb(parseInt(options['d']));
