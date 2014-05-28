@@ -65,7 +65,8 @@ extractor.prototype.wash_link = function(pageurl,links){
         var link = links[i].trim();
         if(!(link.startsWith('#')||link.startsWith('javascript')||link.startsWith('void('))){
             try{
-                cleaned_link.push(url.resolve(pageurl,link));
+                var the_url = url.resolve(pageurl,link);
+                if(the_url!=pageurl)cleaned_link.push();
             }catch(e){
                 logger.error('Url resolve error: '+pageurl+', '+link);
             }
