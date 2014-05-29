@@ -76,7 +76,7 @@ var drillingRule = {
 
 		var self = this;
 		var keys = [];
-		var regex = 'driller:*' + condition + '*';
+		var regex = 'driller:' + condition + '*';
 		// retrieve all of keys that match rule*
 		client.hlist(regex, function(err, keys){
 			if(err){
