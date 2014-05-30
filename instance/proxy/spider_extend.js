@@ -4,18 +4,28 @@
  */
 require('../../lib/jsextend.js');
 var util = require('util');
-var redis = require("redis");
+var myredis = require('../../lib/myredis.js');
 var request = require('request');
 var async = require('async');
 
 var spider_extend = function(spiderCore){
+    var self = this;
     this.spiderCore = spiderCore;
     logger = spiderCore.settings.logger;
-    this.redis_cli = redis.createClient(6380,'192.168.8.88');
-    this.redis_cli.select(3, function(err,value) {
-        if(err)throw(err);
-        logger.debug('temporarily proxy redis db ready');
-    });
+
+    var dbtype = 'redis';
+    if(this.spiderCore.settings['use_ssdb'])dbtype = 'ssdb';
+
+    myredis.createClient(
+        this.spiderCore.settings['proxy_info_redis_db'][0],
+        this.spiderCore.settings['proxy_info_redis_db'][1],
+        this.spiderCore.settings['proxy_info_redis_db'][2],
+        dbtype,
+        function(err,cli){
+            self.redis_cli = cli;
+            logger.debug('temporarily proxy redis db ready');
+     });
+
     this.no_queue_alert_count = 0;
 }
 
@@ -61,9 +71,9 @@ var spider_extend = function(spiderCore){
  * if it do nothing , comment it
  * @param extracted_info (same to extract)
  */
-spider_extend.prototype.pipeline = function(extracted_info){
-    logger.debug('spider extender receive extracted info from '+extracted_info['url']);
-}
+//spider_extend.prototype.pipeline = function(extracted_info){
+//    logger.debug('spider extender receive extracted info from '+extracted_info['url']);
+//}
 /**
  * report extracted data lacks of some fields
  */

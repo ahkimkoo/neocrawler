@@ -5,7 +5,7 @@ var http = require('http');
 var util = require('util');
 var events = require('events');
 var url =  require("url");
-var redis = require("redis");
+var myredis = require('../lib/myredis.js');
 require('../lib/jsextend.js');
 var logger;
 var CHECK_PROXY_LIST_INTERVAL = 10*60*1000;//refresh proxy list interval: 10 mins
@@ -48,9 +48,9 @@ proxyRouter.prototype.refreshProxyList = function(proxyRouter){
  */
 proxyRouter.prototype.getProxyListFromDb = function(label){
     var proxyRouter = this;
-    logger.debug(util.format('get proxy list from :%s',label));
     proxyRouter.redis_cli3.lrange(label,0,-1,function(err,proxylist){
         if(err)throw(err);
+        logger.debug(util.format('get %d proxies from :%s',proxylist.length,label));
         proxyRouter.emit('gotProxyList',label,proxylist);
     });
 }
@@ -63,11 +63,18 @@ proxyRouter.prototype.start = function(){
         this.proxyDaemon();
 	});
     this.assembly();
-    this.redis_cli3 = redis.createClient(proxyRouter.settings['proxy_info_redis_db'][1],proxyRouter.settings['proxy_info_redis_db'][0]);
-    this.redis_cli3.select(proxyRouter.settings['proxy_info_redis_db'][2], function(err,value) {
-        if(err)throw(err);
-        proxyRouter.refreshProxyList(proxyRouter);
-    });
+    var dbtype = 'redis';
+    if(proxyRouter.settings['use_ssdb'])dbtype = 'ssdb';
+
+    myredis.createClient(
+        proxyRouter.settings['proxy_info_redis_db'][0],
+        proxyRouter.settings['proxy_info_redis_db'][1],
+        proxyRouter.settings['proxy_info_redis_db'][2],
+        dbtype,
+        function(err,cli){
+            proxyRouter.redis_cli3 = cli;
+            proxyRouter.refreshProxyList(proxyRouter);
+        });
 }
 /**
  * Choose proxy, if it request come from browser, keep a proxy for resources of page
