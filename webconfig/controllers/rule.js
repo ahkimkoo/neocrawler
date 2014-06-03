@@ -33,7 +33,8 @@ var template =  {
         'schedule_interval': 86400,
         'active': true,
         'seed': [],//[]
-        'schedule_rule':'FIFO'// FIFO  or LIFO
+        'schedule_rule':'FIFO',// FIFO  or LIFO
+        'use_proxy':false
 };
 
 var rules = [];

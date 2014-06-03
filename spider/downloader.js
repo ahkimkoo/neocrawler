@@ -132,8 +132,13 @@ downloader.prototype.downloadIt = function(urlinfo){
     var pageLink = urlinfo['url'];
     if(urlinfo['redirect'])pageLink = urlinfo['redirect'];
 
-    if(this.spiderCore.settings['use_proxy']===true){
-        var proxyRouter = this.spiderCore.settings['proxy_router'].split(':');
+    var useProxy = false;
+    if(urlinfo['urllib']&&spiderCore.settings['use_proxy']===true){
+        if(spiderCore.spider.getDrillerRule(urlinfo['urllib'],'use_proxy')===true)useProxy=true;
+    }
+
+    if(useProxy){
+        var proxyRouter = spiderCore.settings['proxy_router'].split(':');
         var __host = proxyRouter[0];
         var __port = proxyRouter[1];
         var __path =  pageLink;
@@ -264,7 +269,11 @@ downloader.prototype.browseIt = function(urlinfo){
         urlinfo['test'] = true;
         urlinfo['ipath'] = path.join(__dirname,'..', 'instance',this.spiderCore.settings['instance'],'logs');
     }
-    if(this.spiderCore.settings['use_proxy']===true){
+    var useProxy = false;
+    if(urlinfo['urllib']&&spiderCore.settings['use_proxy']===true){
+        if(spiderCore.spider.getDrillerRule(urlinfo['urllib'],'use_proxy')===true)useProxy=true;
+    }
+    if(useProxy){
         var phantomjs = child_process.spawn('phantomjs', [
             '--proxy', this.spiderCore.settings['proxy_router'],
             '--load-images', 'false',
