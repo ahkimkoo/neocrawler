@@ -93,10 +93,10 @@ spider_extend.prototype.crawl_finish_alert = function(crawled_info){
             task.run(callback);
         }, 20);
         q.saturated = function() {
-            logger.debug('proxy checker: all workers to be used');
+            //logger.debug('proxy checker: all workers to be used');
         }
         q.empty = function() {
-            logger.debug('proxy checker: no more tasks wating');
+            //logger.debug('proxy checker: no more tasks wating');
         }
         q.drain = function() {
             logger.debug('proxy checker: all tasks have been processed');
@@ -109,12 +109,12 @@ spider_extend.prototype.crawl_finish_alert = function(crawled_info){
                 logger.debug('proxy checker: t'+i+' is running, waiting tasks: ', q.length());
                     var ip = ips[i];
                     if(typeof(ip)==='object'){
-                        ip = ip['host'] + ':' + ip['port'];
-                    }
+                        ip = ip['host'].trim() + ':' + ip['port'].trim();
+                    }else ip = ip.trim();
                     (function(ip,redis_cli){
                         var startTime = (new Date()).getTime();
                         request({
-                            'url': 'http://echo.jsontest.com/key/value/one/two',
+                            'url': 'http://61.155.182.29:1337/',//echo server:http://echo.jsontest.com/key/value/one/two
                             'headers': {
                                 "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36"
                             },
@@ -138,16 +138,16 @@ spider_extend.prototype.crawl_finish_alert = function(crawled_info){
                                                 cb();
                                             });
                                         }else{
-                                            logger.debug('proxy checker: '+ip + ' took a long time: '+(endTime - startTime)+'ms, drop it');
+                                            logger.warn('proxy checker: '+ip + ' took a long time: '+(endTime - startTime)+'ms, drop it');
                                             cb();
                                         }
                                     }else cb();
                                 }else cb();
-                            }
+                            }else {logger.error('proxy checker: request error: '+ip);cb();}
                         });
                     })(ip,redis_cli);
                 }}, function(err) {
-                    logger.debug('proxy checker: t'+i+' executed');
+                    //logger.debug('proxy checker: t'+i+' executed');
                 });
             })(i,this.redis_cli);
         }
