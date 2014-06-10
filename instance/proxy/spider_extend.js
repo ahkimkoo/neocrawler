@@ -133,7 +133,7 @@ spider_extend.prototype.crawl_finish_alert = function(crawled_info){
                                     if(info['one']&&info['key']){
                                         var endTime = (new Date()).getTime();
                                         if(endTime - startTime <= 60000){
-                                            redis_cli.rpush('proxy:public:available:temp',ip,function(err,value){
+                                            redis_cli.rpush('proxy:public:available:3s',ip,function(err,value){
                                                 if(!err)logger.debug('proxy checker: Append a proxy: '+ip);
                                                 cb();
                                             });
@@ -158,6 +158,7 @@ spider_extend.prototype.crawl_finish_alert = function(crawled_info){
 /**
  * report no queue
  */
+/*
 spider_extend.prototype.no_queue_alert = function(){
     this.no_queue_alert_count++;
     var spider_extend = this;
@@ -232,4 +233,5 @@ spider_extend.prototype.no_queue_alert = function(){
         }
     });
 }
+*/
 module.exports = spider_extend;
