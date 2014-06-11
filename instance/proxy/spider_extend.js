@@ -133,7 +133,7 @@ spider_extend.prototype.crawl_finish_alert = function(crawled_info){
                                     if(info['one']&&info['key']){
                                         var endTime = (new Date()).getTime();
                                         if(endTime - startTime <= 60000){
-                                            redis_cli.rpush('proxy:public:available:3s',ip,function(err,value){
+                                            redis_cli.lpush('proxy:public:available:3s',ip,function(err,value){
                                                 if(!err)logger.debug('proxy checker: Append a proxy: '+ip);
                                                 cb();
                                             });
