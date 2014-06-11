@@ -178,7 +178,7 @@ downloader.prototype.downloadIt = function(urlinfo){
         };
         if(result['url'].startsWith('/'))result['url'] = urlUtil.resolve(pageLink,result['url']);
         result['statusCode'] = res.statusCode;
-        if(res.statusCode==301){
+        if(parseInt(res.statusCode)==301){
             if(res.headers['location']){
                 result['origin']['redirect'] = res.headers['location'];
                 logger.debug(pageLink+' 301 Moved Permanently to '+res.headers['location']);

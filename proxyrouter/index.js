@@ -142,7 +142,6 @@ proxyRouter.prototype.proxyDaemon = function(){
         var startTime = (new Date()).getTime();
         var urlobj = url.parse(request.url);
         var domain = proxyRouter.__getTopLevelDomain(urlobj['hostname']);
-        var httpCode;
         logger.info(util.format('Request %s from %s',request.url,request.socket.remoteAddress));
         //var proxy = http.createClient(80, request.headers['host']);
         //var proxy_request = proxy.request(request.method, request.url, request.headers);//202.171.253.98:80
@@ -167,7 +166,7 @@ proxyRouter.prototype.proxyDaemon = function(){
             var timer_start = (new Date()).getTime();
             logger.debug(util.format('Request Forward to remote proxy server %s:%s',remoteProxyHost,remoteProxyPort));
             proxy_request.addListener('response', function (proxy_response) {
-                httpCode = proxy_response.statusCode;
+                proxyRouter.__voteProxy(domain,proxyAddr,parseInt(proxy_response.statusCode)<400);//vote proxy
                 proxy_response.addListener('data', function(chunk) {
                     //logger.debug('Write data to client');
                     if(!response.socket||response.socket.destroyed){
@@ -179,7 +178,6 @@ proxyRouter.prototype.proxyDaemon = function(){
 
                 proxy_response.addListener('end', function() {
                     response.end();
-                    if(httpCode<400)proxyRouter.__voteProxy(domain,proxyAddr,true);
                     logger.info(util.format('Write data to client(%s) finish, used proxy: %s, cost: %s ms',request.socket.remoteAddress,proxyAddr,(new Date()).getTime()-startTime));
                 });
 
