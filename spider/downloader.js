@@ -149,6 +149,8 @@ downloader.prototype.downloadIt = function(urlinfo){
         var __path = urlobj['path'];
 //        var __path = pageLink;
     }
+
+    
     var startTime = new Date();
     var options = {
         'host': __host,
@@ -161,6 +163,7 @@ downloader.prototype.downloadIt = function(urlinfo){
             "Accept-Encoding":"gzip,deflate,sdch",
             "Accept-Language":"zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4",
             "Referer":urlinfo['referer'],
+            "void-proxy":urlinfo['void_proxy']?urlinfo['void_proxy']:"",
             "Cookie":this.transCookieKvPair(urlinfo['cookie'])
         }
     };

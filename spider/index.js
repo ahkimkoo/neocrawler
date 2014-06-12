@@ -77,6 +77,7 @@ spiderCore.prototype.start = function(){
             });
         }else{
             logger.error(util.format('invalidate content %s',crawled_info['url']));
+            crawled_info['origin']['void_proxy'] = crawled_info['remote_proxy'];
             spiderCore.spider.retryCrawl(crawled_info['origin']);
         }
     });

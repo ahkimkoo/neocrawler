@@ -62,6 +62,13 @@ proxyRouter.prototype.__getTopLevelDomain = function(domain){
 proxyRouter.prototype.__chooseProxy = function(domain,ip,header,callback){
     var proxyRouter = this;
     this.handleCount++;
+    if(header['void-proxy']){
+	logger.warn('Receive void proxy:'+header['void-proxy']);
+        proxyRouter.__voteProxy(domain,header['void-proxy'],false);
+        proxyRouter.__getProxyFromDb(domain,function(proxyAddr){
+            callback(proxyAddr);
+        });
+    }
     if(header['client_pid']&&header['page']){
         var browserId = ip+':'+header['client_pid'];
         if(!this.proxyServeMap[browserId]||this.proxyServeMap[browserId][0]!==header['page']||!this.availableProxies[domain][this.proxyServeMap[browserId][1]]){
@@ -166,7 +173,7 @@ proxyRouter.prototype.proxyDaemon = function(){
             var timer_start = (new Date()).getTime();
             logger.debug(util.format('Request Forward to remote proxy server %s:%s',remoteProxyHost,remoteProxyPort));
             proxy_request.addListener('response', function (proxy_response) {
-                proxyRouter.__voteProxy(domain,proxyAddr,parseInt(proxy_response.statusCode)<400);//vote proxy
+                proxyRouter.__voteProxy(domain,proxyAddr,parseInt(proxy_response.statusCode)<400);//vote proxy//flex mode
                 proxy_response.addListener('data', function(chunk) {
                     //logger.debug('Write data to client');
                     if(!response.socket||response.socket.destroyed){

@@ -243,7 +243,7 @@ spider.prototype.checkQueue = function(spider){
     async.whilst(
         function() {
             logger.debug('Check queue, length: '+spider.queue_length);
-            return spider.queue_length <= spider.spiderCore.settings['spider_concurrency'] && breakTt !== true;
+            return spider.queue_length < spider.spiderCore.settings['spider_concurrency'] && breakTt !== true;
         },
         function(cb) {
             spider.getUrlQueue(function(bol){
