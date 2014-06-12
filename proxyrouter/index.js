@@ -178,6 +178,7 @@ proxyRouter.prototype.proxyDaemon = function(){
                     //logger.debug('Write data to client');
                     if(!response.socket||response.socket.destroyed){
                         logger.error('client socket closed,oop!');
+                        proxyRouter.__voteProxy(domain,proxyAddr,false);
                         return response.end();
                     }
                     response.write(chunk, 'binary');
