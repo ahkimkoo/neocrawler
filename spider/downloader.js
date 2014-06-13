@@ -24,6 +24,7 @@ var downloader = function(spiderCore){
     events.EventEmitter.call(this);//eventemitter inherits
     this.spiderCore = spiderCore;
     this.proxyList = [];
+    this.timeout_count = 0;
     logger = spiderCore.settings.logger;
 }
 
@@ -128,6 +129,7 @@ downloader.prototype.transCookieKvPair = function(json){
 downloader.prototype.downloadIt = function(urlinfo){
     var spiderCore = this.spiderCore;
     var timeOuter = false;
+    var self = this;
 
     var pageLink = urlinfo['url'];
     if(urlinfo['redirect'])pageLink = urlinfo['redirect'];
@@ -198,6 +200,7 @@ downloader.prototype.downloadIt = function(urlinfo){
         });
 
         res.on('end', function (chunk) {
+            self.timeout_count--;
             if(timeOuter){
                 clearTimeout(timeOuter);
                 timeOuter = false;
@@ -250,14 +253,19 @@ downloader.prototype.downloadIt = function(urlinfo){
 
     timeOuter = setTimeout(function(){
         if(req){
-            logger.error('download timeout, '+pageLink);
+            logger.error('Cost '+((new Date())-startTime)+'ms download timeout, '+pageLink);
             req.destroy();
             spiderCore.emit('crawling_failure',urlinfo,'download timeout');
+            if(self.timeout_count++>spiderCore.settings['spider_concurrency']){logger.fatal('too much timeout, exit.');process.exit(1);}
         }
     },spiderCore.settings['download_timeout']*1000);
 
     req.on('error', function(e) {
         logger.error('problem with request: ' + e.message+', url:'+pageLink);
+        if(timeOuter){
+            clearTimeout(timeOuter);
+            timeOuter = false;
+        }
         spiderCore.emit('crawling_failure',urlinfo,e.message);
     });
     req.end();
