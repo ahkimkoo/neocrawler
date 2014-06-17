@@ -146,7 +146,7 @@ downloader.prototype.downloadIt = function(urlinfo){
         var __path =  pageLink;
     }else{
         var urlobj = urlUtil.parse(pageLink);
-        var __host = urlobj['host'];
+        var __host = urlobj['hostname'];
         var __port = urlobj['port'];
         var __path = urlobj['path'];
 //        var __path = pageLink;
@@ -254,7 +254,8 @@ downloader.prototype.downloadIt = function(urlinfo){
     timeOuter = setTimeout(function(){
         if(req){
             logger.error('Cost '+((new Date())-startTime)+'ms download timeout, '+pageLink);
-            req.destroy();
+            req.abort();
+            req=null;
             spiderCore.emit('crawling_failure',urlinfo,'download timeout');
             if(self.timeout_count++>spiderCore.settings['spider_concurrency']){logger.fatal('too much timeout, exit.');process.exit(1);}
         }
@@ -266,7 +267,11 @@ downloader.prototype.downloadIt = function(urlinfo){
             clearTimeout(timeOuter);
             timeOuter = false;
         }
-        spiderCore.emit('crawling_failure',urlinfo,e.message);
+        if(req){
+            req.abort();
+            req = null;
+            spiderCore.emit('crawling_failure',urlinfo,e.message);
+        }
     });
     req.end();
 }
