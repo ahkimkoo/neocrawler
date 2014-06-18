@@ -333,22 +333,23 @@ spider.prototype.wrapLink = function(link){
  */
 spider.prototype.retryCrawl = function(urlinfo){
     var spider = this;
-    if(urlinfo['retry']){
-        if(urlinfo['retry']<5){//5 time retry
-            urlinfo['retry']+=1;
-            logger.info(util.format('Retry url: %s, time: ',urlinfo['url'],urlinfo['retry']));
-            this.spiderCore.emit('new_url_queue',urlinfo);
-        }else{
-            spider.updateLinkState(urlinfo['url'],'crawled_failure');
-            logger.error(util.format('after %s reties, give up crawl %s',urlinfo['retry'],urlinfo['url']));
-            spider.redis_cli2.zadd('fail:'+urlinfo['urllib'],urlinfo['version'],urlinfo['url'],function(err,result){
-                spider.spiderCore.emit('slide_queue');
-            });
-        }
-    }else{
-        urlinfo['retry']=1;
+    var retryLimit = 3;
+    if(spider.spiderCore.settings['download_retry']&&spider.spiderCore.settings['download_retry']!=undefined){
+        retryLimit = spider.spiderCore.settings['download_retry'];
+    }
+    var act_retry = 0;
+    if(urlinfo['retry'])act_retry = urlinfo['retry'];
+
+    if(act_retry<retryLimit){
+        urlinfo['retry'] = act_retry+1;
         logger.info(util.format('Retry url: %s, time: ',urlinfo['url'],urlinfo['retry']));
         this.spiderCore.emit('new_url_queue',urlinfo);
+    }else{
+        spider.updateLinkState(urlinfo['url'],'crawled_failure');
+        logger.error(util.format('after %s reties, give up crawl %s',urlinfo['retry'],urlinfo['url']));
+        spider.redis_cli2.zadd('fail:'+urlinfo['urllib'],urlinfo['version'],urlinfo['url'],function(err,result){
+            spider.spiderCore.emit('slide_queue');
+        });
     }
 }
 

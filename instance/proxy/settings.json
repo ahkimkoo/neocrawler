@@ -16,6 +16,7 @@
     "spider_request_delay":0,
     "schedule_interval":60,
     "schedule_quantity_limitation":200,
+    "download_retry":2,
     "log_level":"DEBUG",
     "use_ssdb":true
 }

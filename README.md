@@ -46,6 +46,7 @@ NEOCrawler，中文名：牛抓，是nodejs、redis、phantomjs实现的爬虫�
     "spider_request_delay":0,/*两个并发请求之间的间隔时间，秒*/
     "schedule_interval":60,/*调度器两次调度的间隔时间*/
     "schedule_quantity_limitation":200,/*调度器给爬虫的最大网址待抓取数量*/
+    "download_retry":3,/*错误重试次数*/
     "log_level":"DEBUG",/*日志级别*/
     "use_ssdb":false/*是否使用ssdb*/
 }
