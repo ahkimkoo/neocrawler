@@ -59,26 +59,42 @@ var check_56pu = function(testurl){
         settings['proxy_info_redis_db'][2],
         dbtype,
         function(err,redis_cli){
-            if(err)throw err;
-            else{
+            if(err){
+                console.error('connect to redis error: '+err);
+                setTimeout(function(){
+                    check_56pu(testurl);
+                },30000);
+            }else{
                 redis_cli.llen('proxy:public:available:3s',function(err,value){
-                    if(err)throw err;
-                    else{
+                    if(err){
+                        console.error('access redis error: '+err);
+                        setTimeout(function(){
+                            check_56pu(testurl);
+                        },30000);
+                    }else{
                         if(parseInt(value)>max_quantity){
                             console.log('There are '+value+' in proxy:public:available:3s,trim it');
                             trim_proxy_lib();
                         }
                         //----------------------------
                         httpRequest.request(echo_server_addr,null,null,null,30,false,function(err,status_code,content,page_encoding){
-                            if(err)throw err;
-                            else{
+                            if(err){
+                                console.error('request echo server error: '+err);
+                                setTimeout(function(){
+                                    check_56pu(testurl);
+                                },30000);
+                            }else{
                                 var content_json = JSON.parse(content);
                                 var myip = content_json['IP'];
                                 console.log('My ip is: '+myip);
                                 ///////////////////////////////////////////////////////
                                 httpRequest.request(api_addr,null,null,null,300,false,function(err,status_code,content,page_encoding){
-                                    if(err)throw err;
-                                    else{
+                                    if(err){
+                                        console.error('request proxy api error: '+err);
+                                        setTimeout(function(){
+                                            check_56pu(testurl);
+                                        },30000);
+                                    }else{
                                         var ip_arr = content.split('\r\n');
                                         var av_count = 0;
                                         var checkingQueue = async.queue(function(proxy, qcallback) {
@@ -148,7 +164,9 @@ var check_56pu = function(testurl){
                                         checkingQueue.drain = function() {
                                             console.log('check proxy complete, available: '+av_count+'/'+ip_arr.length+', ratio: '+(av_count/(ip_arr.length*1.0)));
                                             if(dbtype=='ssdb')redis_cli.close();
-                                            setTimeout(check_56pu,30000);
+                                            setTimeout(function(){
+                                                check_56pu(testurl);
+                                            },30000);
                                             console.log('sleep 30s...');
                                             //process.exit(0);
                                         }
