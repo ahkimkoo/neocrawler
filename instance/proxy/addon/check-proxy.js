@@ -128,7 +128,7 @@ var check_56pu = function(testurl){
 
                                                         if(available_proxy){
                                                             if(testurl){
-                                                                httpRequest.request(testurl,null,null,proxy,300,false,function(err,status_code,content,page_encoding){
+                                                                httpRequest.request(testurl,null,null,proxy,120,false,function(err,status_code,content,page_encoding){
                                                                     if(err||parseInt(status_code)!=200){
                                                                         console.error('Request '+testurl+'error using proxy: '+proxy+', status code: '+status_code+', Error: '+err);
                                                                         qcallback();
