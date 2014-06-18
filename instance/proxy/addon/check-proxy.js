@@ -102,7 +102,7 @@ var check_56pu = function(testurl){
                                             httpRequest.request(echo_server_addr,null,null,proxy,60,false,function(err,status_code,content,page_encoding){
                                                 if(err||parseInt(status_code)!=200){
                                                     console.error('Request '+echo_server_addr+' error using proxy: '+proxy+', status code: '+status_code+', Error: '+err);
-                                                    qcallback();
+                                                    try{qcallback();}catch(e){console.error('Fucking error: '+e);}
                                                 }else{
                                                     if(content.startsWith('{')){
                                                         try{
