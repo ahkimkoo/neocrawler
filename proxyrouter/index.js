@@ -251,12 +251,13 @@ proxyRouter.prototype.proxyDaemon = function(){
             });
 
             request.addListener('close', function() {
-                proxy_request.end();
+                proxy_request.abort();
+                if(remote_proxy_response)remote_proxy_response.socket.destroy();
                 logger.error('Client closed, url:'+request.url);
             });
 
             response.addListener('close', function() {
-                proxy_request.end();
+                proxy_request.abort();
                 if(remote_proxy_response)remote_proxy_response.socket.destroy();
                 if(timeOuter){
                     clearTimeout(timeOuter);

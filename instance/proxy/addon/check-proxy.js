@@ -46,12 +46,12 @@ var trim_proxy_lib  = function(){
 }
 
 
-var check_56pu = function(){
+var check_56pu = function(testurl){
     var dbtype = 'redis';
     if(settings['use_ssdb'])dbtype = 'ssdb';
     var max_quantity = 1000;
     var api_addr = 'http://www.56pu.com/api?orderId=697468190602519&quantity=300&line=all&region=&regionEx=&beginWith=&ports=&vport=&speed=&anonymity=3&scheme=&duplicate=2&sarea=';
-    var echo_server_addr = 'http://successage.vicp.cc/';//echo server:http://61.155.182.29:1337/
+    var echo_server_addr = 'http://echo.weishuju.cn/';//echo server:http://61.155.182.29:1337/
 
     myredis.createClient(
         settings['proxy_info_redis_db'][0],
@@ -85,7 +85,7 @@ var check_56pu = function(){
                                             console.log('checking proxy: '+proxy);
                                             httpRequest.request(echo_server_addr,null,null,proxy,60,false,function(err,status_code,content,page_encoding){
                                                 if(err||parseInt(status_code)!=200){
-                                                    console.error('Request error using proxy: '+proxy+', status code: '+status_code+', Error: '+err);
+                                                    console.error('Request '+echo_server_addr+' error using proxy: '+proxy+', status code: '+status_code+', Error: '+err);
                                                     qcallback();
                                                 }else{
                                                     if(content.startsWith('{')){
@@ -111,11 +111,31 @@ var check_56pu = function(){
                                                         }
 
                                                         if(available_proxy){
-                                                            redis_cli.lpush('proxy:public:available:3s',proxy,function(err,value){
-                                                                if(!err)console.log('proxy checker: Append a available proxy: '+proxy);
-                                                                av_count++;
-                                                                qcallback();
-                                                            });
+                                                            if(testurl){
+                                                                httpRequest.request(testurl,null,null,proxy,300,false,function(err,status_code,content,page_encoding){
+                                                                    if(err||parseInt(status_code)!=200){
+                                                                        console.error('Request '+testurl+'error using proxy: '+proxy+', status code: '+status_code+', Error: '+err);
+                                                                        qcallback();
+                                                                    }else{
+                                                                        redis_cli.lpush('proxy:public:available:3s',proxy,function(err,value){
+                                                                            if(!err){
+                                                                                console.log('proxy checker: Append a available proxy: '+proxy);
+                                                                                av_count++;
+                                                                            }
+                                                                            qcallback();
+                                                                        });
+                                                                    }
+                                                                });
+                                                            }else{
+                                                                redis_cli.lpush('proxy:public:available:3s',proxy,function(err,value){
+                                                                    if(!err){
+                                                                        console.log('proxy checker: Append a available proxy: '+proxy);
+                                                                        av_count++;
+                                                                    }
+                                                                    qcallback();
+                                                                });
+                                                            }
+
                                                         }else {
                                                             console.warn('proxy checker: ' +proxy + ' is invalidate proxy!');
                                                             qcallback();
@@ -148,5 +168,5 @@ var check_56pu = function(){
         });
 }
 
-check_56pu();
+check_56pu(process.argv.length>2?process.argv[2]:null);
 
