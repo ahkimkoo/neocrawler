@@ -46,7 +46,7 @@ var trim_proxy_lib  = function(){
 }
 
 
-var check_56pu = function(testurl){
+var check_56pu = function(testurl,keywords){
     var dbtype = 'redis';
     if(settings['use_ssdb'])dbtype = 'ssdb';
     var max_quantity = 1000;
@@ -62,14 +62,14 @@ var check_56pu = function(testurl){
             if(err){
                 console.error('connect to redis error: '+err);
                 setTimeout(function(){
-                    check_56pu(testurl);
+                    check_56pu(testurl,keywords);
                 },30000);
             }else{
                 redis_cli.llen('proxy:public:available:3s',function(err,value){
                     if(err){
                         console.error('access redis error: '+err);
                         setTimeout(function(){
-                            check_56pu(testurl);
+                            check_56pu(testurl,keywords);
                         },30000);
                     }else{
                         if(parseInt(value)>max_quantity){
@@ -81,7 +81,7 @@ var check_56pu = function(testurl){
                             if(err){
                                 console.error('request echo server error: '+err);
                                 setTimeout(function(){
-                                    check_56pu(testurl);
+                                    check_56pu(testurl,keywords);
                                 },30000);
                             }else{
                                 var content_json = JSON.parse(content);
@@ -92,7 +92,7 @@ var check_56pu = function(testurl){
                                     if(err){
                                         console.error('request proxy api error: '+err);
                                         setTimeout(function(){
-                                            check_56pu(testurl);
+                                            check_56pu(testurl,keywords);
                                         },30000);
                                     }else{
                                         var ip_arr = content.split('\r\n');
@@ -133,13 +133,20 @@ var check_56pu = function(testurl){
                                                                         console.error('Request '+testurl+'error using proxy: '+proxy+', status code: '+status_code+', Error: '+err);
                                                                         qcallback();
                                                                     }else{
-                                                                        redis_cli.lpush('proxy:public:available:3s',proxy,function(err,value){
-                                                                            if(!err){
-                                                                                console.log('proxy checker: Append a available proxy: '+proxy);
-                                                                                av_count++;
-                                                                            }
-                                                                            qcallback();
-                                                                        });
+                                                                        if(keywords){
+                                                                            available_proxy = content.indexOf(keywords)>0;
+                                                                        }
+                                                                        if(available_proxy){
+                                                                            redis_cli.lpush('proxy:public:available:3s',proxy,function(err,value){
+                                                                                if(!err){
+                                                                                    console.log('proxy checker: Append a available proxy: '+proxy);
+                                                                                    av_count++;
+                                                                                }
+                                                                                qcallback();
+                                                                            });
+                                                                        }else{
+                                                                            console.error('Request '+testurl+'error using proxy: '+proxy+', keywords lacks of: '+keywords);
+                                                                        }
                                                                     }
                                                                 });
                                                             }else{
@@ -165,7 +172,7 @@ var check_56pu = function(testurl){
                                             console.log('check proxy complete, available: '+av_count+'/'+ip_arr.length+', ratio: '+(av_count/(ip_arr.length*1.0)));
                                             if(dbtype=='ssdb')redis_cli.close();
                                             setTimeout(function(){
-                                                check_56pu(testurl);
+                                                check_56pu(testurl,keywords);
                                             },30000);
                                             console.log('sleep 30s...');
                                             //process.exit(0);
@@ -186,5 +193,5 @@ var check_56pu = function(testurl){
         });
 }
 
-check_56pu(process.argv.length>2?process.argv[2]:null);
+check_56pu(process.argv.length>2?process.argv[2]:null,process.argv.length>3?process.argv[3]:null);
 
