@@ -146,6 +146,7 @@ var check_56pu = function(testurl,keywords){
                                                                             });
                                                                         }else{
                                                                             console.error('Request '+testurl+'error using proxy: '+proxy+', keywords lacks of: '+keywords);
+                                                                            qcallback();
                                                                         }
                                                                     }
                                                                 });
