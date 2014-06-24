@@ -229,7 +229,7 @@ pipeline.prototype.save_content = function(pageurl,content,extracted_data,js_res
         dict['basic:jsresult'] = js_result;
     }
 
-    this.hbase_cli.putRow(this.HBASE_TABLE, url_hash, dict, function (err) {
+    this.hbase_cli.putRow(extracted_data['$category']||this.HBASE_TABLE, url_hash, dict, function (err) {
         if(err){
             logger.error(pageurl+', data insert to hbase error: '+err);
             self.redis_cli2.zadd('stuck:'+urllib,(new Date()).getTime(),pageurl,function(err,result){
