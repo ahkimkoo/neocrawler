@@ -5,6 +5,7 @@
 var crypto = require('crypto');
 var redis = require("redis");
 var HBase = require('hbase-client');
+var hbase_http = require('hbase');
 var os = require("os");
 var async = require('async');
 var urlUtil =  require("url");
@@ -20,10 +21,21 @@ var pipeline = function(spiderCore){
 ////report to spidercore standby////////////////////////
 pipeline.prototype.assembly = function(callback){
     var spiderCore = this.spiderCore;
+    this.hbase_via_http = false;
+    if(spiderCore.settings['crawled_hbase_conf'] instanceof Array)this.hbase_via_http  = true;
     if(this.spiderCore.settings['save_content_to_hbase']===true){
-        this.hbase_cli = HBase.create(this.spiderCore.settings['crawled_hbase_conf']);
-        this.HBASE_TABLE = this.spiderCore.settings['crawled_hbase_table'];
-        this.HBASE_BIN_TABLE = this.spiderCore.settings['crawled_hbase_bin_table'];
+        if(this.hbase_via_http){
+            this.hbase_cli = hbase_http({
+                host:this.spiderCore.settings['crawled_hbase_conf'][0],
+                port:this.spiderCore.settings['crawled_hbase_conf'][1]
+            });
+            this.HBASE_TABLE = this.hbase_cli.getTable(this.spiderCore.settings['crawled_hbase_table']);
+            this.HBASE_BIN_TABLE = this.hbase_cli.getTable(this.spiderCore.settings['crawled_hbase_bin_table']);
+        }else{
+            this.hbase_cli = HBase.create(this.spiderCore.settings['crawled_hbase_conf']);
+            this.HBASE_TABLE = this.spiderCore.settings['crawled_hbase_table'];
+            this.HBASE_BIN_TABLE = this.spiderCore.settings['crawled_hbase_bin_table'];
+        }
     }
 
     this.redis_cli0 = spiderCore.spider.redis_cli0;
@@ -199,6 +211,8 @@ pipeline.prototype.save_links = function(page_url,version,linkobjs,drill_relatio
  * @param urllib
  */
 pipeline.prototype.save_content = function(pageurl,content,extracted_data,js_result,referer,urllib,drill_relation,callback){
+    if(this.hbase_via_http)return this.save_content_vhttp(pageurl,content,extracted_data,js_result,referer,urllib,drill_relation,callback);
+
     var url_hash = crypto.createHash('md5').update(pageurl+'').digest('hex');
     var spider = os.hostname()+'-'+process.pid;
     var start_time = (new Date()).getTime();
@@ -247,8 +261,101 @@ pipeline.prototype.save_content = function(pageurl,content,extracted_data,js_res
         }
     });
 }
+/**
+ * save content via http
+ * @param pageurl
+ * @param content
+ * @param extracted_data
+ * @param js_result
+ * @param referer
+ * @param urllib
+ * @param drill_relation
+ * @param callback
+ */
+pipeline.prototype.save_content_vhttp = function(pageurl,content,extracted_data,js_result,referer,urllib,drill_relation,callback){
+    var url_hash = crypto.createHash('md5').update(pageurl+'').digest('hex');
+    var spider = os.hostname()+'-'+process.pid;
+    var start_time = (new Date()).getTime();
+    var self = this;
+
+//    var val_cells = [
+//                { "column":"basic:spider","timestamp":Date.now(),"$":spider},
+//                { "column":"basic:url","timestamp":Date.now(),"$":pageurl},
+//                { "column":"basic:content","timestamp":Date.now(),"$":content}
+//                ];
+    var keylist = ['basic:spider','basic:url','basic:updated'];
+    var valuelist = [spider,pageurl,(new Date()).getTime().toString()];
+
+    if(referer&&!isEmpty(referer)){
+        keylist.push('basic:referer');
+        valuelist.push(referer);
+    }
+
+    if(urllib&&!isEmpty(urllib)){
+        keylist.push('basic:urllib');
+        valuelist.push(urllib);
+    }
+
+    if(drill_relation&&!isEmpty(drill_relation)){
+        keylist.push('basic:drill_relation');
+        valuelist.push(drill_relation);
+    }
+
+    if(content&&!isEmpty(content)){
+        keylist.push('basic:content');
+        valuelist.push(content);
+    }
+
+    if(extracted_data&&!isEmpty(extracted_data)){
+        for(d in extracted_data){
+            if(extracted_data.hasOwnProperty(d)&&extracted_data[d]!=undefined){
+                keylist.push('data:'+d);
+                valuelist.push(typeof(extracted_data[d])=='object'?JSON.stringify(extracted_data[d]):extracted_data[d]);
+            }
+        }
+//            keylist.push('basic:data');
+//            valuelist.push(JSON.stringify(extracted_data));
+    }
+    if(js_result&&!isEmpty(js_result)){
+        keylist.push('basic:jsresult');
+        valuelist.push(js_result);
+    }
+    var row = this.HBASE_TABLE.getRow(url_hash);
+    try{
+        row.put(keylist,valuelist,function(err,success){
+            logger.info('insert content extracted from '+pageurl+', cost: '+((new Date()).getTime() - start_time)+' ms');
+            if(err){
+                logger.error(pageurl+', data insert to hbase error: '+err);
+                self.redis_cli2.zadd('stuck:'+urllib,(new Date()).getTime(),pageurl,function(err,result){
+                    if(err)throw err;
+                    logger.debug('append '+pageurl+' to stuck record');
+                    if(callback)callback(err);
+                });
+            }else{
+                logger.info(pageurl+', data insert to hbase cost '+((new Date()).getTime()-start_time)+' ms');
+                self.redis_cli2.zrem('stuck:'+urllib,pageurl,function(err,result){
+                    if(err)throw err;
+                    logger.debug('remove '+pageurl+' from stuck record');
+                    if(callback)callback(err);
+                });
+            }
+        });
+//        row.put(['basic:spider','basic:url','basic:content'],[spider,pageurl,content],function(err,success){
+//            logger.debug('insert content extracted from '+pageurl);
+//        });
+    }catch(e){
+        logger.error(pageurl+', data insert to hbase error: '+e);
+        self.redis_cli2.zadd('stuck:'+urllib,(new Date()).getTime(),pageurl,function(err,result){
+            if(err)throw err;
+            logger.debug('append '+pageurl+' to stuck record');
+            if(callback)callback(err);
+        });
+    }
+}
 
 pipeline.prototype.save_binary = function(pageurl,content,referer,urllib,drill_relation,callback){
+    if(this.hbase_via_http)return this.save_binary_vhttp(pageurl,content,referer,urllib,drill_relation,callback);
+
     var url_hash = crypto.createHash('md5').update(pageurl+'').digest('hex');
     var spider = os.hostname()+'-'+process.pid;
     var start_time = (new Date()).getTime();
@@ -281,6 +388,82 @@ pipeline.prototype.save_binary = function(pageurl,content,referer,urllib,drill_r
             });
         }
     });
+}
+
+/**
+ * save binary to hbase via http
+ * @param pageurl
+ * @param content
+ * @param referer
+ * @param urllib
+ * @param drill_relation
+ * @param callback
+ */
+pipeline.prototype.save_binary_vhttp = function(pageurl,content,referer,urllib,drill_relation,callback){
+    var url_hash = crypto.createHash('md5').update(pageurl+'').digest('hex');
+    var spider = os.hostname()+'-'+process.pid;
+    var start_time = (new Date()).getTime();
+    var self = this;
+
+    var keylist = [
+        'basic:spider',
+        'basic:url',
+        'basic:updated'
+    ];
+    var valuelist = [
+        spider,
+        pageurl,
+        (new Date()).getTime().toString()
+    ];
+
+    if(referer){
+        keylist.push('basic:referer');
+        valuelist.push(referer);
+    }
+
+    if(urllib){
+        keylist.push('basic:urllib');
+        valuelist.push(urllib);
+    }
+
+    if(drill_relation){
+        keylist.push('basic:drill_relation');
+        valuelist.push(drill_relation);
+    }
+
+    if(content){
+        keylist.push('binary:file');
+        valuelist.push(content);
+    }
+
+    var row = this.HBASE_BIN_TABLE.getRow(url_hash);
+    try{
+        row.put(keylist,valuelist,function(err,success){
+            logger.info('insert content extracted from '+pageurl+', cost: '+((new Date()).getTime() - start_time)+' ms');
+            if(err){
+                logger.error(pageurl+', data insert to hbase error: '+err);
+                self.redis_cli2.zadd('stuck:'+urllib,(new Date()).getTime(),pageurl,function(err,result){
+                    if(err)throw err;
+                    logger.debug('append '+pageurl+' to stuck record');
+                    if(callback)callback(err);
+                });
+            }else{
+                logger.info(pageurl+', data insert to hbase cost '+((new Date()).getTime()-start_time)+' ms');
+                self.redis_cli2.zrem('stuck:'+urllib,pageurl,function(err,result){
+                    if(err)throw err;
+                    logger.debug('remove '+pageurl+' from stuck record');
+                    if(callback)callback(err);
+                });
+            }
+        });
+    }catch(e){
+        logger.error(pageurl+', data insert to hbase error(2): '+e);
+        self.redis_cli2.zadd('stuck:'+urllib,(new Date()).getTime(),pageurl,function(err,result){
+            if(err)throw err;
+            logger.debug('append '+pageurl+' to stuck record');
+            if(callback)callback(err);
+        });
+    }
 }
 
 /**

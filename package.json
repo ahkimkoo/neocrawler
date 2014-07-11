@@ -39,6 +39,7 @@
               "request":"2.33.0",
               "thrift":"0.9.1",
               "hbase-client":">=0.5.0",
+              "hbase":"0.1.6",
               "ejs" : "0.8.5",
               "express" : "3.3.4",
               "stylus" : "0.40.3",

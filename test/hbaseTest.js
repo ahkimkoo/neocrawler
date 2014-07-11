@@ -70,7 +70,7 @@ var testDownload = function(){
         ],
         zookeeperRoot: '/hbase'
     });
-        client.getRow('crawled_bin',  '9c5fdedc48feac1c2df7cd923ba25275', ['binary:file','basic:url'], function (err, row) {
+        client.getRow('binary_raw_web',  '43f4103ceb4d096014d26abe74f815c7', ['binary:file','basic:url'], function (err, row) {
             if(err) throw err;
             fs.writeFile('copy-Chinese.jpg',row['binary:file'], function (err) {
                 if(err) throw err;
