@@ -43,8 +43,8 @@ var spider_extend = function(spiderCore){
         }
     };
  */
-//spider_extend.prototype.extract = function(extracted_info){
-//    return extracted_info;
+//spider_extend.prototype.extract = function(extracted_info,callback){
+//    callback(extracted_info);
 //}
 
 /**

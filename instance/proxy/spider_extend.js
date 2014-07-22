@@ -64,8 +64,8 @@ var spider_extend = function(spiderCore){
     };
  * @returns {*}
  */
-//spider_extend.prototype.extract = function(extracted_info){
-//    return extracted_info;
+//spider_extend.prototype.extract = function(extracted_info,callback){
+//    callback(extracted_info);
 //}
 
 /**
