@@ -320,11 +320,15 @@ downloader.prototype.browseIt = function(urlinfo){
     var feedback = '';
     phantomjs.stdout.on('data', function(data) {
         data = data.trim();
-        feedback += data;
-        if(data.endsWith('}#^_^#')){
-            var emit_string = feedback.slice(0,-5);
-            feedback = '';
-            phantomjs.emit('feedback',emit_string);
+        if(feedback==''&&!data.startsWith('{')){
+            logger.warn('phantomjs: '+data);
+        }else{
+            feedback += data;
+            if(data.endsWith('}#^_^#')){
+                var emit_string = feedback.slice(0,-5);
+                feedback = '';
+                phantomjs.emit('feedback',emit_string);
+            }
         }
     });
 
@@ -332,7 +336,7 @@ downloader.prototype.browseIt = function(urlinfo){
         try{
             var feedback = JSON.parse(data);//data.toString('utf8')
         }catch(e){
-            logger.error(util.format('Page content parse error: %s',data));
+            logger.error(util.format('Page content parse error: %s',e));
             spiderCore.emit('crawling_break',urlinfo,e.message);
             phantomjs.kill();
             return;
@@ -360,11 +364,11 @@ downloader.prototype.browseIt = function(urlinfo){
     });
 
     phantomjs.on('exit', function (code) {
-        logger.error('child process exited with code ' + code);
+        if(code!=0)logger.error('child process exited with code ' + code);
     });
 
     phantomjs.on('close', function (signal) {
-        logger.error('child process closed with signal ' + signal);
+        if(signal!=0)logger.error('child process closed with signal ' + signal);
     });
 
 }
