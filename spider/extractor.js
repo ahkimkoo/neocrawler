@@ -15,6 +15,7 @@ require('../lib/jsextend.js');
 var extractor = function(spiderCore){
     this.spiderCore = spiderCore;
     logger = spiderCore.settings.logger;
+    this.cumulative_failure = 0;
 }
 
 ////report to spidercore standby////////////////////////
@@ -380,6 +381,7 @@ extractor.prototype.regexSelector = function(content,expression,index){
 }
 
 extractor.prototype.validateContent = function(crawl_info){
+    var self = this;
     var result = true;
     var statusCode = parseInt(crawl_info['statusCode']);
     var limitation = 500;
@@ -401,6 +403,14 @@ extractor.prototype.validateContent = function(crawl_info){
     }else{
         logger.error(util.format('url:%s, status code: %s',crawl_info['url'],statusCode));
         if(statusCode>300)result=false;//30x,40x,50x
+    }
+    if(self.spiderCore.settings['to_much_fail_exit']){
+        self.cumulative_failure +=  result?-1:1
+        if(self.cumulative_failure<0)self.cumulative_failure = 0;
+        if(self.cumulative_failure>self.spiderCore.settings['spider_concurrency']*1.5){
+            logger.fatal('too much fail, exit. '+self.cumulative_failure);
+            process.exit(1);
+        }
     }
     return result;
 }
