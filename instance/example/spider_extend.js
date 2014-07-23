@@ -11,6 +11,27 @@ var spider_extend = function(spiderCore){
 }
 
 /**
+ * customize downloading
+ * urlinfo<object>:{"url":string,"version":long,"type":"branch|node","format":"html|json|binary","encoding":"auto|utf-8|gbk","referer":string,string,"urllib":string,"save_page":true|false,"cookie":array[object],"jshandle":true|false,"inject_jquery":true|false,"drill_rules":object,"drill_relation":object,"validation_keywords":array,"script":array,"navigate_rule":array,"stoppage":int,"start_time":long}
+ * callback:
+ * parameter 1: error
+ * parameter 2: <object>:{
+            "remote_proxy":string,
+            "drill_count":int,
+            "cookie":array or string,
+            "url":string,
+            "statusCode":int,
+            "origin":object==urlinfo,
+            "cost":long,
+            "content":html string
+        }
+ * if all parameter return null, means give up customize downloading, use built-in download middleware
+ */
+//spider_extend.prototype.download = function(urlinfo,callback){
+//    callback(null,null);
+//}
+
+/**
  * DIY extract, it happens after spider framework extracted data.
  * @param extracted_info
  * {

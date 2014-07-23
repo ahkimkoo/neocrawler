@@ -493,6 +493,7 @@ pipeline.prototype.save =function(extracted_info,callback){
                     if (err)throw err;
                     logger.debug('Crawling result saved, '+resultfile);
                     if(callback)callback(true);
+                    else process.exit(0);
                 });
             });
         }

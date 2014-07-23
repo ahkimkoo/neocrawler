@@ -123,14 +123,13 @@ downloader.prototype.transCookieKvPair = function(json){
 }
 
 /**
- * just download html stream
- * @param urlinfo
+ * download page action use http request
  */
-downloader.prototype.downloadIt = function(urlinfo){
+downloader.prototype.downloadItAct = function(urlinfo){
     var spiderCore = this.spiderCore;
-    var timeOuter = false;
     var self = this;
 
+    var timeOuter = false;
     var pageLink = urlinfo['url'];
     if(urlinfo['redirect'])pageLink = urlinfo['redirect'];
 
@@ -152,7 +151,7 @@ downloader.prototype.downloadIt = function(urlinfo){
 //        var __path = pageLink;
     }
 
-    
+
     var startTime = new Date();
     var options = {
         'host': __host,
@@ -162,7 +161,7 @@ downloader.prototype.downloadIt = function(urlinfo){
         'headers': {
             "User-Agent":"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36",
             "Accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-            "Accept-Encoding":"gzip,deflate,sdch",
+            "Accept-Encoding":"gzip",
             "Accept-Language":"zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4",
             "Referer":urlinfo['referer']||'',
             "void-proxy":urlinfo['void_proxy']?urlinfo['void_proxy']:"",
@@ -275,8 +274,27 @@ downloader.prototype.downloadIt = function(urlinfo){
     });
     req.end();
 }
+
 /**
- * browser simulated
+ * just download html stream
+ * @param urlinfo
+ */
+downloader.prototype.downloadIt = function(urlinfo){
+    var spiderCore = this.spiderCore;
+    var self = this;
+    if('download' in spiderCore.spider_extend){
+        spiderCore.spider_extend.download(urlinfo,function(err,result){
+            if(err==null&&result==null){
+                self.downloadItAct(urlinfo);//if all return null, download it use http request
+            }else{
+                if(err)spiderCore.emit('crawling_failure',urlinfo,err);
+                else spiderCore.emit('crawled',result);
+            }
+        });
+    }else self.downloadItAct(urlinfo);
+}
+/**
+ * browser simulated, use phantomjs
  * @param urlinfo
  */
 downloader.prototype.browseIt = function(urlinfo){
