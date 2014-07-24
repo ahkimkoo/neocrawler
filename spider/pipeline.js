@@ -149,7 +149,7 @@ pipeline.prototype.save_links = function(page_url,version,linkobjs,drill_relatio
                                 }
                                 if(!isEmpty(ctc)){
                                     redis_cli1.hmset(urlhash,ctc,function(err, svalue){
-                                        if(err){loggeer.error(err);}
+                                        if(err){logger.error(err);}
                                         logger.debug('update url('+final_link+') version, '+t_version+' -> '+version);
                                         mcb(err,final_link,validate);
                                     });
