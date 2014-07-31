@@ -244,6 +244,8 @@ downloader.prototype.downloadItAct = function(urlinfo){
                             result["content"] = iconv.decode(buff,page_encoding);
                         }
                         spiderCore.emit('crawled',result);
+                    }else{
+                        spiderCore.emit('crawling_failure',urlinfo,'unzip failure');
                     }
                 });
             }
