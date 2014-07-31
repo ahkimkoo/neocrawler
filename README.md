@@ -170,3 +170,4 @@ NEOCrawler，中文名：牛抓，是nodejs、redis、phantomjs实现的爬虫�
 * Email: <successage@gmail.com>,
 * Blog: <http://my.oschina.net/waterbear>
 * QQ: 419117039
+* 微信： dreamidea
