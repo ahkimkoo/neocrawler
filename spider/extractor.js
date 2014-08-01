@@ -33,8 +33,8 @@ extractor.prototype.extract_link = function($,rules){
     var links = [];
     for(var i=0;i<rules.length;i++){
         $(rules[i]).each(function(i, elem) {
-            if(elem['name']=='a')links.push($(this).attr('href'));
-            else if(elem['name']=='img')links.push($(this).attr('src'));
+            if(elem['name']=='img')links.push($(this).attr('src'));
+	    else links.push($(this).attr('href'));
         });
     }
     return links;
