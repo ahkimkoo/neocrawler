@@ -2,8 +2,8 @@
 .project
 .idea
 *.log
-**/logs/debug-*
-**/logs/*.log*
+*.log-*
+debug-*
 node_modules/*
 /doc/statistic/target/
 .svn
