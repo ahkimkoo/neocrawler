@@ -49,7 +49,7 @@ NEOCrawler(中文名：牛咖)，是nodejs、redis、phantomjs实现的爬虫系
 
 * 爬虫系统结构上参考了scrapy，由core、spider、downloader、extractor、pipeline组成，core是各个组件的联合点和事件控制中心，spider负责队列的进出，downloader负责页面的下载，根据配置规则选择使用普通的html源码下载或者下载后用phantomjs浏览器环境渲染执行js/css，extractor根据摘取规则对文档进行结构化数据摘取，pipeline负责将数据持久化或者输出给后续的数据处理系统。这些组件都提供定制化接口，如果通过配置不能满足需求，可以用js代码很容易个性化扩展某个组件的功能。
 
-**详细介绍请查看wiki:**[[http://git.oschina.net/dreamidea/neocrawler/wikis/home]]
+**详细介绍请查看[Wiki](http://git.oschina.net/dreamidea/neocrawler/wikis/home "wiki"):**
 
 #【运行环境准备】
 * 安装好nodejs 环境，从git仓库clone源码到本地，在文件夹位置打开命令提示符，运行“npm install”安装依赖的模块；
