@@ -74,7 +74,7 @@ extractor.prototype.wash_link = function(pageurl,links){
 
         }
     }
-    return cleaned_link.unique();
+    return arrayUnique(cleaned_link);
 }
 /**
  * detect link which drill rule matched
@@ -133,7 +133,7 @@ extractor.prototype.arrange_link = function(links){
     }
     for(var i in linkobj){
         if(linkobj.hasOwnProperty(i)){
-            linkobj[i] = linkobj[i].unique();
+            linkobj[i] = arrayUnique(linkobj[i]);
         }
     }
     return linkobj;

@@ -1,0 +1,43 @@
+{
+  "name": "node-hbase",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "DEBUG=-mocha*, ./node_modules/.bin/mocha  --compilers coffee:coffee-script/register --require coffee-script  test --reporter spec",
+    "lint": "coffeelint --f coffeelint.json *.coffee lib/* test/*",
+    "cov": "./node_modules/.bin/mocha  --compilers coffee:coffee-script/register --require coffee-script  -r blanket -R html-cov > coverage.html"
+  },
+  "config": {
+    "blanket": {
+      "pattern": "/lib/",
+      "data-cover-never": "node_modules",
+      "loader": "./node-loaders/coffee-script"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/falsecz/node-hbase.git"
+  },
+  "author": "",
+  "license": "Apache",
+  "bugs": {
+    "url": "https://github.com/falsecz/node-hbase/issues"
+  },
+  "homepage": "https://github.com/falsecz/node-hbase",
+  "dependencies": {
+    "protobufjs": "^2.2.1",
+    "zookeeper-watcher": "^0.2.0",
+    "debug": "^1.0.0",
+    "readable-stream": "^1.0.26-4",
+    "async": "^0.9.0"
+  },
+  "devDependencies": {
+    "chai": "~1.9.1",
+    "mocha": "~1.19.0",
+    "coffee-script": "~1.7.1",
+    "coffeelint": "~1.4.1",
+    "require-dir": "~0.1.0",
+    "blanket": "~1.1.6"
+  }
+}

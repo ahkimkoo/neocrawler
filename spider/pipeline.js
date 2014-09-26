@@ -4,7 +4,7 @@
  */
 var crypto = require('crypto');
 var redis = require("redis");
-var HBase = require('hbase-client');
+var HBase = require('../lib/node_hbase/index.js');
 var hbase_http = require('hbase');
 var os = require("os");
 var async = require('async');
@@ -32,7 +32,7 @@ pipeline.prototype.assembly = function(callback){
             this.HBASE_TABLE = this.hbase_cli.getTable(this.spiderCore.settings['crawled_hbase_table']);
             this.HBASE_BIN_TABLE = this.hbase_cli.getTable(this.spiderCore.settings['crawled_hbase_bin_table']);
         }else{
-            this.hbase_cli = HBase.create(this.spiderCore.settings['crawled_hbase_conf']);
+            this.hbase_cli = HBase(this.spiderCore.settings['crawled_hbase_conf']);
             this.HBASE_TABLE = this.spiderCore.settings['crawled_hbase_table'];
             this.HBASE_BIN_TABLE = this.spiderCore.settings['crawled_hbase_bin_table'];
         }
@@ -219,6 +219,7 @@ pipeline.prototype.save_content = function(pageurl,content,extracted_data,js_res
     var self = this;
 
     var dict = {
+        'row' : url_hash,
         'basic:spider' : spider,
         'basic:url' : pageurl,
         'basic:referer' : referer,
@@ -243,7 +244,7 @@ pipeline.prototype.save_content = function(pageurl,content,extracted_data,js_res
         dict['basic:jsresult'] = js_result;
     }
 
-    this.hbase_cli.putRow(extracted_data['$category']||this.HBASE_TABLE, url_hash, dict, function (err) {
+    this.hbase_cli.mput(extracted_data['$category']||this.HBASE_TABLE,[dict], function (err,res) {
         if(err){
             logger.error(pageurl+', data insert to hbase error: '+err);
             self.redis_cli2.zadd('stuck:'+urllib,(new Date()).getTime(),pageurl,function(err,result){
@@ -362,6 +363,7 @@ pipeline.prototype.save_binary = function(pageurl,content,referer,urllib,drill_r
     var self = this;
 
     var dict = {
+        'row' : url_hash,
         'basic:spider' : spider,
         'basic:url' : pageurl,
         'binary:file': content,
@@ -371,7 +373,7 @@ pipeline.prototype.save_binary = function(pageurl,content,referer,urllib,drill_r
         'basic:updated' : (new Date()).getTime().toString()
     }
 
-    this.hbase_cli.putRow(this.HBASE_BIN_TABLE, url_hash, dict, function (err) {
+    this.hbase_cli.mput(this.HBASE_BIN_TABLE, [dict], function (err,res) {
         if(err){
             logger.error(pageurl+', data insert to hbase error: '+err);
             self.redis_cli2.zadd('stuck:'+urllib,(new Date()).getTime(),pageurl,function(err,result){
