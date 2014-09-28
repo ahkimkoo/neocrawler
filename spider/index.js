@@ -38,6 +38,10 @@ spiderCore.prototype.assembly = function(){
         },
         function(callback){
             self.pipeline.assembly(callback);
+        },
+        function(callback){
+            if('assembly' in self.spider_extend)self.spider_extend.assembly(callback);
+            else callback();
         }
     ],function(err,result){
         self.spider.refreshDrillerRules();
@@ -51,6 +55,7 @@ spiderCore.prototype.start = function(){
     this.on('new_url_queue',function(urlinfo){
         this.spider.updateLinkState(urlinfo['url'],'crawling');
         this.downloader.download(urlinfo);
+        if('crawl_start_alert' in spiderCore.spider_extend)spiderCore.spider_extend.crawl_start_alert(crawled_info);
     });
     //when downloading is finish
     this.on('crawled',function(crawled_info){

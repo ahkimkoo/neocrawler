@@ -9,7 +9,16 @@ var spider_extend = function(spiderCore){
     this.spiderCore = spiderCore;
     logger = spiderCore.settings.logger;
 }
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * synchronized assembly spider extender
+ * @param callback
+ */
+//spider_extend.prototype.assembly = function(callback){
+//    //do something initiation
+//    callback();
+//}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
  * customize downloading
  * urlinfo<object>:{"url":string,"version":long,"type":"branch|node","format":"html|json|binary","encoding":"auto|utf-8|gbk","referer":string,string,"urllib":string,"save_page":true|false,"cookie":array[object],"jshandle":true|false,"inject_jquery":true|false,"drill_rules":object,"drill_relation":object,"validation_keywords":array,"script":array,"navigate_rule":array,"stoppage":int,"start_time":long}
@@ -30,7 +39,7 @@ var spider_extend = function(spiderCore){
 //spider_extend.prototype.download = function(urlinfo,callback){
 //    callback(null,null);
 //}
-
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
  * DIY extract, it happens after spider framework extracted data.
  * @param extracted_info
@@ -68,8 +77,9 @@ var spider_extend = function(spiderCore){
 //    callback(extracted_info);
 //}
 
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
- * instead of main framework content pipeline
+ * customizing pipeline
  * if it do nothing , comment it
  * @param extracted_info (same to extract)
  */
@@ -77,12 +87,68 @@ var spider_extend = function(spiderCore){
 //    logger.debug('spider extender receive extracted info from '+extracted_info['url']);
 //    callback();
 //}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * it happens crawl started
+ * @param urlinfo
+ */
+spider_extend.prototype.crawl_start_alert = function(urlinfo){
+
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * report retry crawl
+ * @param urlinfo:{
+            "url":link,
+            "type":'branch/node',
+            "referer":'',
+            "url_pattern":'...',
+            "save_page":true,
+            "cookie":[],
+            "jshandle":true,
+            "inject_jquery":true,
+            "drill_rules":[],
+            "script":[],
+            "navigate_rule":[],
+            "stoppage":-1,
+            "start_time":1234
+        }
+ *
+ */
+spider_extend.prototype.crawl_retry_alert = function(urlinfo){
+
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * report failed crawl
+ * @param urlinfo:{
+            "url":link,
+            "type":'branch/node',
+            "referer":'',
+            "url_pattern":'...',
+            "save_page":true,
+            "cookie":[],
+            "jshandle":true,
+            "inject_jquery":true,
+            "drill_rules":[],
+            "script":[],
+            "navigate_rule":[],
+            "stoppage":-1,
+            "start_time":1234
+        }
+ *
+ */
+spider_extend.prototype.crawl_fail_alert = function(urlinfo){
+
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
  * report extracted data lacks of some fields
  */
 spider_extend.prototype.data_lack_alert = function(url,fields){
     logger.error(url + ' lacks of :'+fields.join(' and '));
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
  * report a url crawling finish
  * @param crawled_info
@@ -90,9 +156,20 @@ spider_extend.prototype.data_lack_alert = function(url,fields){
 spider_extend.prototype.crawl_finish_alert = function(crawled_info){
     logger.debug('I see, '+crawled_info['url'] + 'crawling finish.');
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * report saving content
+ * if it do nothing , comment it
+ * @param extracted_info (same to extract)
+ */
+spider_extend.prototype.save_content_alert  = function(extracted_info){
+
+}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
  * report no queue
  */
 spider_extend.prototype.no_queue_alert = function(){
 }
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 module.exports = spider_extend;

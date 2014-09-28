@@ -343,13 +343,15 @@ spider.prototype.retryCrawl = function(urlinfo){
     if(act_retry<retryLimit){
         urlinfo['retry'] = act_retry+1;
         logger.info(util.format('Retry url: %s, time: ',urlinfo['url'],urlinfo['retry']));
-        this.spiderCore.emit('new_url_queue',urlinfo);
+        spider.spiderCore.emit('new_url_queue',urlinfo);
+        if('crawl_retry_alert' in spider.spiderCore.spider_extend)spider.spiderCore.spider_extend.crawl_retry_alert(urlinfo);//report
     }else{
         spider.updateLinkState(urlinfo['url'],'crawled_failure');
         logger.error(util.format('after %s reties, give up crawl %s',urlinfo['retry'],urlinfo['url']));
         spider.redis_cli2.zadd('fail:'+urlinfo['urllib'],urlinfo['version'],urlinfo['url'],function(err,result){
             spider.spiderCore.emit('slide_queue');
         });
+        if('crawl_fail_alert' in spider.spiderCore.spider_extend)spider.spiderCore.spider_extend.crawl_fail_alert(urlinfo);//report
     }
 }
 
