@@ -16,7 +16,9 @@ var spider_extend = function(spiderCore){
  */
 //spider_extend.prototype.assembly = function(callback){
 //    //do something initiation
-//    callback();
+//      var self = this;
+//      self.reportdb = self.spiderCore.spider.redis_cli2;
+//      callback();
 //}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
@@ -92,9 +94,9 @@ var spider_extend = function(spiderCore){
  * it happens crawl started
  * @param urlinfo
  */
-spider_extend.prototype.crawl_start_alert = function(urlinfo){
-
-}
+//spider_extend.prototype.crawl_start_alert = function(urlinfo){
+//    this.reportdb.hincrby('count:'+__getDateStr(),'crawl:'+__getTopLevelDomain(urlinfo['url']),1);
+//}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
  * report retry crawl
@@ -115,9 +117,9 @@ spider_extend.prototype.crawl_start_alert = function(urlinfo){
         }
  *
  */
-spider_extend.prototype.crawl_retry_alert = function(urlinfo){
-
-}
+//spider_extend.prototype.crawl_retry_alert = function(urlinfo){
+//    this.reportdb.hincrby('count:'+__getDateStr(),'retry:'+__getTopLevelDomain(urlinfo['url']),1);
+//}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
  * report failed crawl
@@ -138,38 +140,38 @@ spider_extend.prototype.crawl_retry_alert = function(urlinfo){
         }
  *
  */
-spider_extend.prototype.crawl_fail_alert = function(urlinfo){
-
-}
+//spider_extend.prototype.crawl_fail_alert = function(urlinfo){
+//    this.reportdb.hincrby('count:'+__getDateStr(),'fail:'+__getTopLevelDomain(urlinfo['url']),1);
+//}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
  * report extracted data lacks of some fields
  */
-spider_extend.prototype.data_lack_alert = function(url,fields){
-    logger.error(url + ' lacks of :'+fields.join(' and '));
-}
+//spider_extend.prototype.data_lack_alert = function(url,fields){
+//    this.reportdb.hincrby('count:'+__getDateStr(),'lack:'+__getTopLevelDomain(urlinfo['url']),1);
+//}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
  * report a url crawling finish
  * @param crawled_info
  */
-spider_extend.prototype.crawl_finish_alert = function(crawled_info){
-    logger.debug('I see, '+crawled_info['url'] + 'crawling finish.');
-}
+//spider_extend.prototype.crawl_finish_alert = function(crawled_info){
+//    this.reportdb.hincrby('count:'+__getDateStr(),'finish:'+__getTopLevelDomain(crawled_info['url']),1);
+//}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
  * report saving content
  * if it do nothing , comment it
  * @param extracted_info (same to extract)
  */
-spider_extend.prototype.save_content_alert  = function(extracted_info){
-
-}
+//spider_extend.prototype.save_content_alert  = function(extracted_info){
+//    this.reportdb.hincrby('count:'+__getDateStr(),'save:'+__getTopLevelDomain(extracted_info['url']),1);
+//}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
  * report no queue
  */
-spider_extend.prototype.no_queue_alert = function(){
-}
+//spider_extend.prototype.no_queue_alert = function(){
+//}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 module.exports = spider_extend;
