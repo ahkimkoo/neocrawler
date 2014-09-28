@@ -43,4 +43,5 @@ exports.mapRoute = function(app) {
 /////////////////////////////////////////////////////////////////////////
 
     app.get(prefix_monitor + "/daily", prefixMonitorObj.daily);
+    app.get(prefix_monitor + "/linkdb", prefixMonitorObj.linkdb);
 };
