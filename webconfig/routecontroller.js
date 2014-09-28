@@ -41,7 +41,6 @@ exports.mapRoute = function(app) {
 	app.get(prefix_proxy + "/:host/:key", prefixProxyObj.destroy);
 
 /////////////////////////////////////////////////////////////////////////
-    app.get(prefix_monitor, prefixMonitorObj.index);
 
-    app.get(prefix_monitor + "/search", prefixMonitorObj.search);
+    app.get(prefix_monitor + "/daily", prefixMonitorObj.daily);
 };

@@ -1,0 +1,74 @@
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Statistic Monitor</title>
+    <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
+    <script src="/javascripts/jquery.min.js"></script>
+    <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+    <script src = "/javascripts/jquery.dataTables.min.js"></script>
+    <style type = "text/css">
+        @import "stylesheets/demo_table.css";
+        @import "stylesheets/demo_page.css";
+        @import "stylesheets/jquery.dataTables.css";
+        @import "stylesheets/jquery.dataTables_themeroller.css";
+    </style>
+    <script>
+        var table = null;
+
+        function requireData(url, data, success) {
+            var date = $('#dateField').val();
+            var domain = $('#domainField').val();
+            data = {
+                date  : date,
+                domain: domain
+            };
+            $.getJSON(url, data, function(json) {
+                success(json);
+            });
+        };
+
+        $(document).ready(function() {
+            $("#dateField" ).datepicker({
+                dateFormat: 'yymmdd'
+            });
+            $("#dateField").datepicker("setDate", '<%=date%>');
+        });
+
+        function search() {
+            var date = $('#dateField').val();
+            alert(date);
+        }
+    </script>
+</head>
+<body>
+    <h1>Crawling Statistics <div align='right'> <a href="../">Home</a></div></h1>
+    <form action="/monitor/daily" method="get">
+    Date: <input type="text"  name="date" id="dateField" style="width: 150px"/>
+    <input type="submit" id="search" value="search"/>
+    </form>
+    <div class = 'wrapper' style="border: 20 20 20 20">
+    <table id = "data" border="1" width="100%">
+        <tr>
+            <th>Domain</th>
+            <th>crawl</th>
+            <th>retry</th>
+            <th>fail</th>
+            <th>lack</th>
+            <th>save</th>
+            <th>finish</th>
+        </tr>
+
+        <% for(var head in result){ %>
+        <tr>
+                <td><%=head%></td>
+                <td><%=result[head]['crawl']||'0'%></td>
+                <td><%=result[head]['retry']||'0'%></td>
+                <td><%=result[head]['fail']||'0'%></td>
+                <td><%=result[head]['lack']||'0'%></td>
+                <td><%=result[head]['save']||'0'%></td>
+                <td><%=result[head]['finish']||'0'%></td>
+        </tr>
+        <% } %>
+    </table></div>
+</body>
+</html>
