@@ -148,7 +148,7 @@ var spider_extend = function(spiderCore){
  * report extracted data lacks of some fields
  */
 //spider_extend.prototype.data_lack_alert = function(url,fields){
-//    this.reportdb.hincrby('count:'+__getDateStr(),'lack:'+__getTopLevelDomain(urlinfo['url']),1);
+//    this.reportdb.hincrby('count:'+__getDateStr(),'lack:'+__getTopLevelDomain(url),1);
 //}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /**
@@ -172,6 +172,29 @@ var spider_extend = function(spiderCore){
  * report no queue
  */
 //spider_extend.prototype.no_queue_alert = function(){
+//}
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/**
+ * TOP Domain,e.g: http://www.baidu.com/sdfdsfdsf  -> baidu.com
+ * @param domain
+ * @returns {*}
+ * @private
+ */
+//var __getTopLevelDomain = function(link){
+//    var urlobj = url.parse(link);
+//    var domain = urlobj['hostname'];
+//    var arr = domain.split('.');
+//    if(arr.length<=2)return domain;
+//    else return arr.slice(1).join('.');
+//}
+/**
+ * get date string
+ * @returns {string} 20140928
+ * @private
+ */
+//var __getDateStr = function(){
+//    var d = new Date();
+//    return ''+ d.getFullYear() + (d.getMonth()>9?d.getMonth()+1:'0'+(d.getMonth()+1)) + (d.getDate()>9?d.getDate():'0'+d.getDate());
 //}
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 module.exports = spider_extend;
