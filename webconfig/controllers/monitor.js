@@ -54,6 +54,7 @@ exports.daily = function(req, res) {
     var date   = req.query['date'];
     if(!date)date = __getDateStr();
     var result = {};
+    var total = {};
 
     reportdb.hgetall('count:'+date,function(err,hashes){
         for(var i in hashes){
@@ -63,9 +64,11 @@ exports.daily = function(req, res) {
                 var domain = spilited[1];
                 if(!result[domain])result[domain] = {};
                 result[domain][colname] = hashes[i];
+                if(!total[colname])total[colname] = parseInt(hashes[i]);
+                else total[colname] += parseInt(hashes[i]);
             }
         }
-        res.render('monitor/daily', {'result':result,'date':date});
+        res.render('monitor/daily', {'result':result,'date':date,'total':total});
     });
 };
 

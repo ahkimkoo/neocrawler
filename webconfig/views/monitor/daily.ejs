@@ -7,10 +7,8 @@
     <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
     <script src = "/javascripts/jquery.dataTables.min.js"></script>
     <style type = "text/css">
-        @import "stylesheets/demo_table.css";
-        @import "stylesheets/demo_page.css";
-        @import "stylesheets/jquery.dataTables.css";
-        @import "stylesheets/jquery.dataTables_themeroller.css";
+        @import "/stylesheets/jquery.dataTables.css";
+        @import "/stylesheets/jquery.dataTables_themeroller.css";
     </style>
     <script>
         var table = null;
@@ -41,15 +39,15 @@
     </script>
 </head>
 <body>
-    <h1>Crawling Statistics <div align='right'> <a href="../">Home</a></div></h1>
+    <h1>Crawling Daily Statistics <div align='right'> <a href="../">Home</a></div></h1>
     <form action="/monitor/daily" method="get">
     Date: <input type="text"  name="date" id="dateField" style="width: 150px"/>
     <input type="submit" id="search" value="search"/>
     </form>
     <div class = 'wrapper' style="border: 20 20 20 20">
-    <table id = "data" border="1" width="100%">
-        <tr>
-            <th>Domain</th>
+    <table id = "data" border="1" width="100%" class="dataTable">
+        <tr bgcolor="#f5f5dc">
+            <th>domain</th>
             <th>crawl</th>
             <th>retry</th>
             <th>fail</th>
@@ -57,7 +55,15 @@
             <th>save</th>
             <th>finish</th>
         </tr>
-
+        <tr>
+            <th>Daily Total</th>
+            <th><%=total['crawl']||'0'%></th>
+            <th><%=total['retry']||'0'%></th>
+            <th><%=total['fail']||'0'%></th>
+            <th><%=total['lack']||'0'%></th>
+            <th><%=total['save']||'0'%></th>
+            <th><%=total['finish']||'0'%></th>
+        </tr>
         <% for(var head in result){ %>
         <tr>
                 <td><%=head%></td>
