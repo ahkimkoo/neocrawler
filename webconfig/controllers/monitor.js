@@ -47,7 +47,7 @@ myredis.createClient(
  */
 var __getDateStr = function(){
     var d = new Date();
-    return ''+ d.getFullYear() + (d.getMonth()>9?d.getMonth()+1:'0'+(d.getMonth()+1)) + (d.getDate()>9?d.getDate():'0'+d.getDate());
+    return ''+ d.getFullYear() + (d.getMonth()>8?d.getMonth()+1:'0'+(d.getMonth()+1)) + (d.getDate()>9?d.getDate():'0'+d.getDate());
 }
 
 exports.daily = function(req, res) {
