@@ -72,11 +72,11 @@ var testDownload = function(){
     var fs = require('fs');
     var client = HBase.create({
         zookeeperHosts: [
-            'backee:2222'
+            'ball:2181'
         ],
         zookeeperRoot: '/hbase'
     });
-        client.getRow('binary_raw_web',  '43f4103ceb4d096014d26abe74f815c7', ['binary:file','basic:url'], function (err, row) {
+        client.getRow('crawled_bin',  '927344aedda32cff8c2a4e63482acb2d', ['binary:file','basic:url'], function (err, row) {
             if(err) throw err;
             fs.writeFile('copy-Chinese.jpg',row['binary:file'], function (err) {
                 if(err) throw err;
@@ -127,8 +127,35 @@ var upAndDown = function(callback) {
     });
 }
 
-upAndDown();
+var newDown = function(callback) {
+    var hbase  = require('../lib/node_hbase/index.js');
 
+    var client = hbase({
+        zookeeperHosts: ["ball:2181"],
+        zookeeperRoot: "/hbase",
+        rootRegionZKPath: "/meta-region-server",
+        rpcTimeout: 30000,
+        pingTimeout: 30000,
+        callTimeout: 5000
+    });
+
+    var fs = require('fs');
+
+    var tableName = 'crawled_bin'
+            var get = new hbase.Get('927344aedda32cff8c2a4e63482acb2d');
+            client.get(tableName, get, function(err, res) {
+                if(err) throw err;
+                console.log('row: '+res['row'].toString());
+                fs.writeFile('copy-Chinese.png',res['cols']['binary:file']['value'], function (err) {
+                    if(err) throw err;
+                    client = null;
+                    if(callback)callback();
+                });
+            });
+}
+
+//upAndDown();
+newDown();
 
 //testDownload();
 //testOldAPI();

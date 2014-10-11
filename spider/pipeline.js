@@ -369,7 +369,7 @@ pipeline.prototype.save_binary = function(pageurl,content,referer,urllib,drill_r
         'binary:file': content,
         'basic:referer' : referer,
         'basic:urllib' : urllib,
-        'basic:drill_relation': drill_relation,
+        //'basic:drill_relation': drill_relation,
         'basic:updated' : (new Date()).getTime().toString()
     }
 
