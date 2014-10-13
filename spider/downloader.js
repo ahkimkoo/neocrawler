@@ -205,6 +205,7 @@ downloader.prototype.downloadItAct = function(urlinfo){
                 timeOuter = false;
             }
             result["cost"] = (new Date()) - startTime;
+            logger.debug('download '+pageLink+', cost:'+result["cost"]+'ms');
 
 
             var page_encoding = urlinfo['encoding'];
