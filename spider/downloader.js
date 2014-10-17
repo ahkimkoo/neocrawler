@@ -184,7 +184,7 @@ downloader.prototype.downloadItAct = function(urlinfo){
         result['statusCode'] = res.statusCode;
         if(parseInt(res.statusCode)==301||parseInt(res.statusCode)==302){
             if(res.headers['location']){
-                result['origin']['redirect'] = res.headers['location'];
+                result['origin']['redirect'] = urlUtil.resolve(pageLink,res.headers['location']);
                 logger.debug(pageLink+' 301 Moved Permanently to '+res.headers['location']);
             }
         }
