@@ -32,115 +32,132 @@ if(settings['use_ssdb'])dbtype = 'ssdb';
 ////executable function/////////////////////////////////////////////////////////////////
 var put_fail_url_into_queue = function(){
     myredis.createClient(
-        settings['url_report_redis_db'][0],
-        settings['url_report_redis_db'][1],
-        settings['url_report_redis_db'][2],
+        settings['driller_info_redis_db'][0],
+        settings['driller_info_redis_db'][1],
+        settings['driller_info_redis_db'][2],
         dbtype,
-        function(err,redis_cli){
-            redis_cli.zlist('fail:*',function(err,zkeys){
-                if(err)throw err;
-                var count = 0;
-                async.whilst(
-                    function(){
-                        return count < zkeys.length;
-                    },
-                    function(callback){
-                        var zkey = zkeys[count++];
-                        if(zkey){
-                            var urllib_key = zkey.replace('fail:','');
-                            console.log('moving ',zkey);
-                            redis_cli.zrange(zkey,0,(new Date()).getTime(),function(err,keylist){
-                                var sub_count = 0;
-                                async.whilst(
-                                    function(){
-                                        return sub_count < keylist.length;
-                                    },
-                                    function(cb){
-                                        var link = keylist[sub_count++];
-                                        if(link){
-                                            redis_cli.rpush(urllib_key,link,function(err){
-                                                if(err)console.error('Put ',urllib_key,' Error: ',err);
-                                                else console.log('put ',link,' into ',urllib_key);
-                                                cb(null);
-                                            });
-                                        }else {
-                                            console.error('Invalidate url');
-                                            cb(null);
-                                        }
-                                    },
-                                    function(err){
-                                        if(err)throw err;
-                                        callback(err);
-                                    }
-                                );
-                            });
-                        }else {
-                            console.error('Invalidate zkey');
-                            callback(null);
-                        }
-                    },
-                    function(err){
-                        redis_cli.close();
-                    }
-                );
-            });
-        });
+        function(err,di_redis_cli){
+            myredis.createClient(
+                settings['url_report_redis_db'][0],
+                settings['url_report_redis_db'][1],
+                settings['url_report_redis_db'][2],
+                dbtype,
+                function(err,redis_cli){
+                    redis_cli.zlist('fail:*',function(err,zkeys){
+                        if(err)throw err;
+                        var count = 0;
+                        async.whilst(
+                            function(){
+                                return count < zkeys.length;
+                            },
+                            function(callback){
+                                var zkey = zkeys[count++];
+                                if(zkey){
+                                    var urllib_key = zkey.replace('fail:','');
+                                    console.log('moving ',zkey);
+                                    redis_cli.zrange(zkey,0,(new Date()).getTime(),function(err,keylist){
+                                        var sub_count = 0;
+                                        async.whilst(
+                                            function(){
+                                                return sub_count < keylist.length;
+                                            },
+                                            function(cb){
+                                                var link = keylist[sub_count++];
+                                                if(link){
+                                                    di_redis_cli.rpush(urllib_key,link,function(err){
+                                                        if(err)console.error('Put ',urllib_key,' Error: ',err);
+                                                        else console.log('put ',link,' into ',urllib_key);
+                                                        cb(null);
+                                                    });
+                                                }else {
+                                                    console.error('Invalidate url');
+                                                    cb(null);
+                                                }
+                                            },
+                                            function(err){
+                                                if(err)throw err;
+                                                callback(err);
+                                            }
+                                        );
+                                    });
+                                }else {
+                                    console.error('Invalidate zkey');
+                                    callback(null);
+                                }
+                            },
+                            function(err){
+                                redis_cli.close();
+                                di_redis_cli.close();
+                            }
+                        );
+                    });
+                });
+        }
+    );
 }
 
 var put_stuck_url_into_queue = function(){
     myredis.createClient(
-        settings['url_report_redis_db'][0],
-        settings['url_report_redis_db'][1],
-        settings['url_report_redis_db'][2],
+        settings['driller_info_redis_db'][0],
+        settings['driller_info_redis_db'][1],
+        settings['driller_info_redis_db'][2],
         dbtype,
-        function(err,redis_cli){
-            redis_cli.zlist('stuck:*',function(err,zkeys){
-                if(err)throw err;
-                var count = 0;
-                async.whilst(
-                    function(){
-                        return count < zkeys.length;
-                    },
-                    function(callback){
-                        var zkey = zkeys[count++];
-                        if(zkey){
-                            var urllib_key = zkey.replace('stuck:','');
-                            console.log('moving ',zkey);
-                            redis_cli.zrange(zkey,0,(new Date()).getTime(),function(err,keylist){
-                                var sub_count = 0;
-                                async.whilst(
-                                    function(){
-                                        return sub_count < keylist.length;
-                                    },
-                                    function(cb){
-                                        var link = keylist[sub_count++];
-                                        if(link){
-                                            redis_cli.rpush(urllib_key,link,function(err){
-                                                if(err)console.error('Put ',urllib_key,' Error: ',err);
-                                                else console.log('put ',link,' into ',urllib_key);
-                                                cb(null);
-                                            });
-                                        }else {
-                                            console.error('Invalidate url');
-                                            cb(null);
-                                        }
-                                    },
-                                    function(err){
-                                        if(err)throw err;
-                                        callback(err);
-                                    }
-                                );
-                            });
-                        }else {
-                            console.error('Invalidate zkey');
-                            callback(null);
-                        }
-                    },
-                    function(err){
-                        redis_cli.close();
-                    }
-                );
-            });
+        function(err,di_redis_cli){
+            myredis.createClient(
+                settings['url_report_redis_db'][0],
+                settings['url_report_redis_db'][1],
+                settings['url_report_redis_db'][2],
+                dbtype,
+                function(err,redis_cli){
+                    redis_cli.zlist('stuck:*',function(err,zkeys){
+                        if(err)throw err;
+                        var count = 0;
+                        async.whilst(
+                            function(){
+                                return count < zkeys.length;
+                            },
+                            function(callback){
+                                var zkey = zkeys[count++];
+                                if(zkey){
+                                    var urllib_key = zkey.replace('stuck:','');
+                                    console.log('moving ',zkey);
+                                    redis_cli.zrange(zkey,0,(new Date()).getTime(),function(err,keylist){
+                                        var sub_count = 0;
+                                        async.whilst(
+                                            function(){
+                                                return sub_count < keylist.length;
+                                            },
+                                            function(cb){
+                                                var link = keylist[sub_count++];
+                                                if(link){
+                                                    di_redis_cli.rpush(urllib_key,link,function(err){
+                                                        if(err)console.error('Put ',urllib_key,' Error: ',err);
+                                                        else console.log('put ',link,' into ',urllib_key);
+                                                        cb(null);
+                                                    });
+                                                }else {
+                                                    console.error('Invalidate url');
+                                                    cb(null);
+                                                }
+                                            },
+                                            function(err){
+                                                if(err)throw err;
+                                                callback(err);
+                                            }
+                                        );
+                                    });
+                                }else {
+                                    console.error('Invalidate zkey');
+                                    callback(null);
+                                }
+                            },
+                            function(err){
+                                redis_cli.close();
+                                di_redis_cli.close();
+                            }
+                        );
+                    });
+                });
         });
 }
 
