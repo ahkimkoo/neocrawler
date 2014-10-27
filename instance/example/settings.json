@@ -19,5 +19,6 @@
     "download_retry":2,
     "log_level":"DEBUG",
     "use_ssdb":false,
-    "to_much_fail_exit":false
+    "to_much_fail_exit":false,
+    "keep_link_relation":false
 }

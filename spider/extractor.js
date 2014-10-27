@@ -191,7 +191,7 @@ extractor.prototype.extract = function(crawl_info){
 
         var washed_link = this.wash_link(crawl_info['url'],drill_link);
         crawl_info['drill_link'] = this.arrange_link(washed_link);
-        crawl_info['drill_relation'] = this.getDrillRelation($,crawl_info);
+        if(this.spiderCore.settings['keep_link_relation'])crawl_info['drill_relation'] = this.getDrillRelation($,crawl_info);
     }
 
     if(extract_rule['rule']&&!isEmpty(extract_rule['rule'])){

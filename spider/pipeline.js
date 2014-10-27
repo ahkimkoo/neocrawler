@@ -161,11 +161,13 @@ pipeline.prototype.save_links = function(page_url,version,linkobjs,drill_relatio
                                     'version':version,
                                     'trace':alias,
                                     'referer':page_url,
-                                    'drill_relation':drill_relation?drill_relation:'*',
                                     'create':(new Date()).getTime(),
                                     'records':JSON.stringify([]),
                                     'last':(new Date()).getTime(),
                                     'status':'hit'
+                                }
+                                if(spiderCore.settings['keep_link_relation']){
+                                    vv['drill_relation'] = drill_relation?drill_relation:'*';
                                 }
                                 redis_cli1.hmset(urlhash,vv,function(err, value){
                                     if (err) throw(err);
