@@ -226,12 +226,15 @@ pipeline.prototype.save_content = function(pageurl,content,extracted_data,js_res
         'basic:url' : pageurl,
         'basic:referer' : referer,
         'basic:urllib' : urllib,
-        'basic:drill_relation': drill_relation,
         'basic:updated' : (new Date()).getTime().toString()
     }
 
     if(content&&!isEmpty(content)){
         dict['basic:content'] = content;
+    }
+
+    if(drill_relation&&!isEmpty(drill_relation)){
+        dict['basic:drill_relation'] = drill_relation;
     }
 
     if(extracted_data&&!isEmpty(extracted_data)){
