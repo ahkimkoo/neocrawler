@@ -1,5 +1,4 @@
-#【NEOCrawler 介绍】
-
+# 一、概述
 
 NEOCrawler(中文名：牛咖)，是nodejs、redis、phantomjs实现的爬虫系统。代码完全开源，适合用于垂直领域的数据采集和爬虫二次开发。
 
@@ -49,14 +48,34 @@ NEOCrawler(中文名：牛咖)，是nodejs、redis、phantomjs实现的爬虫系
 
 * 爬虫系统结构上参考了scrapy，由core、spider、downloader、extractor、pipeline组成，core是各个组件的联合点和事件控制中心，spider负责队列的进出，downloader负责页面的下载，根据配置规则选择使用普通的html源码下载或者下载后用phantomjs浏览器环境渲染执行js/css，extractor根据摘取规则对文档进行结构化数据摘取，pipeline负责将数据持久化或者输出给后续的数据处理系统。这些组件都提供定制化接口，如果通过配置不能满足需求，可以用js代码很容易个性化扩展某个组件的功能。
 
-**详细介绍请查看[Wiki](http://git.oschina.net/dreamidea/neocrawler/wikis/home "wiki"):**
+### 【架构】
 
-#【运行环境准备】
+**提示：**_建议刚接触本系统的用户跳过架构介绍环节直接进入第二部分，先将系统运行起来，有一个感性认识后再来查阅架构的环节，如果您需要做深入的二次开发，请仔细阅读本环节资料_
+
+**整体架构**
+
+![neocrawler-architecture](http://git.oschina.net/uploads/images/2014/0912/203424_dbbb3d02_13016.png)
+
+图中黄色部分为爬虫系统的各个子系统。
+
+* SuperScheduler是中央调度器，Spider爬虫将收集到的网址放入到各类网址所对对应的网址库中，SuperScheduler会依据调度规则从各类网址库抽取相应量的网址放入待抓取队列。
+
+* Spider是分布式运行的爬虫程序，从调度器调度好的待抓取队列中取出任务进行抓取，将发现的网址放入网址库，摘取的内容存库，将爬虫程序分为core一个核心和download、extract、pipeline 4个中间件，是为了在爬虫实例中能够比较容易的重新定制其中某块功能。
+
+* ProxyRouter是在使用代理IP的时候将爬虫请求智能路由给可用代理IP的。
+
+* Webconfig是web的爬虫规则配置后台。
+
+
+
+# 二、运行步骤
+
+##【运行环境准备】
 * 安装好nodejs 环境，从git仓库clone源码到本地，在文件夹位置打开命令提示符，运行“npm install”安装依赖的模块；
 * redis server安装（同时支持redis和ssdb，从节约内存的角度考虑，可以使用ssdb，在setting.json可以指定类型，下面会提到）。
 * hbase环境，抓取到网页、摘取到的数据将存储到hbase，hbase安装完毕后要讲http rest服务开启，后面的配置中会用到，如果要使用其他的数据库存储，可以不安装hbase，下面的章节中将会讲到如何关闭hbase功能以及定制化自己的存储。
 
-#【实例配置】
+##【实例配置】
 * 实例在instance目录下，拷贝一份example，重命名其他的实例名，例如：abc，以下说明中均使用该实例名举例。
 * 编辑instance/abc/setting.json
 
@@ -83,12 +102,14 @@ NEOCrawler(中文名：牛咖)，是nodejs、redis、phantomjs实现的爬虫系
     "schedule_quantity_limitation":200,/*调度器给爬虫的最大网址待抓取数量*/
     "download_retry":3,/*错误重试次数*/
     "log_level":"DEBUG",/*日志级别*/
-    "use_ssdb":false/*是否使用ssdb*/
+    "use_ssdb":false,/*是否使用ssdb*/
+    "to_much_fail_exit":false,/*错误太多的时候是否自动终止爬虫*/
+    "keep_link_relation":false/*链接库里是否存储链接间关系*/
 }
 ```
-#【运行】
+##【运行】
 * 运行调度器
-	> node run.js -i abc -a schedule
+    > node run.js -i abc -a schedule
 	
 	-i指定了实例名，-a指定了动作schedule，下同
 
@@ -110,8 +131,8 @@ NEOCrawler(中文名：牛咖)，是nodejs、redis、phantomjs实现的爬虫系
 
 可以在instance/example/logs 下查看输出日志debug-result.json
 
-#【抓取规则配置】
-打开web界面,例如：http://localhost:8888/ , 进入“Drilling Rules”，添加规则。这是一个json编辑器，可以在代码模式/可视化模式之间切换。为了方便演示这里以代码模式为准：
+##【抓取规则配置】
+打开web界面,例如：http://localhost:8888/ , 进入“Drilling Rules”，添加规则。这是一个json编辑器，可以在代码模式/可视化模式之间切换。下面给出配置项的说明.具体的应用配置可以参考下一章节的示例.
 
 ```javascript
 {
@@ -161,7 +182,7 @@ NEOCrawler(中文名：牛咖)，是nodejs、redis、phantomjs实现的爬虫系
 }
 ```
 
-## 摘取单元
+### 摘取单元
 
 ```javascript
 {
@@ -173,7 +194,7 @@ NEOCrawler(中文名：牛咖)，是nodejs、redis、phantomjs实现的爬虫系
 }
 ```
 
-## 摘取规则
+### 摘取规则
 ```javascript
 /*摘取规则由多个摘取单元构成，它们之间的基本结构如下*/
 "extract_rule": {
@@ -201,7 +222,312 @@ NEOCrawler(中文名：牛咖)，是nodejs、redis、phantomjs实现的爬虫系
   }
 ```
 
-#【联系作者】
+# 三、简单示例
+
+**此步骤假设你已经将web配置后台运行起来了,如何运行web配置请按照上一章节的说明**
+
+下面列出一个抓取微信号的配置例子.假设我们的意图是抓取http://www.sovxin.com 上的所有微信号.
+
+第一步是观察网站的结构,大概可以分为4个层次:首页,分类频道页,列表页,详情页.
+我们根据这个页面层次来进行抓取规则的配置,其中,只有详情页是需要配置字段摘取信息的,其他3种页面都是用来逐步发现详情页的.
+我们将这个顺序倒过来,从详情页开始配置,最后再看首页.
+##规则列表截图(你的界面肯定还没有这些规则列表,点击Add添加规则,参考我下面列出的配置)
+![DrillingRules](http://git.oschina.net/uploads/images/2014/1103/155217_f57d134c_13016.png)
+
+
+## 详情页(摘取实际内容的)
+
+![detail](http://git.oschina.net/uploads/images/2014/1103/153248_212b5771_13016.png)
+
+你应当对照上一章节讲到的每个配置项的说明来理解这个示例
+
+可以将编辑器切换到代码模式,将下面的json粘贴到里面.
+```javascript
+{
+  "domain": "sovxin.com",
+  "url_pattern": "^http://www.sovxin.com/weixin_\\d+.html$",
+  "alias": "detail",
+  "id_parameter": [
+    "#"
+  ],
+  "encoding": "auto",
+  "type": "node",
+  "save_page": false,
+  "format": "html",
+  "jshandle": false,
+  "extract_rule": {
+    "category": "crawled",
+    "rule": {
+      "nickname": {
+        "base": "content",
+        "mode": "css",
+        "expression": "._title>strong",
+        "pick": "text",
+        "index": 1
+      },
+      "name": {
+        "base": "content",
+        "mode": "regex",
+        "expression": ">微信号：(.*?)</td>",
+        "pick": "text",
+        "index": 1
+      },
+      "subtype": {
+        "base": "content",
+        "mode": "regex",
+        "expression": ">账号类型：(.*?)</td>",
+        "pick": "text",
+        "index": 1
+      },
+      "location": {
+        "base": "content",
+        "mode": "css",
+        "expression": ".js_other>._o_left>a",
+        "pick": "text",
+        "index": 1
+      },
+      "description": {
+        "base": "content",
+        "mode": "css",
+        "expression": ".introduction",
+        "pick": "html",
+        "index": 1
+      },
+      "logo": {
+        "base": "content",
+        "mode": "css",
+        "expression": ".avatar>img",
+        "pick": "@src",
+        "index": 1
+      },
+      "qrcode": {
+        "base": "content",
+        "mode": "css",
+        "expression": ".erweima",
+        "pick": "@src",
+        "index": 1
+      },
+      "class": {
+        "base": "content",
+        "mode": "css",
+        "expression": "._vb_weizhi>a:nth-child(2)",
+        "pick": "text",
+        "index": 1
+      },
+      "subclass": {
+        "base": "content",
+        "mode": "css",
+        "expression": "._vb_weizhi>a:nth-child(3)",
+        "pick": "text",
+        "index": 1
+      }
+    },
+    "require": [
+      [
+        "name",
+        "oid",
+        "nickname"
+      ]
+    ]
+  },
+  "cookie": [],
+  "inject_jquery": false,
+  "load_img": false,
+  "drill_rules": [
+    "a",
+    ".avatar>img",
+    ".erweima"
+  ],
+  "drill_relation": {
+    "base": "content",
+    "mode": "css",
+    "expression": "._title>strong",
+    "pick": "text",
+    "index": 1
+  },
+  "validation_keywords": [
+    "当前位置"
+  ],
+  "script": [],
+  "navigate_rule": [],
+  "stoppage": -1,
+  "priority": 1,
+  "weight": 10,
+  "schedule_interval": 8640000,
+  "active": true,
+  "seed": [],
+  "schedule_rule": "FIFO",
+  "use_proxy": false,
+  "first_schedule": 1408456940902
+}
+```
+
+## 列表页(通过它摘取到上面配置的详情页链接以及本身的分页链接)
+![list](http://git.oschina.net/uploads/images/2014/1103/153300_1a7f5053_13016.png)
+
+```javascript
+{
+  "domain": "sovxin.com",
+  "url_pattern": "^http://www.sovxin.com/t_.*?.html$",
+  "alias": "list",
+  "id_parameter": [
+    "#"
+  ],
+  "encoding": "auto",
+  "type": "branch",
+  "save_page": false,
+  "format": "html",
+  "jshandle": false,
+  "extract_rule": {
+    "category": "crawled",
+    "rule": {}
+  },
+  "cookie": [],
+  "inject_jquery": false,
+  "load_img": false,
+  "drill_rules": [
+    "a"
+  ],
+  "drill_relation": {
+    "base": "content",
+    "mode": "css",
+    "expression": "title",
+    "pick": "text",
+    "index": 1
+  },
+  "validation_keywords": [
+    "当前位置"
+  ],
+  "script": [],
+  "navigate_rule": [],
+  "stoppage": -1,
+  "priority": 3,
+  "weight": 10,
+  "schedule_interval": 86400,
+  "active": true,
+  "seed": [
+    "http://www.sovxin.com/t_xiuxianyule_#.html#1#300#1",
+    "http://www.sovxin.com/t_jiankangshenghuo_#.html#1#300#1",
+    "http://www.sovxin.com/t_wenhuajiaoyu_#.html#1#300#1",
+    "http://www.sovxin.com/t_jiaoliu_#.html#1#300#1",
+    "http://www.sovxin.com/t_qiyepinpai_#.html#1#300#1",
+    "http://www.sovxin.com/t_mingxingmingren_#.html#1#300#1",
+    "http://www.sovxin.com/t_youguanbumen_#.html#1#300#1",
+    "http://www.sovxin.com/t_zonghe_#.html#1#300#1"
+  ],
+  "schedule_rule": "FIFO",
+  "use_proxy": false,
+  "first_schedule": 1414938594585
+}
+```
+
+## 分类频道页(通过它摘取到上面配置的列表页链接)
+![category](http://git.oschina.net/uploads/images/2014/1103/153308_09f4b6bb_13016.png)
+
+```javascript
+{
+  "domain": "sovxin.com",
+  "url_pattern": "^http://www.sovxin.com/fenlei_.*?.html$",
+  "alias": "category",
+  "id_parameter": [
+    "#"
+  ],
+  "encoding": "auto",
+  "type": "branch",
+  "save_page": false,
+  "format": "html",
+  "jshandle": false,
+  "extract_rule": {
+    "category": "crawled",
+    "rule": {}
+  },
+  "cookie": [],
+  "inject_jquery": false,
+  "load_img": false,
+  "drill_rules": [
+    "a"
+  ],
+  "drill_relation": {
+    "base": "content",
+    "mode": "css",
+    "expression": "title",
+    "pick": "text",
+    "index": 1
+  },
+  "validation_keywords": [
+    "当前位置"
+  ],
+  "script": [],
+  "navigate_rule": [],
+  "stoppage": -1,
+  "priority": 2,
+  "weight": 10,
+  "schedule_interval": 86400,
+  "active": true,
+  "seed": [
+    "http://www.sovxin.com/fenlei_zixun.html"
+  ],
+  "schedule_rule": "FIFO",
+  "use_proxy": false,
+  "first_schedule": 1414938594585
+}
+```
+
+## 首页(通过它摘取到上面配置的频道分类页面)
+![home](http://git.oschina.net/uploads/images/2014/1103/153317_671070d2_13016.png)
+
+```javascript
+{
+  "domain": "sovxin.com",
+  "url_pattern": "^http://www.sovxin.com/$",
+  "alias": "home",
+  "id_parameter": [
+    "#"
+  ],
+  "encoding": "auto",
+  "type": "branch",
+  "save_page": false,
+  "format": "html",
+  "jshandle": false,
+  "extract_rule": {
+    "category": "crawled",
+    "rule": {}
+  },
+  "cookie": [],
+  "inject_jquery": false,
+  "load_img": false,
+  "drill_rules": [
+    "a"
+  ],
+  "drill_relation": {
+    "base": "content",
+    "mode": "css",
+    "expression": "title",
+    "pick": "text",
+    "index": 1
+  },
+  "validation_keywords": [
+    "搜微信"
+  ],
+  "script": [],
+  "navigate_rule": [],
+  "stoppage": -1,
+  "priority": 4,
+  "weight": 10,
+  "schedule_interval": 86400,
+  "active": true,
+  "seed": [
+    "http://www.sovxin.com/"
+  ],
+  "schedule_rule": "FIFO",
+  "use_proxy": false,
+  "first_schedule": 1414938594585
+}
+```
+
+# 四、进阶示例
+
+# 【联系作者】
 * Email: <successage@gmail.com>,
 * Blog: <http://my.oschina.net/waterbear>
 * QQ: 419117039
