@@ -526,6 +526,184 @@ NEOCrawler(中文名：牛咖)，是nodejs、redis、phantomjs实现的爬虫系
 ```
 
 # 四、进阶示例
+## 数据存储的定制化
+
+抓取的数据默认是存储到hbase,你可以可以将这种默认行为取消,将数据存储到其他类型的数据库.修改instance/你的实例/settings.json,将save_content_to_hbase设置为false.然后修改instance/你的实例/spider_extend.js,这里是你定制化开发的地方,将pipeline方法的注释拿掉,爬虫抓完页面后会调用该函数,传入一个extracted_info是摘取后的结构化数据,另一个参数callback是回调函数要求你在做完你做的事情(实际上就是存数据到你的数据库).extracted_info的结构你可以console.dir(extracted_info)或者Webstorm IDE内断点调试以下就能看到. 
+以下代码(存储到mongodb)仅供参考
+```javascript
+/**
+ * instead of main framework content pipeline
+ * if it do nothing , comment it
+ * @param extracted_info (same to extract)
+ */
+spider_extend.prototype.pipeline = function(extracted_info,callback){
+    var spider_extend = this;
+    if(!extracted_info['extracted_data']||isEmpty(extracted_info['extracted_data'])){
+        logger.warn('data of '+extracted_info['url']+' is empty.');
+        callback();
+    }else{
+        var data = extracted_info['extracted_data'];
+        if(data['article']&&data['article'].trim()!=""){
+            var _id = crypto.createHash('md5').update(extracted_info['url']).digest('hex');
+            var puerContent = data['article'].replace(/[^\u4e00-\u9fa5a-z0-9]/ig,'');
+            var simplefp = crypto.createHash('md5').update(puerContent).digest('hex');
+
+            var currentTime = (new Date()).getTime();
+            data['updated'] = currentTime;
+            data['published'] = false;
+
+            //drop additional info
+            if(data['$category'])delete data['$category'];
+            if(data['$require'])delete data['$require'];
+
+            //format relation to array
+            if(extracted_info['drill_relation']){
+                data['relation'] = extracted_info['drill_relation'].split('->');
+            }
+
+            //get domain
+            var urlibarr = extracted_info['origin']['urllib'].split(':');
+            var domain = urlibarr[urlibarr.length-2];
+            data['domain'] = domain;
+
+            logger.debug('get '+data['title']+' from '+domain+'('+extracted_info['url']+')');
+            data['url'] = extracted_info['url'];
+
+            var query = {
+                "$or":[
+                    {
+                        '_id':_id
+                    },
+                    {
+                        'simplefp':simplefp
+                    }
+                ]
+            };
+            spider_extend.mongoTable.findOne(query, function(err, item) {
+                if(err){throw err;callback();}
+                else{
+                    if(item){
+                        //if the new data of field less than the old, drop it
+                        (function(nlist){
+                            for(var c=0;c<nlist.length;c++)
+                            if(data[nlist[c]]&&item[nlist[c]]&&data[nlist[c]].length<item[nlist[c]].length)delete data[nlist[c]];
+                        })(['title','article','tags','keywords']);
+
+                        spider_extend.mongoTable.update({'_id':item['_id']},{$set:data}, {w:1}, function(err,result) {
+                            if(!err) {
+                                spider_extend.reportdb.rpush('queue:crawled', _id);
+                                logger.debug('update ' + data['title'] + ' to mongodb, ' + data['url'] + ' --override-> ' + item['url']);
+                            }
+                            callback();
+                        });
+                    }else{
+                        data['simplefp'] = simplefp;
+                        data['_id'] = _id;
+                        data['created'] = currentTime;
+                        spider_extend.mongoTable.insert(data,{w:1}, function(err, result) {
+                            if(!err){
+                                spider_extend.reportdb.rpush('queue:crawled', _id);
+                                logger.debug('insert '+data['title']+' to mongodb');
+                            }
+                            callback();
+                        });
+                    }
+                }
+            });
+        }else{
+            logger.warn(extracted_info['url']+' is lack of content, drop it');
+            callback();
+        }
+    }
+}
+```
+
+## 爬虫的抓取并发数调整
+修改instance/你的实例/settings.json中的spider_concurrency. 注意:这里配置的是爬虫的并发请求数,每种网页的重复抓取周期是在规则配置界面设置的.
+
+## 链接摘取,内容摘取过程定制化
+
+有时候通过web界面配置的规则并不能满足一些特殊的抓取需求,比如说一个页面抓取下来以后你要发起一个ajax子请求合并数据. 又比如说你要用自己的方法去摘取链接和内容.将instance/你的实例/spider_extend.js中的extract方法去掉,爬虫用内容的方法摘取完内容后会调用该函数,传入两个参数, extracted_info是抓取的信息,包含了摘取到的数据,callback是要求你完成你的动作后回调的函数,extracted_info的结构你可以console.dir(extracted_info)或者Webstorm IDE内断点调试以下就能看到. 最后你必须调用回调函数callback,并且将摘取信息作为参数,摘取信息的结构必须和传入的extracted_info一致,实际上建议你直接在extracted_info上改动,将其作为参数返回.
+以下代码仅供参考:
+```javascript
+/**
+ * DIY extract, it happens after spider framework extracted data.
+ * @param extracted_info
+ * {
+        "signal":CMD_SIGNAL_CRAWL_SUCCESS,
+        "content":'...',
+        "remote_proxy":'...',
+        "cost":122,
+        "inject_jquery":true,
+        "js_result":[],
+        "drill_link":{"urllib_alias":[]},
+        "drill_count":0,
+        "cookie":[],
+        "url":'',
+        "status":200,
+        "origin":{
+            "url":link,
+            "type":'branch/node',
+            "referer":'',
+            "url_pattern":'...',
+            "save_page":true,
+            "cookie":[],
+            "jshandle":true,
+            "inject_jquery":true,
+            "drill_rules":[],
+            "script":[],
+            "navigate_rule":[],
+            "stoppage":-1,
+            "start_time":1234
+        }
+    };
+ * @returns callback({*})
+ */
+spider_extend.prototype.extract = function(extracted_info,callback){
+    var self = this;
+    var domain = __getTopLevelDomain(extracted_info['url']);
+    var result = extracted_info;
+    switch(domain){
+        case 'sino-manager.com':
+            if (result['origin'].urllib == 'urllib:driller:sino-manager.com:sinolist') {
+               for(var i = 0; i < result['drill_link']['urllib:driller:sino-manager.com:sinolist'].length; i++) {
+                  result['drill_link']['urllib:driller:sino-manager.com:sinolist'][i] = result['drill_link']['urllib:driller:sino-manager.com:sinolist'][i].replace(/(.{31})/,"$1s");
+               }
+               break;
+            } else {
+                break;
+            }
+        case 'chinaventure.com.cn':
+            if (result['origin'].urllib == 'urllib:driller:chinaventure.com.cn:chinaventurelist') {
+                var content = JSON.parse(result['content'].substring(1,result['content'].length-1));
+                var news_url = '';
+                var detail = [];
+                var list = [];
+                var pages;
+                for(var i = 0; i < content.length; i++) {
+                    detail.push(content[i].news_url);
+                }
+                result['drill_link']['urllib:driller:chinaventure.com.cn:chinaventuredetail'] = detail;
+                var expression = new RegExp('^.*pages=([0-9]+).*$',"ig");
+                var matched = expression.exec(result['url']);
+                if (matched) {
+                    pages = parseInt(matched[1])+1;
+                    result['url'] = result['url'].replace('pages='+matched[1],'pages='+pages);
+                } else {
+
+                }
+                logger.debug(result['url']);
+                list.push( result['url']);
+                result['drill_link']['urllib:driller:chinaventure.com.cn:chinaventurelist'] = list;
+                break;
+            } else {
+                break;
+            }
+        default:;
+    }
+    return callback(result);
+}
+```
 
 # 【联系作者】
 * Email: <successage@gmail.com>,
