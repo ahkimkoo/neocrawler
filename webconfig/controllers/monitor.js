@@ -123,3 +123,49 @@ exports.linkdb = function(req, res) {
         res.render('monitor/linkdb', {'total_linkcount':total_linkcount,'linkcount':linkcount,'scheduledcount':scheduledcount,'rulelastchanged':rulelastchanged,'linkinfodbsize':linkinfodbsize});
     })
 };
+
+exports.chart = function(req, res) {
+    var domain   = req.query['domain'];
+    var sdays   = req.query['days']||'30';
+    var days = parseInt(sdays);
+
+    var nd = new Date();
+    var nl = nd.getTime();
+    var date_arr = [];
+    var crawl_arr = [];
+    var retry_arr = [];
+    var fail_arr = [];
+    var lack_arr = [];
+    var save_arr = [];
+    var finish_arr = [];
+
+    var index = days;
+    async.whilst(
+        function(){
+            return index >= 0;
+        },
+        function(callback){
+            var td = new Date(nl-86400000*index--);
+            var dstr = '';
+            dstr += td.getFullYear();
+            var month = td.getMonth()+1;
+            if(month<10)dstr += '0' + month;
+            else dstr += month;
+            if(td.getDate()<10)dstr += '0' + td.getDate();
+            else dstr += td.getDate();
+            date_arr.push(month+'-'+td.getDate());
+            reportdb.hgetall('count:'+dstr,function(err,hashes){
+                crawl_arr.push(hashes['crawl:'+domain]?parseInt(hashes['crawl:'+domain]):0);
+                retry_arr.push(hashes['retry:'+domain]?parseInt(hashes['retry:'+domain]):0);
+                fail_arr.push(hashes['fail:'+domain]?parseInt(hashes['fail:'+domain]):0);
+                lack_arr.push(hashes['lack:'+domain]?parseInt(hashes['lack:'+domain]):0);
+                save_arr.push(hashes['save:'+domain]?parseInt(hashes['save:'+domain]):0);
+                finish_arr.push(hashes['finish:'+domain]?parseInt(hashes['finish:'+domain]):0);
+                callback();
+            });
+        },
+        function(err){
+            res.render('monitor/chart',{'domain':domain,'days':days,'date_arr':date_arr,'crawl_arr':crawl_arr,'retry_arr':retry_arr,'fail_arr':fail_arr,'lack_arr':lack_arr,'save_arr':save_arr,'finish_arr':finish_arr});
+        }
+    );
+}

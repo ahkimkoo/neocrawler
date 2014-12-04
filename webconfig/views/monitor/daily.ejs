@@ -54,6 +54,7 @@
             <th>lack</th>
             <th>save</th>
             <th>finish</th>
+            <th>CONCLUSION</th>
         </tr>
         <tr>
             <th>Daily Total</th>
@@ -63,16 +64,26 @@
             <th><%=total['lack']||'0'%></th>
             <th><%=total['save']||'0'%></th>
             <th><%=total['finish']||'0'%></th>
+            <th>-</th>
         </tr>
-        <% for(var head in result){ %>
-        <tr>
-                <td><%=head%></td>
+        <% for(var head in result){
+            var ir = false;
+            var ccu = '';
+            if(result[head]['retry']/result[head]['crawl']*1.0>0.31) {ir = true; ccu+='retry/crawl='+(result[head]['retry']/result[head]['crawl']*1.0)+'<br/>';}
+            if(result[head]['fail']/result[head]['crawl']*1.0>0.11) {ir = true;ccu+='fail/crawl='+(result[head]['fail']/result[head]['crawl']*1.0)+'<br/>';}
+            if(result[head]['lack']/result[head]['crawl']*1.0>0.051) {ir = true;ccu+='lack/crawl='+(result[head]['lack']/result[head]['crawl']*1.0)+'<br/>';}
+            if(result[head]['finish']/(result[head]['crawl']-result[head]['retry'])*1.0<0.5) {ir = true;ccu+='finish/(crawl-retry)='+(result[head]['finish']/(result[head]['crawl']-result[head]['retry'])*1.0)+'<br/>';}
+            if(result[head]['lack']/result[head]['save']*1.0>0.51) {ir = true;ccu+='lack/save='+(result[head]['lack']/result[head]['save']*1.0)+'<br/>';}
+        %>
+        <tr<%if(ir){%> bgcolor="#ffc0cb" <%}%>>
+                <td><a href="/monitor/chart?domain=<%=head%>&days=15" target="_blank"><%=head%></a></td>
                 <td><%=result[head]['crawl']||'0'%></td>
                 <td><%=result[head]['retry']||'0'%></td>
                 <td><%=result[head]['fail']||'0'%></td>
                 <td><%=result[head]['lack']||'0'%></td>
                 <td><%=result[head]['save']||'0'%></td>
                 <td><%=result[head]['finish']||'0'%></td>
+                <td><%- ccu%></td>
         </tr>
         <% } %>
     </table></div>
