@@ -2,14 +2,16 @@
 <head>
     <meta charset="utf-8">
     <title>Statistic Monitor</title>
-    <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css">
+    <link rel="stylesheet" href="/stylesheets/jquery-ui.css">
     <script src="/javascripts/jquery.min.js"></script>
-    <script src="http://code.jquery.com/ui/1.10.3/jquery-ui.js"></script>
+    <script src="/javascripts/jquery-ui.js"></script>
     <script src = "/javascripts/jquery.dataTables.min.js"></script>
+    <script type="text/javascript" src="/javascripts/jquery.tablesorter.min.js"></script>
     <style type = "text/css">
         @import "/stylesheets/jquery.dataTables.css";
         @import "/stylesheets/jquery.dataTables_themeroller.css";
     </style>
+    <link rel="stylesheet" href="/stylesheets/tablesorter.css">
     <script>
         var table = null;
 
@@ -45,7 +47,8 @@
     <input type="submit" id="search" value="search"/>
     </form>
     <div class = 'wrapper' style="border: 20 20 20 20">
-    <table id = "data" border="1" width="100%" class="dataTable">
+    <table border="1" width="100%"  id="myTable" class="tablesorter">
+        <thead>
         <tr bgcolor="#f5f5dc">
             <th>domain</th>
             <th>crawl</th>
@@ -56,6 +59,8 @@
             <th>finish</th>
             <th>CONCLUSION</th>
         </tr>
+        </thead>
+        <tbody>
         <tr>
             <th>Daily Total</th>
             <th><%=total['crawl']||'0'%></th>
@@ -66,6 +71,8 @@
             <th><%=total['finish']||'0'%></th>
             <th>-</th>
         </tr>
+
+
         <% for(var head in result){
             var ir = false;
             var ccu = '';
@@ -75,7 +82,7 @@
             if(result[head]['finish']/(result[head]['crawl']-result[head]['retry'])*1.0<0.5) {ir = true;ccu+='finish/(crawl-retry)='+(result[head]['finish']/(result[head]['crawl']-result[head]['retry'])*1.0)+'<br/>';}
             if(result[head]['lack']/result[head]['save']*1.0>0.51) {ir = true;ccu+='lack/save='+(result[head]['lack']/result[head]['save']*1.0)+'<br/>';}
         %>
-        <tr<%if(ir){%> bgcolor="#ffc0cb" <%}%>>
+        <tr<%if(ir){%> bgcolor="#ffc0cb" <%}else{%> bgcolor="#ffffff" <%}%>>
                 <td><a href="/monitor/chart?domain=<%=head%>&days=15" target="_blank"><%=head%></a></td>
                 <td><%=result[head]['crawl']||'0'%></td>
                 <td><%=result[head]['retry']||'0'%></td>
@@ -86,6 +93,14 @@
                 <td><%- ccu%></td>
         </tr>
         <% } %>
+        </tbody>
     </table></div>
+<script>
+    $(function()
+            {
+                $("#myTable").tablesorter( {sortList: [[1,1], [2,1], [3,0], [4,0], [5,1], [6,1]]} );
+            }
+    );
+</script>
 </body>
 </html>
