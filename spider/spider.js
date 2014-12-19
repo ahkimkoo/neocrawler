@@ -144,7 +144,7 @@ spider.prototype.getDrillerRules = function(id){
     var splited_id = id.split(':');
     var pos = 1;
     if(splited_id[0]==='urllib')pos = 2;
-    if(this.driller_rules[splited_id[pos]][splited_id[pos+1]]){
+    if(this.driller_rules[splited_id[pos]] && this.driller_rules[splited_id[pos]][splited_id[pos+1]]){
         return this.driller_rules[splited_id[pos]][splited_id[pos+1]];
     }else{
         logger.warn(util.format('%s%s, not exists',splited_id[pos],splited_id[pos+1]));
