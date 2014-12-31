@@ -159,7 +159,7 @@ downloader.prototype.downloadItAct = function(urlinfo){
         'path': __path,
         'method': 'GET',
         'headers': {
-            "User-Agent":"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36",
+            "User-Agent":"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like NeoCrawler) Chrome/31.0.1650.57 Safari/537.36",
             "Accept":"text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
             "Accept-Encoding":"gzip",
             "Accept-Language":"zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4",
