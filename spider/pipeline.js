@@ -512,13 +512,15 @@ pipeline.prototype.save =function(extracted_info,callback){
                 },
                 function(cb){
                     if(pipeline.spiderCore.settings['save_content_to_hbase']===true&&extracted_info['origin']['type']=='node'){//type must be node
-                        if('save_content_alert' in pipeline.spiderCore.spider_extend)pipeline.spiderCore.spider_extend.save_content_alert(extracted_info);//report
                         if(extracted_info['origin']['format']=='binary'){
                             pipeline.save_binary(extracted_info['url'],extracted_info['content'],extracted_info['origin']['referer'],extracted_info['origin']['urllib'],extracted_info['drill_relation'],cb);
                         }else{
                             var html_content = extracted_info['content'];
                             if(!extracted_info['origin']['save_page'])html_content = false;
-                            pipeline.save_content(extracted_info['url'],html_content,extracted_info['extracted_data'],extracted_info['js_result'],extracted_info['origin']['referer'],extracted_info['origin']['urllib'],extracted_info['drill_relation'],cb);
+                            pipeline.save_content(extracted_info['url'],html_content,extracted_info['extracted_data'],extracted_info['js_result'],extracted_info['origin']['referer'],extracted_info['origin']['urllib'],extracted_info['drill_relation'],function(s_err){
+					if(!s_err && 'save_content_alert' in pipeline.spiderCore.spider_extend)pipeline.spiderCore.spider_extend.save_content_alert(extracted_info);//report
+					cb(s_err);
+				});
                         }
                     }else cb(null);
                 },

@@ -1,7 +1,7 @@
 {
   "name": "node-hbase",
-  "version": "0.0.0",
-  "description": "",
+  "version": "0.0.1",
+  "description": "CoffeeScript HBase client implementation with protobuf support",
   "main": "index.js",
   "scripts": {
     "test": "DEBUG=-mocha*, ./node_modules/.bin/mocha  --compilers coffee:coffee-script/register --require coffee-script  test --reporter spec",
@@ -27,8 +27,8 @@
   "homepage": "https://github.com/falsecz/node-hbase",
   "dependencies": {
     "protobufjs": "^2.2.1",
-    "zookeeper-watcher": "^0.2.0",
-    "debug": "^1.0.0",
+    "zookeeper-watcher": "^1.0.0",
+    "debug": "^2.0.0",
     "readable-stream": "^1.0.26-4",
     "async": "^0.9.0"
   },
