@@ -85,15 +85,17 @@ spiderCore.prototype.start = function(){
                 }
             ],
             function(err, results){
-                if(extracted_info['gc'])extracted_info=null;//FGC
-                else extracted_info['gc'] = true;
+                if(extracted_info){
+                    if(extracted_info['gc'])extracted_info=null;//FGC
+                    else extracted_info['gc'] = true;
+                }
                 spiderCore.emit('slide_queue');
             });
         }else{
             logger.error(util.format('invalidate content %s',crawled_info['url']));
             crawled_info['origin']['void_proxy'] = crawled_info['remote_proxy'];
-            spiderCore.spider.retryCrawl(crawled_info['origin']);
-            extracted_info=null;//FGC
+            spiderCore.spider.retryCrawl(clone(crawled_info['origin']));
+            extracted_info = null;//FGC
         }
     });
     //when downloading is failure
