@@ -211,7 +211,7 @@ extractor.prototype.extract = function(crawl_info){
  */
 extractor.prototype.extract_data = function(url,content,extract_rule,uppper_data,dom){
     var data = {};
-    var extractor = this;
+    var self = this;
     if(extract_rule['category'])data['$category'] = extract_rule['category'];
 //    if(extract_rule['require'])data['$require'] = extract_rule['require'];
     if(extract_rule['relate'])data['relate'] = uppper_data[extract_rule['relate']];
@@ -240,18 +240,22 @@ extractor.prototype.extract_data = function(url,content,extract_rule,uppper_data
                         pick = false;
                         (function(k){
                             var result_arr = [];
-                            var tmp_result = extractor.cssSelector(baser,rule['expression'],pick,rule['index']);
+                            var tmp_result = self.cssSelector(baser,rule['expression'],pick,rule['index']);
                             if(tmp_result){
                                 tmp_result.each(function(x, elem) {
                                     var sub_dom = tmp_result.eq(x);
-                                    result_arr.push(extractor.extract_data(url,content,rule['subset'],data,sub_dom));
+                                    result_arr.push(self.extract_data(url,content,rule['subset'],data,sub_dom));
                                 });
                             }
                             if(!isEmpty(result_arr))data[k] = result_arr;
                         })(i);
                     }else{
-                        var tmp_result = this.cssSelector(baser,rule['expression'],pick,rule['index']);
-                        if(tmp_result&&!isEmpty(tmp_result))data[i] = tmp_result;
+                        try{
+                            var tmp_result = this.cssSelector(baser,rule['expression'],pick,rule['index']);
+                            if(tmp_result&&!isEmpty(tmp_result))data[i] = tmp_result;
+                        } catch(e){
+                            logger.error(url + ' extract field '+ i + ' error:'+e);
+                        }
                     }
 
             }
@@ -262,17 +266,7 @@ extractor.prototype.extract_data = function(url,content,extract_rule,uppper_data
         for(var c=0;c<extract_rule['require'].length;c++){
             var key = extract_rule['require'][c];
             if(typeof(key)==='object'){
-                var sublack = (function(keys){
-                    var sublackarr = [];
-                    for(var x=0;x<keys.length;x++){
-                        if(!data[keys[x]]){
-                            sublackarr.push(keys[x]);
-                            logger.warn(keys[x] + ' not found in '+ url + ' extracted data');
-                        }
-                    }
-                    if(sublackarr.length===keys.length)return sublackarr;
-                    else return [];
-                })(key)
+                var sublack = self.checksublack(key,data);
                 if(sublack.length>0)lacks = lacks.concat(sublack);
             }else{
                 if(!data[key]){
@@ -283,17 +277,29 @@ extractor.prototype.extract_data = function(url,content,extract_rule,uppper_data
         }
         if(!isEmpty(lacks)){
             logger.error(url + ' extracted data lacks of '+lacks.join(','));
-            extractor.spiderCore.spider.redis_cli2.zadd('incomplete:data:url',(new Date()).getTime(),url,function(err,result){
+            self.spiderCore.spider.redis_cli2.zadd('incomplete:data:url',(new Date()).getTime(),url,function(err,result){
                 //nothing
             });
-            if('data_lack_alert' in extractor.spiderCore.spider_extend)extractor.spiderCore.spider_extend.data_lack_alert(url,lacks);
+            if('data_lack_alert' in self.spiderCore.spider_extend)self.spiderCore.spider_extend.data_lack_alert(url,lacks);
         }else{
-            extractor.spiderCore.spider.redis_cli2.zrem('incomplete:data:url',url,function(err,result){
+            self.spiderCore.spider.redis_cli2.zrem('incomplete:data:url',url,function(err,result){
                 //nothing
             });
         }
     }
     return data;
+}
+//check sublack
+extractor.prototype.checksublack = function(keys,data){
+    var sublackarr = [];
+    for(var x=0;x<keys.length;x++){
+        if(!data[keys[x]]){
+            sublackarr.push(keys[x]);
+            logger.warn(keys[x] + ' not found in '+ url + ' extracted data');
+        }
+    }
+    if(sublackarr.length===keys.length)return sublackarr;
+    else return [];
 }
 
 /**

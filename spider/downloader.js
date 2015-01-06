@@ -211,21 +211,7 @@ downloader.prototype.downloadItAct = function(urlinfo){
             var page_encoding = urlinfo['encoding'];
 
             if(page_encoding==='auto'){
-                page_encoding =
-                    (function(header){
-                        var page_encoding = 'UTF-8';
-                        //get the encoding from header
-                        if(header['content-type']!=undefined){
-                            var contentType = res.headers['content-type'];
-                            var patt = new RegExp("^.*?charset\=(.+)$","ig");
-                            var mts = patt.exec(contentType);
-                            if (mts != null)
-                            {
-                                page_encoding = mts[1];
-                            }
-                        }
-                        return page_encoding;
-                    })(res.headers);
+                page_encoding = self.get_page_encoding(res.headers);
             }
 
             page_encoding = page_encoding.toLowerCase().replace('\-','')
@@ -276,6 +262,24 @@ downloader.prototype.downloadItAct = function(urlinfo){
         }
     });
     req.end();
+}
+/**
+ * get page encoding
+ * @returns {string}
+ */
+downloader.prototype.get_page_encoding = function(header){
+    var page_encoding = 'UTF-8';
+    //get the encoding from header
+    if(header['content-type']!=undefined){
+        var contentType = header['content-type'];
+        var patt = new RegExp("^.*?charset\=(.+)$","ig");
+        var mts = patt.exec(contentType);
+        if (mts != null)
+        {
+            page_encoding = mts[1];
+        }
+    }
+    return page_encoding;
 }
 
 /**

@@ -73,7 +73,7 @@ NEOCrawler(中文名：牛咖)，是nodejs、redis、phantomjs实现的爬虫系
 ##【运行环境准备】
 * 安装好nodejs 环境，从git仓库clone源码到本地，在文件夹位置打开命令提示符，运行“npm install”安装依赖的模块；
 * redis server安装（同时支持redis和ssdb，从节约内存的角度考虑，可以使用ssdb，在setting.json可以指定类型，下面会提到）。
-* hbase环境，抓取到网页、摘取到的数据将存储到hbase，hbase安装完毕后要讲http rest服务开启，后面的配置中会用到，如果要使用其他的数据库存储，可以不安装hbase，下面的章节中将会讲到如何关闭hbase功能以及定制化自己的存储。
+* hbase环境，抓取到网页、摘取到的数据将存储到hbase，hbase安装完毕后要将http rest服务开启，后面的配置中会用到，如果要使用其他的数据库存储，可以不安装hbase，下面的章节中将会讲到如何关闭hbase功能以及定制化自己的存储。
 
 ##【实例配置】
 * 实例在instance目录下，拷贝一份example，重命名其他的实例名，例如：abc，以下说明中均使用该实例名举例。
@@ -91,7 +91,7 @@ NEOCrawler(中文名：牛咖)，是nodejs、redis、phantomjs实现的爬虫系
     "proxy_router":"127.0.0.1:2013",/*使用代理服务的情况下，代理服务的路由中心地址*/
     "download_timeout":60,/*下载超时时间，秒，不等同于相应超时*/
     "save_content_to_hbase":false,/*是否将抓取信息存储到hbase，目前只在0.94下测试过*/
-    "crawled_hbase_conf":{"zookeeperHosts": ["localhost:2181"],"zookeeperRoot": "/hbase"},/*hbase的配置*/
+    "crawled_hbase_conf":["localhost",8080],/*hbase rest的配置,你可以使用tcp方式连接,配置为{"zookeeperHosts": ["localhost:2181"],"zookeeperRoot": "/hbase"},此模式下有OOM Bug,不建议使用*/
     "crawled_hbase_table":"crawled",/*抓取的数据保存在hbase的表*/
     "crawled_hbase_bin_table":"crawled_bin",/*抓取的二进制数据保存在hbase的表*/
     "statistic_mysql_db":["127.0.0.1",3306,"crawling","crawler","123"],/*用来存储抓取日志分析结果，需要结合flume来实现，一般不使用此项*/

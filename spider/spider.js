@@ -85,40 +85,45 @@ spider.prototype.jsonSmartDeepParse = function(obj){
 
 //refresh the driller rules//////////////////////////////
 spider.prototype.refreshDrillerRules = function(){
-    var spider = this;
+    var self = this;
     var redis_cli = this.redis_cli0;
         redis_cli.get('updated:driller:rule',function(err,value){
             if (err)throw(err);
-            if(this.driller_rules_updated!==parseInt(value)){//driller is changed
+            if(self.driller_rules_updated!==parseInt(value)){//driller is changed
                 logger.debug('driller rules is changed');
                 redis_cli.hlist('driller:*',function(err,values){
                     if (err)throw(err);
-                    spider.tmp_driller_rules = {};
-                    spider.tmp_driller_rules_length = values.length;
+                    self.tmp_driller_rules = {};
+                    self.tmp_driller_rules_length = values.length;
                     for(var i=0;i<values.length;i++){
-                        (function(key,spider){
-                            redis_cli.hgetall(key, function(err,value){//for synchronized using object variable
-                                if(spider.tmp_driller_rules==undefined)spider.tmp_driller_rules = {};
-                                if(spider.tmp_driller_rules[value['domain']]==undefined)spider.tmp_driller_rules[value['domain']]={};
-                                spider.tmp_driller_rules[value['domain']][value['alias']] = spider.jsonSmartDeepParse(value);
-                                spider.tmp_driller_rules_length--;
-                                if(spider.tmp_driller_rules_length<=0){
-                                    spider.driller_rules = spider.tmp_driller_rules;
-                                    //spider.driller_rules_updated = (new Date()).getTime();
-                                    spider.spiderCore.emit('driller_rules_loaded',spider.driller_rules);
-                                    setTimeout(function(){spider.refreshDrillerRules();},spider.spiderCore.settings['check_driller_rules_interval']*1000);
-                                }
-                            });
-                        })(values[i],spider);
+                        self.wrapper_rules(values[i]);
                     }
                 });
-                this.driller_rules_updated=parseInt(value);
+                self.driller_rules_updated=parseInt(value);
             }else{
-                logger.debug('driller rules is not changed, queue length: '+spider.queue_length);
-                setTimeout(function(){spider.refreshDrillerRules();},spider.spiderCore.settings['check_driller_rules_interval']*1000);
+                logger.debug('driller rules is not changed, queue length: '+self.queue_length);
+                setTimeout(function(){self.refreshDrillerRules();},self.spiderCore.settings['check_driller_rules_interval']*1000);
             }
         })
 }
+//wrapper each rule
+spider.prototype.wrapper_rules = function(key){
+    var self = this;
+    var redis_cli = this.redis_cli0;
+    redis_cli.hgetall(key, function(err,value){//for synchronized using object variable
+        if(self.tmp_driller_rules==undefined)self.tmp_driller_rules = {};
+        if(self.tmp_driller_rules[value['domain']]==undefined)self.tmp_driller_rules[value['domain']]={};
+        self.tmp_driller_rules[value['domain']][value['alias']] = self.jsonSmartDeepParse(value);
+        self.tmp_driller_rules_length--;
+        if(self.tmp_driller_rules_length<=0){
+            self.driller_rules = self.tmp_driller_rules;
+            //self.driller_rules_updated = (new Date()).getTime();
+            self.spiderCore.emit('driller_rules_loaded',self.driller_rules);
+            setTimeout(function(){self.refreshDrillerRules();},self.spiderCore.settings['check_driller_rules_interval']*1000);
+        }
+    });
+}
+
 /**
  * query drillerrule
  * @param id
