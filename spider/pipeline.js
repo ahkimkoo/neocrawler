@@ -11,6 +11,7 @@ var async = require('async');
 var urlUtil =  require("url");
 var querystring = require('querystring');
 var util = require('util');
+var poolModule = require('generic-pool');
 require('../lib/jsextend.js');
 
 var pipeline = function(spiderCore){
@@ -32,7 +33,21 @@ pipeline.prototype.assembly = function(callback){
             this.HBASE_TABLE = this.hbase_cli.getTable(this.spiderCore.settings['crawled_hbase_table']);
             this.HBASE_BIN_TABLE = this.hbase_cli.getTable(this.spiderCore.settings['crawled_hbase_bin_table']);
         }else{
-            this.hbase_cli = HBase(this.spiderCore.settings['crawled_hbase_conf']);
+            this.HBASE_POOL = poolModule.Pool({
+                name     : 'hbase_pool',
+                create   : function(hbase_callback) {
+                    logger.debug('Create a hbase connection.');
+                    hbase_callback(null,HBase(spiderCore.settings['crawled_hbase_conf']));
+                },
+                destroy  : function(db) {
+                    logger.debug('Destroy a hbase connection.');
+                    db = null;
+                },
+                max      : this.spiderCore.settings['spider_concurrency'],
+                idleTimeoutMillis : 30000,
+                log : false
+            });
+//            this.hbase_cli = HBase(this.spiderCore.settings['crawled_hbase_conf']);
             this.HBASE_TABLE = this.spiderCore.settings['crawled_hbase_table'];
             this.HBASE_BIN_TABLE = this.spiderCore.settings['crawled_hbase_bin_table'];
         }
@@ -220,49 +235,60 @@ pipeline.prototype.save_content = function(pageurl,content,extracted_data,js_res
     var start_time = (new Date()).getTime();
     var self = this;
 
-    var dict = {
-        'row' : url_hash,
-        'basic:spider' : spider,
-        'basic:url' : pageurl,
-        'basic:referer' : referer,
-        'basic:urllib' : urllib,
-        'basic:updated' : (new Date()).getTime().toString()
-    }
+    var put = new HBase.Put(url_hash);
+    put.add('basic','spider',spider);
+    put.add('basic','url',pageurl);
+    put.add('basic','referer',referer);
+    put.add('basic','urllib',urllib);
+    put.add('basic','updated',(new Date()).getTime().toString());
 
     if(content&&!isEmpty(content)){
-        dict['basic:content'] = content;
+        put.add('basic','content',content);
     }
 
     if(drill_relation&&!isEmpty(drill_relation)){
-        dict['basic:drill_relation'] = drill_relation;
+        put.add('basic','drill_relation',drill_relation);
     }
 
     if(extracted_data&&!isEmpty(extracted_data)){
         for(d in extracted_data){
             if(extracted_data.hasOwnProperty(d)&&extracted_data[d]!=undefined){
-                dict['data:'+d] = typeof(extracted_data[d])=='object'?JSON.stringify(extracted_data[d]):extracted_data[d];
+                put.add('data',d,typeof(extracted_data[d])=='object'?JSON.stringify(extracted_data[d]):extracted_data[d]);
             }
         }
     }
 
     if(js_result&&!isEmpty(js_result)){
-        dict['basic:jsresult'] = js_result;
+        put.add('data','jsresult',js_result);
     }
 
-    this.hbase_cli.mput(extracted_data['$category']||this.HBASE_TABLE,[dict], function (err,res) {
+    self.HBASE_POOL.acquire(function(err, db) {
         if(err){
-            logger.error(pageurl+', data insert to hbase error: '+err);
+            self.HBASE_POOL.release(db);
+            logger.error(pageurl+', connect to hbase error: '+err);
             self.redis_cli2.zadd('stuck:'+urllib,(new Date()).getTime(),pageurl,function(err,result){
                 if(err)throw err;
                 logger.debug('append '+pageurl+' to stuck record');
                 if(callback)callback(err);
             });
-        }else{
-            logger.info(pageurl+', data insert to hbase cost '+((new Date()).getTime()-start_time)+' ms');
-            self.redis_cli2.zrem('stuck:'+urllib,pageurl,function(err,result){
-                if(err)throw err;
-                logger.debug('remove '+pageurl+' from stuck record');
-                if(callback)callback(err);
+        } else {
+            db.put(extracted_data['$category']||this.HBASE_TABLE,put, function (err,res) {
+                self.HBASE_POOL.release(db);
+                if(err){
+                    logger.error(pageurl+', data insert to hbase error: '+err);
+                    self.redis_cli2.zadd('stuck:'+urllib,(new Date()).getTime(),pageurl,function(err,result){
+                        if(err)throw err;
+                        logger.debug('append '+pageurl+' to stuck record');
+                        if(callback)callback(err);
+                    });
+                }else{
+                    logger.info(pageurl+', data insert to hbase cost '+((new Date()).getTime()-start_time)+' ms');
+                    self.redis_cli2.zrem('stuck:'+urllib,pageurl,function(err,result){
+                        if(err)throw err;
+                        logger.debug('remove '+pageurl+' from stuck record');
+                        if(callback)callback(err);
+                    });
+                }
             });
         }
     });
@@ -323,7 +349,7 @@ pipeline.prototype.save_content_vhttp = function(pageurl,content,extracted_data,
 //            valuelist.push(JSON.stringify(extracted_data));
     }
     if(js_result&&!isEmpty(js_result)){
-        keylist.push('basic:jsresult');
+        keylist.push('data:jsresult');
         valuelist.push(js_result);
     }
     var row = this.HBASE_TABLE.getRow(url_hash);
@@ -367,31 +393,41 @@ pipeline.prototype.save_binary = function(pageurl,content,referer,urllib,drill_r
     var start_time = (new Date()).getTime();
     var self = this;
 
-    var dict = {
-        'row' : url_hash,
-        'basic:spider' : spider,
-        'basic:url' : pageurl,
-        'binary:file': content,
-        'basic:referer' : referer,
-        'basic:urllib' : urllib,
-        //'basic:drill_relation': drill_relation,
-        'basic:updated' : (new Date()).getTime().toString()
-    }
+    var put = new HBase.Put(url_hash);
+    put.add('basic','spider',spider);
+    put.add('basic','url',pageurl);
+    put.add('binary','file',content);
+    put.add('basic','referer',referer);
+    put.add('basic','urllib',urllib);
+    put.add('basic','updated',(new Date()).getTime().toString());
 
-    this.hbase_cli.mput(this.HBASE_BIN_TABLE, [dict], function (err,res) {
-        if(err){
-            logger.error(pageurl+', data insert to hbase error: '+err);
+    self.HBASE_POOL.acquire(function(err, db) {
+        if(err) {
+            self.HBASE_POOL.release(db);
+            logger.error(pageurl+', data connect to hbase error: '+err);
             self.redis_cli2.zadd('stuck:'+urllib,(new Date()).getTime(),pageurl,function(err,result){
                 if(err)throw err;
                 logger.debug('append '+pageurl+' to stuck record');
                 if(callback)callback(err);
             });
         }else{
-            logger.info(pageurl+', data insert to hbase cost '+((new Date()).getTime()-start_time)+' ms');
-            self.redis_cli2.zrem('stuck:'+urllib,pageurl,function(err,result){
-                if(err)throw err;
-                logger.debug('remove '+pageurl+' from stuck record');
-                if(callback)callback(err);
+            db.put(this.HBASE_BIN_TABLE, put, function (err,res) {
+                self.HBASE_POOL.release(db);
+                if(err){
+                    logger.error(pageurl+', data insert to hbase error: '+err);
+                    self.redis_cli2.zadd('stuck:'+urllib,(new Date()).getTime(),pageurl,function(err,result){
+                        if(err)throw err;
+                        logger.debug('append '+pageurl+' to stuck record');
+                        if(callback)callback(err);
+                    });
+                }else{
+                    logger.info(pageurl+', data insert to hbase cost '+((new Date()).getTime()-start_time)+' ms');
+                    self.redis_cli2.zrem('stuck:'+urllib,pageurl,function(err,result){
+                        if(err)throw err;
+                        logger.debug('remove '+pageurl+' from stuck record');
+                        if(callback)callback(err);
+                    });
+                }
             });
         }
     });
