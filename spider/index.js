@@ -120,7 +120,7 @@ spiderCore.prototype.start = function(){
     this.once('driller_rules_loaded',function(rules){
         this.emit('slide_queue');
         var spiderIns = this.spider;
-        setInterval(function(){spiderIns.checkQueue(spiderIns);},120000);
+        setInterval(function(){spiderIns.checkQueue(spiderIns);},10000);
     });
 
     //trigger
