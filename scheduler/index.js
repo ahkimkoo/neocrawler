@@ -77,10 +77,11 @@ scheduler.prototype.refreshPriotities  = function(){
                         (function(key,scheduler){
                             redis_cli.hgetall(key, function(err,value){//for synchronized using object variable
                                 if(scheduler.tmp_priotities==undefined)scheduler.tmp_priotities = {'items':{},nums:[]};
+                                if(scheduler.tmp_driller_rules==undefined)scheduler.tmp_driller_rules = {};
                                 var isActive = value['active']=='true'||value['active']==true||value['active']=='1'||value['active']==1?true:false;
                                 if(isActive){
                                     ////for drill_rules
-                                    if(scheduler.tmp_driller_rules==undefined)scheduler.tmp_driller_rules = {};
+                                    logger.debug('Load rule: '+key);
                                     if(scheduler.tmp_driller_rules[value['domain']]==undefined)scheduler.tmp_driller_rules[value['domain']]={};
                                     scheduler.tmp_driller_rules[value['domain']][value['alias']] = value;
                                     ///for priority list
@@ -95,7 +96,7 @@ scheduler.prototype.refreshPriotities  = function(){
                                         'last_schedule':value['last_schedule']!=undefined?parseInt(value['last_schedule']):0,
                                         'seed':JSON.parse(value['seed'])
                                     });
-                                }else logger.debug(key+' status inactive, ignore it.');
+                                }else logger.debug('Ignore rule: '+key+', status inactive');
                                 scheduler.tmp_priotites_length--;
                                 if(scheduler.tmp_priotites_length<=0){
                                     scheduler.driller_rules = scheduler.tmp_driller_rules;

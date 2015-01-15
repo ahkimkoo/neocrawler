@@ -112,8 +112,12 @@ spider.prototype.wrapper_rules = function(key){
     var redis_cli = this.redis_cli0;
     redis_cli.hgetall(key, function(err,value){//for synchronized using object variable
         if(self.tmp_driller_rules==undefined)self.tmp_driller_rules = {};
-        if(self.tmp_driller_rules[value['domain']]==undefined)self.tmp_driller_rules[value['domain']]={};
-        self.tmp_driller_rules[value['domain']][value['alias']] = self.jsonSmartDeepParse(value);
+        var isActive = value['active']=='true'||value['active']==true||value['active']=='1'||value['active']==1?true:false;
+        if(isActive) {
+            logger.debug('Load rule: '+key);
+            if (self.tmp_driller_rules[value['domain']] == undefined)self.tmp_driller_rules[value['domain']] = {};
+            self.tmp_driller_rules[value['domain']][value['alias']] = self.jsonSmartDeepParse(value);
+        }else logger.debug('Ignore rule: '+key+', status inactive');
         self.tmp_driller_rules_length--;
         if(self.tmp_driller_rules_length<=0){
             self.driller_rules = self.tmp_driller_rules;
