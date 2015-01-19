@@ -57,10 +57,10 @@ var proxyManagement = {
 			callFunctions,
 			function(err, result){
 				if(err) {
-					console.log(err);
+					console.error(err);
 					return fn(err);
 				}
-				console.log("proxyList:", proxyList);
+//				console.log("proxyList:", proxyList);
 
 			return fn(err, proxyList);
 		});
@@ -86,10 +86,10 @@ var proxyManagement = {
 	create: function(key, proxy, fn){
 		client.rpush(key, proxy, function(err, result){
 			if(err){
-				console.log(err);
+				console.error(err);
 				return fn(err);
 			}
-			console.log("New proxy ", key, " was created.");
+//			console.log("New proxy ", key, " was created.");
 			return fn(err, result);
 		});
 	},
@@ -98,13 +98,13 @@ var proxyManagement = {
 	destroy: function(key, proxy, fn){
 		client.lrem(key, 0, proxy, function(err, result){
 			if(err){
-				console.log(err);
+				console.error(err);
 				return fn(err);
 			}
-			console.log("proxy ", key, " was deleted.");
+//			console.log("proxy ", key, " was deleted.");
 			return fn(err, result);
 		});
-	},
+	}
 }
 
 module.exports = proxyManagement;

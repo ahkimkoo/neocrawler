@@ -68,7 +68,7 @@ exports.search = function(req, res) {
 
     var domain = req.body.domain;
     req.session.searchBox = domain;
-    console.log('search:', domain);
+//    console.log('search:', domain);
     rule.getRulesByCondition(domain,function(err, result){
        rules = result; 
        req.session.list = rules;
@@ -92,7 +92,7 @@ exports.create = function(req, res) {
     var jsonobj = JSON.parse(jsonstr);
     var key = 'driller:' + jsonobj['domain'] + ':' + jsonobj['alias'];
 
-    console.log("key", key);
+//    console.log("key", key);
     //console.log("url:", urlencode(req.body.url_pattern));
 
     rule.create(key, jsonobj, function(err, result){
@@ -119,10 +119,10 @@ exports.show = function(req, res) {
 // delete a widget
 exports.destroy = function(req,res) {
    var id = req.params.id;
-   console.log("destroy id:", id);
+//   console.log("destroy id:", id);
    rule.destroy(id, function(err, obj){
       if(!err){
-          console.log('Rule', req.params.id, 'deleted.');  
+//          console.log('Rule', req.params.id, 'deleted.');
           rule.getDrillingRules(function(err, result){
           rules = result; 
           //res.render('rule/index', {title : 'Drilling rule', rules:result});
@@ -135,7 +135,7 @@ exports.destroy = function(req,res) {
 // display edit form
 exports.edit = function(req, res) {
   var id = req.params.id;
-  console.log("id:", id);
+//  console.log("id:", id);
    rule.displayOne(id, function(err, obj){
       if(obj){
 //        obj['id'] = id;
@@ -168,7 +168,7 @@ exports.update = function(req,res) {
     var key = 'driller:' + jsonobj['domain'] + ':' + jsonobj['alias'];
 
     //console.log("url:", urlencode(req.body.url_pattern));
-    console.log("edit update:", req.body.drill_rules);
+//    console.log("edit update:", req.body.drill_rules);
 
     //req.session.searchBox = req.body.domain;
 
@@ -188,7 +188,7 @@ exports.update = function(req,res) {
             rules = result; 
             req.session.list = rules;
             //res.render('rule/index', {title : 'Drilling rule', rules:result});
-            console.log('Rule', id, 'updated.'); 
+//            console.log('Rule', id, 'updated.');
             res.redirect('rule');
       });
 */

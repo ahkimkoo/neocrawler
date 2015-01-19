@@ -32,9 +32,9 @@ var drillingRule = {
 		// retrieve all of keys that match rule*
 		client.hlist('driller*', function(err, keys){
 			if(err){
-					console.log('ERROR:', err);
+					console.error('ERROR:', err);
 				}else{
-					console.log("keys : ", keys); 	
+//					console.log("keys : ", keys);
 
 					var callFunctions = new Array();
 
@@ -47,7 +47,7 @@ var drillingRule = {
 						callFunctions,
 						function(err, result){
 							if(err) {
-								console.log(err);
+								console.error(err);
 								return fn(err);
 							}
 
@@ -80,7 +80,7 @@ var drillingRule = {
 		// retrieve all of keys that match rule*
 		client.hlist(regex, function(err, keys){
 			if(err){
-					console.log('ERROR:', err);
+					console.error('ERROR:', err);
 				}else{
 
 					var callFunctions = new Array();
@@ -94,7 +94,7 @@ var drillingRule = {
 						callFunctions,
 						function(err, result){
 							if(err) {
-								console.log(err);
+								console.error(err);
 								return fn(err);
 							}
 						//console.log("succeed.", result);
@@ -111,10 +111,10 @@ var drillingRule = {
 	create: function(key, rule, fn){
 		client.hmset(key, rule, function(err, result){
 			if(err){
-				console.log(err);
+				console.error(err);
 				return fn(err);
 			}
-			console.log("New rule ", key, " was created.");
+//			console.log("New rule ", key, " was created.");
 			return fn(err, result);
 		});
 	},
@@ -123,7 +123,7 @@ var drillingRule = {
 	displayOne: function(id,fn){
 		client.hgetall(id, function(err, obj){
 			if(err) {
-				console.log(err);
+				console.error(err);
 				return fn(err);
 			}
 			return fn(err, obj);
@@ -134,25 +134,25 @@ var drillingRule = {
 	update: function(key, rule, fn){
 		client.hmset(key, rule, function(err, result){
 			if(err){
-				console.log(err);
+				console.error(err);
 				return fn(err);
 			}
 			client.set(UPDATED_TIME, new Date().getTime(), function(err, result){
 
 			});
-			console.log("rule ", key, " was updated.");
+//			console.log("rule ", key, " was updated.");
 			return fn(err, result);
 		});
 	},
 
 	// destroy a rule
-	destroy: function(id, fn){console.log(id);
+	destroy: function(id, fn){
 		client.hclear(id, function(err, obj){
 			if(err) {
-				console.log(err);
+				console.error(err);
 				return fn(err);
 			}
-			console.log("one rule:", id, " has been detroyed.");
+//			console.log("one rule:", id, " has been detroyed.");
 			return fn(err, obj);
 		});
 	}

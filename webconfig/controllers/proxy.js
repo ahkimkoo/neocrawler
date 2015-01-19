@@ -28,7 +28,7 @@ exports.index = function(req, res) {
    proxyManager.getProxyList(function(err, result){
      //proxyList = result;
      proxyList = [];
-        console.log("proxy list:", result);
+//        console.log("proxy list:", result);
        res.render('proxy/index', {title : 'Available Proxy List', proxyList:result});
    });  
 };
@@ -40,9 +40,9 @@ exports.new = function(req, res) {
 };
 
 exports.create = function(req, res) {
-    console.log("address:", req.body.address);
-    console.log("authorize:", req.body.authorize);
-    console.log("group:", req.body.group);
+//    console.log("address:", req.body.address);
+//    console.log("authorize:", req.body.authorize);
+//    console.log("group:", req.body.group);
 
     var group = req.body.group;
     var key;
@@ -51,7 +51,7 @@ exports.create = function(req, res) {
     }else{
       key = PROXY_V_PREFIX + group.substring(1);
     }
-    console.log("key:", key);    
+//    console.log("key:", key);
 
     template['address'] = req.body.address;
     template['authorize'] = req.body.authorize;
@@ -71,10 +71,10 @@ exports.destroy = function(req,res) {
   var host = req.params.host;
   var key = req.params.key;
 
-  console.log(host, key);
+//  console.log(host, key);
   proxyManager.destroy(key, host, function(err, result){
 
-        console.log('Host', host, 'deleted.');  
+//        console.log('Host', host, 'deleted.');
           
         if(!err) {
            

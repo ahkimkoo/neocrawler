@@ -51,7 +51,7 @@ webconfig.prototype.launch = function(settings){
 	  app.set('views', __dirname + '/views');
 	  app.set('view engine', 'ejs');
 	  app.use(express.favicon());
-	  app.use(express.logger('dev'));
+//	  app.use(express.logger('dev'));
 	  //
       app.use(express.cookieParser());
 	  app.use(express.session({secret: '1234567890QWERTY'}));
@@ -71,7 +71,7 @@ webconfig.prototype.launch = function(settings){
 	    throw new Error(req.url + ' not found');
 	  });
 	  app.use(function(err, req, res, next) {
-	    console.log(err);
+	    if(err)console.error(err);
 	    res.send(err.message);
 	  });
 	});
