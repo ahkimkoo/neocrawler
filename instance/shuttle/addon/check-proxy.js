@@ -50,8 +50,8 @@ var check_56pu = function(testurl,keywords){
     var dbtype = 'redis';
     if(settings['use_ssdb'])dbtype = 'ssdb';
     var max_quantity = 1000;
-    var api_addr = 'http://www.56pu.com/api?orderId=697468190602519&quantity=300&line=all&region=&regionEx=&beginWith=&ports=&vport=&speed=&anonymity=3&scheme=&duplicate=2&sarea=';
-    var echo_server_addr = 'http://echo.weishuju.cn/';//echo server:http://61.155.182.29:1337/
+    var api_addr = 'http://api.you.can.get.proxy.ip';
+    var echo_server_addr = 'http://your.echo.server';
 
     myredis.createClient(
         settings['proxy_info_redis_db'][0],

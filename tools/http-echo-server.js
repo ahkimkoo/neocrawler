@@ -16,5 +16,5 @@ http.createServer(function (req, res) {
             return new_headers;
         })(req.headers)
     }));
-}).listen(1337, "0.0.0.0");
-console.log('Http Echo Server running at http://127.0.0.1:1337/');
+}).listen(80, "0.0.0.0");
+console.log('Http Echo Server running at http://127.0.0.1:80/');

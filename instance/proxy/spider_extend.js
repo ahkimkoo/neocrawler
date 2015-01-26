@@ -118,7 +118,7 @@ spider_extend.prototype.__fetchProxy = function(crawled_info){
                     (function(ip,redis_cli){
                         var startTime = (new Date()).getTime();
                         request({
-                            'url': 'http://61.155.182.29:1337/',//echo server:http://echo.jsontest.com/key/value/one/two
+                            'url': 'http://your.echo.server/',//echo server:http://echo.jsontest.com/key/value/one/two
                             'headers': {
                                 "User-Agent": "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.57 Safari/537.36"
                             },
@@ -183,7 +183,7 @@ spider_extend.prototype.crawl_finish_alert = function(crawled_info){
     var self = this;
     if(self.myip)self.__fetchProxy(crawled_info);
     else{
-        httpRequest.request('http://61.155.182.29:1337/',null,null,null,30,false,function(err,status_code,content,page_encoding){//echo server:http://61.155.182.29:1337/
+        httpRequest.request('http://your.echo.server/',null,null,null,30,false,function(err,status_code,content,page_encoding){
                 if(err)throw err;
                 else{
                     var content_json = JSON.parse(content);
