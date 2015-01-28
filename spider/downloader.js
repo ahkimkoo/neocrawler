@@ -315,7 +315,7 @@ downloader.prototype.browseIt = function(urlinfo){
         if(spiderCore.spider.getDrillerRule(urlinfo['urllib'],'use_proxy')===true)useProxy=true;
     }
     if(useProxy){
-        var phantomjs = child_process.spawn('phantomjs', [
+        var phantomjs = child_process.spawn('./phantomjs', [
             '--proxy', this.spiderCore.settings['proxy_router'],
             '--load-images', 'false',
             '--local-to-remote-url-access','true',
@@ -326,7 +326,7 @@ downloader.prototype.browseIt = function(urlinfo){
                 'stdio':'pipe'}
         );
     }else{
-        var phantomjs = child_process.spawn('phantomjs', [
+        var phantomjs = child_process.spawn('./phantomjs', [
             '--load-images', 'false',
             '--local-to-remote-url-access','true',
             //'--cookies-file',path.join(__dirname,'..', 'instance',this.spiderCore.settings['instance'],'logs','cookies.log'),
