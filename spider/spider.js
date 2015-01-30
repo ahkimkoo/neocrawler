@@ -90,7 +90,7 @@ spider.prototype.refreshDrillerRules = function(){
         redis_cli.get('updated:driller:rule',function(err,value){
             if (err)throw(err);
             if(self.driller_rules_updated!==parseInt(value)){//driller is changed
-                logger.debug('driller rules is changed');
+                logger.info('driller rules is changed');
                 redis_cli.hlist('driller:*',function(err,values){
                     if (err)throw(err);
                     self.tmp_driller_rules = {};
@@ -114,7 +114,7 @@ spider.prototype.wrapper_rules = function(key){
         if(self.tmp_driller_rules==undefined)self.tmp_driller_rules = {};
         var isActive = value['active']=='true'||value['active']==true||value['active']=='1'||value['active']==1?true:false;
         if(isActive||self.spiderCore.settings['test']) {
-            logger.debug('Load rule: '+key);
+            logger.info('Load rule: '+key);
             if (self.tmp_driller_rules[value['domain']] == undefined)self.tmp_driller_rules[value['domain']] = {};
             self.tmp_driller_rules[value['domain']][value['alias']] = self.jsonSmartDeepParse(value);
         }else logger.debug('Ignore rule: '+key+', status inactive');
