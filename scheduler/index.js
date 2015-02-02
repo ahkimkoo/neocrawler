@@ -352,6 +352,22 @@ scheduler.prototype.checkURL = function(url,interval,callback){
                 logger.debug(util.format('Transform url: %s -> %s',url,t_url));
                 return scheduler.checkURL(t_url,interval,callback);
             }
+            var traceArr = values['trace'].split(':');
+            if(!scheduler.driller_rules[traceArr[2]]||!scheduler.driller_rules[traceArr[2]][traceArr[3]]){
+                logger.warn(url+' driller info expired, update it');
+                return (function(){
+                    var d_r = scheduler.detectLink(url);
+                    if(d_r){
+                        redis_cli1.hset(kk,'trace','urllib:'+d_r,function(){
+                            logger.debug(url+' trace changed '+values['trace']+' -> urllib:'+d_r);
+                            scheduler.checkURL(url,interval,callback);
+                        });
+                    }else{
+                        logger.error('no rule match '+url);
+                        callback(false);
+                    }
+                })()
+            }
         }
 
         var status = values['status'];

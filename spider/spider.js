@@ -208,8 +208,15 @@ spider.prototype.getUrlQueue = function(callback){
                         }else{
                             var drillerinfo = spider.getDrillerRules(link_info['trace']);
                                 if(drillerinfo==null){
-                                    logger.warn(link+', has no driller info!');
-                                    spider.getUrlQueue(callback);
+                                    redis_urlinfo_db.del(linkhash,function(err){
+                                        logger.warn(link+', has dirty driller info! clean it');
+                                        var urlinfo = spider.wrapLink(link);
+                                        if(urlinfo!=null)spider.spiderCore.emit('new_url_queue',urlinfo);
+                                        else{
+                                            logger.error('Cleaned dirty driller info for '+link+', but can not match any driller rule right now, ignore it.');
+                                            spider.getUrlQueue(callback);
+                                        }
+                                    });
                                 }else{
                                     var urlinfo = {
                                         "url":link,
