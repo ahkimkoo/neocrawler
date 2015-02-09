@@ -176,7 +176,8 @@ downloader.prototype.downloadItAct = function(urlinfo){
             "remote_proxy":res.headers['remoteproxy'],
             "drill_count":0,
             "cookie":res.headers['Cookie'],
-            "url":res.req.path,
+            "url":urlinfo['url'],
+            //"url":res.req.path,
             //"statusCode":res.statusCode,
             "origin":urlinfo
         };
