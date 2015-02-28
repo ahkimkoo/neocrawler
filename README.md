@@ -110,6 +110,7 @@ NEOCrawler(中文名：牛咖)，是nodejs、redis、phantomjs实现的爬虫系
 ##【运行】
 
 * 爬虫运行的基本步骤是: *
+
 + 在WEB界面配置抓取规则
 + 调试单个网址抓取是否正常
 + 运行调度器(调度器启动一个即可)
@@ -121,7 +122,7 @@ NEOCrawler(中文名：牛咖)，是nodejs、redis、phantomjs实现的爬虫系
 * 运行WEB配置(配置规则参考下一章说明)
 	> node run.js -i abc -a config -p 8888
 
-	在浏览器打开**http://localhost:8888**可以在web界面配置抓取规则
+	在浏览器打开 **http://localhost:8888** 可以在web界面配置抓取规则
 
 * 测试单个页面抓取
 	> node run.js -i abc -a test -l "http://domain/page/"
@@ -725,42 +726,52 @@ spider_extend.prototype.extract = function(extracted_info,callback){
 存储了抓取规则及网址
 
 * driller:{domain}:{alias}
+
 例如:driller:163.com:newslist, 大括号表示变量,下同. hash类型, 存储了抓取规则, 在web界面配置的规则存储在这里.
 
 * urllib:driller:{domain}:{alias}
+
 例如: urllib:driller:163.com:newslist. list类型, 存储了某种规则的网址队列, 爬虫发现符合抓取规则的网址时, 将其存入相应的队列, 调度器将从这些队列里摘取网址进行调度, 爬虫依据调度队列进行抓取, 整个过程循环反复.
 
 * queue:scheduled:all
+
 待抓取队列, list类型, 同一时间存在很多urllib(参照上面一个说明), 调度器会根据爬虫的总调度限制及queue:scheduled:all队列长度得出当前可追加队列长度, 再根据你在web配置中心配置的调度权重(priority, weight)从每个队列中抽取相应网址放入queue:scheduled:all, 爬虫将从queue:scheduled:all摘取网址进行抓取.
 
 * updated:driller:rule
+
 记录抓取规则配置的版本信息. 爬虫/调度器对爬虫规则的变更是热感应(实时刷新)的, 但是不可能每次调度(一个周期大概间隔几秒)都将所有规则扫描重新载入, 于是就采用版本记录的方式, web配置中心更改抓取规则后变更版本信息, 爬虫会重复检测这个键, 如果发现版本变化则重新加载抓取规则.
 
 ## url_info_redis_db
 该空间存储了网址信息, 抓取运行时间越长这里的数据量会越大
 
 * {url-md5-lowercase}
+
 例如: 9108d6a10bd476158144186138fe0ba8, hash类型, 记录了一个网址的详细信息, 在哪个页面被发现, 当前状态, 爬虫系统对该网址的操作轨迹(发现-调度-抓取-存储/失败等等)以及最后操作时间. 这些记录是调度器对二次发现网址是是否调度抓取的依据.
 
 ## url_report_redis_db
 该空间存储爬虫抓取报告
 
 * fail:urllib:driller:{domain}:{alias}
+
 例如: fail:urllib:driller:163.com:newslist, zset类型, 记录了抓取失败的网址.
 
 * stuck:urllib:driller:{domain}:{alias}
+
 例如: stuck:urllib:driller:163.com:newslist, zset类型, 记录了存储(hbase)失败的网址.
 
 抓取失败/存储失败的网址可以用tools/queue-helper.js添加到抓取队列重新抓取.
+
 注: 针对网络因素爬虫对于抓取失败本身已经做了重试操作, 重试次数可以在settings.json配置. 上面提到的抓取/存取失败是指爬虫多次尝试后依然失败的网址, 一般情况下是由于抓取规则不正确或者hbase故障引起的.
 
 * count:{date}
+
 例如: count:20150203, hash类型, 抓取行为的增量统计, 实例文件夹下spider_extend.js中各个定制化函数中有增量统计的语句,默认是注释的, 打开后会做增量统计. 在web配置中心Crawling Daily Report就可以看到统计结果了.
 
 ## proxy_info_redis_db
 该空间存储代理IP相关的数据
 
 * proxy:public:available:3s
+
 list类型, 当前可用的代理IP
 
 # 【联系作者】
