@@ -47,6 +47,7 @@ extractor.prototype.extract_link = function($,rules){
  * @private
  */
 extractor.prototype.__getTopLevelDomain = function(domain){
+    if(!domain)return null;
     var arr = domain.split('.');
     if(arr.length<=2)return domain;
     else return arr.slice(1).join('.');
@@ -85,7 +86,7 @@ extractor.prototype.detectLink = function(link){
     var urlobj = url.parse(link);
     var result = [];
     var domain = this.__getTopLevelDomain(urlobj['hostname']);
-    if(this.spiderCore.spider.driller_rules[domain]!=undefined){
+    if(domain && this.spiderCore.spider.driller_rules[domain]!=undefined){
         var alias = this.spiderCore.spider.driller_rules[domain];
         for(a in alias){
             var url_pattern  = decodeURIComponent(alias[a]['url_pattern']);
