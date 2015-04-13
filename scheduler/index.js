@@ -433,10 +433,8 @@ scheduler.prototype.updateLinkState = function(link,state,version,callback){
             var records_new = [];
             //only save the last three records of link records
             if(records.length > 3) {
-                for (var i = records.length - 3; i < records.length; i++) {
-                    records_new.push(records[i]);
-                }
                 logger.debug('link('+link+') records before intercepting: '+records);
+                records_new = records.slice(-3);
                 logger.debug('link('+link+') records after intercepting: '+records_new);
             }
             var valueDict = {
