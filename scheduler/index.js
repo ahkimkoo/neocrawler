@@ -430,8 +430,17 @@ scheduler.prototype.updateLinkState = function(link,state,version,callback){
                 }
             }
             records.push(state);
+            var records_new = [];
+            //only save the last three records of link records
+            if(records.length > 3) {
+                for (var i = records.length - 3; i < records.length; i++) {
+                    records_new.push(records[i]);
+                }
+                logger.debug('link('+link+') records before intercepting: '+records);
+                logger.debug('link('+link+') records after intercepting: '+records_new);
+            }
             var valueDict = {
-                'records':JSON.stringify(records),
+                'records':JSON.stringify(records_new),
                 'last':(new Date()).getTime(),
                 'status':state
             }
