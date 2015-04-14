@@ -397,16 +397,9 @@ spider.prototype.updateLinkState = function(link,state,callback){
                 }
             }
             records.push(state);
-            var records_new = [];
-            //only save the last three records of link records
-            if(records.length > 3) {
-                logger.debug('link('+link+') records before intercepting: '+records);
-                records_new = records.slice(-3);
-                logger.debug('link('+link+') records after intercepting: '+records_new);
-            }
             async.parallel([
                     function(cb){
-                        spider.redis_cli1.hmset(urlhash,{'records':JSON.stringify(records_new),'last':(new Date()).getTime(),'status':state},function(err,link_info){
+                        spider.redis_cli1.hmset(urlhash,{'records':JSON.stringify(records.length>3?records.slice(-3):records),'last':(new Date()).getTime(),'status':state},function(err,link_info){
                             if(err)logger.error('update state of link('+link+') fail: '+err);
                             else logger.debug('update state of link('+link+') success: '+state);
                             cb(err);
