@@ -295,8 +295,11 @@ downloader.prototype.downloadIt = function(urlinfo){
             if(err==null&&result==null){
                 self.downloadItAct(urlinfo);//if all return null, download it use http request
             }else{
-                if(err)spiderCore.emit('crawling_failure',urlinfo,err);
-                else spiderCore.emit('crawled',result);
+                if(err){
+                    spiderCore.emit('crawling_failure',urlinfo,err);
+                }else {
+                    spiderCore.emit('crawled',result);
+                }
             }
         });
     }else self.downloadItAct(urlinfo);
@@ -307,6 +310,7 @@ downloader.prototype.downloadIt = function(urlinfo){
  */
 downloader.prototype.browseIt = function(urlinfo){
     var spiderCore = this.spiderCore;
+    var browserTimeouter = false;
     if(this.spiderCore.settings['test']){
         urlinfo['test'] = true;
         urlinfo['ipath'] = path.join(__dirname,'..', 'instance',this.spiderCore.settings['instance'],'logs');
@@ -315,6 +319,7 @@ downloader.prototype.browseIt = function(urlinfo){
     if(urlinfo['urllib']&&spiderCore.settings['use_proxy']===true){
         if(spiderCore.spider.getDrillerRule(urlinfo['urllib'],'use_proxy')===true)useProxy=true;
     }
+    var browserStart = new Date();
     if(useProxy){
         var phantomjs = child_process.spawn('./phantomjs', [
             '--proxy', this.spiderCore.settings['proxy_router'],
@@ -341,13 +346,22 @@ downloader.prototype.browseIt = function(urlinfo){
     phantomjs.stdin.setEncoding('utf8');
     phantomjs.stdout.setEncoding('utf8');
 
-    phantomjs.on('error',function(err){logger.error(err);});
+    phantomjs.on('error',function(err){
+        logger.error('phantomjs error: '+err);
+        phantomjs.kill();
+        if(browserTimeouter){
+            clearTimeout(browserTimeouter);
+            browserTimeouter = false;
+        }
+    });
 
     var feedback = '';
     phantomjs.stdout.on('data', function(data) {
         data = data.trim();
         if(feedback==''&&!data.startsWith('{')){
             logger.warn('phantomjs: '+data);
+            spiderCore.emit('crawling_failure',urlinfo,'data do not startsWith { .');
+            phantomjs.kill();
         }else{
             feedback += data;
             if(data.endsWith('}#^_^#')){
@@ -370,23 +384,45 @@ downloader.prototype.browseIt = function(urlinfo){
         switch(feedback['signal']){
             case CMD_SIGNAL_CRAWL_SUCCESS:
                 spiderCore.emit('crawled',feedback);
+                phantomjs.kill();
                 break;
             case CMD_SIGNAL_CRAWL_FAIL:
                 logger.error(feedback.url+' crawled fail');
+                spiderCore.emit('crawling_failure',urlinfo,'phantomjs crawl failure');
                 phantomjs.kill();
-                if(feedback['url']==urlinfo['url'])spiderCore.emit('crawling_failure',urlinfo,'phantomjs crawl failure');
                 break;
             case CMD_SIGNAL_NAVIGATE_EXCEPTION:
                 logger.error(feedback.url+' navigate fail');
+                spiderCore.emit('crawling_failure',urlinfo,'phantomjs navigate failure');
                 phantomjs.kill();
                 break;
             default:
                 logger.debug('Phantomjs: '+data);
+                spiderCore.emit('crawling_failure',urlinfo,'phantomjs unknown failure');
+                phantomjs.kill();
+        }
+        if(browserTimeouter){
+            clearTimeout(browserTimeouter);
+            browserTimeouter = false;
         }
     });
 
+    browserTimeouter = setTimeout(function(){
+        if(phantomjs){
+            logger.error('Cost '+((new Date())-browserStart)+'ms browser timeout, '+urlinfo['url']);
+            phantomjs.kill();
+            phantomjs=null;
+            spiderCore.emit('crawling_failure',urlinfo,'browser timeout');
+        }
+    },spiderCore.settings['download_timeout']*1000);
+
     phantomjs.stderr.on('data', function (data) {
-        logger.error(data.toString('utf8'));
+        logger.error('phantomjs stderr: '+data.toString('utf8'));
+        phantomjs.kill();
+        if(browserTimeouter){
+            clearTimeout(browserTimeouter);
+            browserTimeouter = false;
+        }
     });
 
     phantomjs.on('exit', function (code) {
