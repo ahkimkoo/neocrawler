@@ -71,9 +71,22 @@ NEOCrawler(中文名：牛咖)，是nodejs、redis、phantomjs实现的爬虫系
 # 二、运行步骤
 
 ##【运行环境准备】
-* 安装好nodejs 环境，从git仓库clone源码到本地，在文件夹位置打开命令提示符，运行“npm install”安装依赖的模块；
+* 安装好nodejs 环境，从git仓库clone源码到本地，在文件夹位置打开命令提示符，运行“**npm install**”安装依赖的模块；
 * redis server安装（同时支持redis和ssdb，从节约内存的角度考虑，可以使用ssdb，在setting.json可以指定类型，下面会提到）。
-* hbase环境，抓取到网页、摘取到的数据将存储到hbase，hbase安装完毕后要将http rest服务开启，后面的配置中会用到，如果要使用其他的数据库存储，可以不安装hbase，下面的章节中将会讲到如何关闭hbase功能以及定制化自己的存储。
+* hbase环境，抓取到网页、摘取到的数据将存储到hbase，hbase安装完毕后要将http rest服务开启，后面的配置中会用到，如果要使用其他的数据库存储，可以不安装hbase，下面的章节中将会讲到如何关闭hbase功能以及定制化自己的存储。hbase shell中初始化hbase 列簇:
+
+```shell
+create 'crawled',{NAME => 'basic', VERSIONS => 3},{NAME=>"data",VERSIONS=>3},{NAME => 'extra', VERSIONS => 3}
+create 'crawled_bin',{NAME => 'basic', VERSIONS => 3},{NAME=>"binary",VERSIONS=>3}
+```
+
+推荐使用hbase rest方式, 当你启动hbase后, 在hbase目录的bin子目录下执行以下命令可以启动hbase rest:
+
+```shell
+./hbase-daemon.sh start rest
+```
+
+默认端口为8080, 下面配置中会用到.
 
 ##【实例配置】
 * 实例在instance目录下，拷贝一份example，重命名其他的实例名，例如：abc，以下说明中均使用该实例名举例。
@@ -777,6 +790,7 @@ list类型, 当前可用的代理IP
 # 【联系作者】
 * Email: <successage@gmail.com>,
 * Blog: <http://my.oschina.net/waterbear>
+* Issues: <http://git.oschina.net/dreamidea/neocrawler/issues?assignee_id=&issue_search=&label_name=&milestone_id=&scope=&sort=&status=all>
 * QQ群讨论: 3239305
 * QQ骚扰: 419117039
 * 微信骚扰： dreamidea
