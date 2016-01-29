@@ -1,54 +1,46 @@
 {
   "name": "neocrawler",
-
   "description": "Nodejs Distribute Crawler",
-
   "keywords": [
     "nodejs",
     "crawler",
     "phantomjs"
   ],
-
   "author": {
     "name": "James",
     "email": "successage@gmail.com",
     "url": "http://my.oschina.net/waterbear/blog"
   },
-
   "version": "2.0.0",
-
   "main": "./run.js",
-
   "bin": {
     "run": "./run.js"
   },
-
   "repository": {
     "type": "git",
     "url": "http://git.oschina.net/dreamidea/neocrawler.git"
   },
-
   "dependencies": {
-    "log4js": "0.6.9",
-    "optimist": "0.6.0",
-    "redis": ">=0.12.1",
-    "cheerio": "0.12.4",
-    "iconv-lite": "0.2.11",
-    "bufferhelper": "0.2.0",
     "async": ">=0.2.10",
-    "request": "2.33.0",
-    "thrift": "0.9.1",
-    "hbase": "0.1.6",
-    "protobufjs": "^2.2.1",
-    "zookeeper-watcher": "^0.2.0",
-    "readable-stream": "^1.0.26-4",
+    "bufferhelper": "0.2.0",
+    "cheerio": "0.12.4",
     "debug": "^1.0.0",
     "ejs": "0.8.5",
     "express": "3.3.4",
-    "stylus": "0.40.3",
+    "generic-pool": ">=2.1.1",
+    "hbase": "0.1.6",
+    "iconv-lite": "0.2.11",
+    "log4js": "0.6.9",
+    "mongodb": "^2.1.4",
     "mysql": "2.0.0",
-    "mongodb": ">=1.4.0-rc8",
-    "generic-pool": ">=2.1.1"
+    "optimist": "0.6.0",
+    "protobufjs": "^2.2.1",
+    "readable-stream": "^1.0.26-4",
+    "redis": ">=0.12.1",
+    "request": "2.33.0",
+    "stylus": "0.40.3",
+    "thrift": "0.9.1",
+    "zookeeper-watcher": "^0.2.0"
   },
   "scripts": {
     "start": "node run.js",

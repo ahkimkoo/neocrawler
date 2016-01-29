@@ -535,8 +535,10 @@ pipeline.prototype.save =function(extracted_info,callback){
                 fs.writeFile(resultfile,JSON.stringify(extracted_info),'utf8',function(err){
                     if (err)throw err;
                     logger.debug('Crawling result saved, '+resultfile);
-                    if(callback)callback(true);
-                    else process.exit(0);
+                    if('pipeline' in pipeline.spiderCore.spider_extend)pipeline.spiderCore.spider_extend.pipeline(extracted_info,function(){
+                        if(callback)callback(true);
+                        else process.exit(0);
+                    });
                 });
             });
         }
