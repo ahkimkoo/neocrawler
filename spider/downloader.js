@@ -137,14 +137,14 @@ downloader.prototype.downloadItAct = function(urlinfo){
     if(urlinfo['urllib']&&spiderCore.settings['use_proxy']===true){
         if(spiderCore.spider.getDrillerRule(urlinfo['urllib'],'use_proxy')===true)useProxy=true;
     }
-
+    
+    var urlobj = urlUtil.parse(pageLink);
     if(useProxy){
         var proxyRouter = spiderCore.settings['proxy_router'].split(':');
         var __host = proxyRouter[0];
         var __port = proxyRouter[1];
         var __path =  pageLink;
     }else{
-        var urlobj = urlUtil.parse(pageLink);
         var __host = urlobj['hostname'];
         var __port = urlobj['port'];
         var __path = urlobj['path'];
@@ -164,6 +164,7 @@ downloader.prototype.downloadItAct = function(urlinfo){
             "Accept-Encoding":"gzip",
             "Accept-Language":"zh-CN,zh;q=0.8,en-US;q=0.6,en;q=0.4",
             "Referer":urlinfo['referer']||'',
+            "host": urlobj['host'],
             "void-proxy":urlinfo['void_proxy']?urlinfo['void_proxy']:"",
             "Cookie":this.transCookieKvPair(urlinfo['cookie'])
         }
