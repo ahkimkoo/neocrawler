@@ -295,15 +295,15 @@ spider.prototype.detectLink = function(link){
     var domain = this.__getTopLevelDomain(urlobj['hostname']);
     if(this.driller_rules[domain]!=undefined){
         var alias = this.driller_rules[domain];
-        for(a in alias){
-            if(alias.hasOwnProperty(a)){
-                //var url_pattern  = decodeURIComponent(alias[a]['url_pattern']);
-                var url_pattern  = alias[a]['url_pattern'];
-                var patt = new RegExp(url_pattern);
-                if(patt.test(link)){
-                    result = 'driller:'+domain+':'+a;
-                    break;
-                }
+        var domain_rules = Object.keys(alias).sort(function(a,b){return alias[b]['url_pattern'].length - alias[a]['url_pattern'].length});
+        for(var i=0; i<domain_rules.length; i++){
+            var current_rule = domain_rules[i];
+            //var url_pattern  = decodeURIComponent(alias[current_rule]['url_pattern']);
+            var url_pattern  = alias[current_rule]['url_pattern'];
+            var patt = new RegExp(url_pattern);
+            if(patt.test(link)){
+                result = 'driller:'+domain+':'+current_rule;
+                break;
             }
         }
     }
