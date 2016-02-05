@@ -88,11 +88,13 @@ extractor.prototype.detectLink = function(link){
     var domain = this.__getTopLevelDomain(urlobj['hostname']);
     if(domain && this.spiderCore.spider.driller_rules[domain]!=undefined){
         var alias = this.spiderCore.spider.driller_rules[domain];
-        for(a in alias){
-            var url_pattern  = decodeURIComponent(alias[a]['url_pattern']);
+        var domain_rules = Object.keys(alias).sort(function(a,b){return alias[b]['url_pattern'].length - alias[a]['url_pattern'].length});
+        for(var i=0; i<domain_rules.length; i++){
+            var current_rule = domain_rules[i];
+            var url_pattern  = decodeURIComponent(alias[current_rule]['url_pattern']);
             var patt = new RegExp(url_pattern);
             if(patt.test(link)){
-                result = ['driller:'+domain+':'+a,alias[a]];
+                result = ['driller:'+domain+':'+current_rule,alias[current_rule]];
                 break;
             }
         }
