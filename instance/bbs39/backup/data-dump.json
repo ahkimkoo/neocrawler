@@ -1,0 +1,637 @@
+Hostname     54.223.104.125
+index: ''
+driller:39.net:home
+{
+  "domain": "39.net",
+  "url_pattern": "bbs.39.net$",
+  "alias": "home",
+  "id_parameter": [
+    "#"
+  ],
+  "encoding": "auto",
+  "type": "branch",
+  "save_page": false,
+  "format": "html",
+  "jshandle": false,
+  "extract_rule": {
+    "category": "crawled",
+    "rule": {}
+  },
+  "cookie": [],
+  "inject_jquery": false,
+  "load_img": false,
+  "drill_rules": [
+    "a"
+  ],
+  "drill_relation": {
+    "base": "content",
+    "mode": "css",
+    "expression": "title",
+    "pick": "text",
+    "index": 1
+  },
+  "validation_keywords": [],
+  "script": [],
+  "navigate_rule": [],
+  "stoppage": -1,
+  "priority": 4,
+  "weight": 10,
+  "schedule_interval": 86400,
+  "active": true,
+  "seed": [
+    "http://bbs.39.net"
+  ],
+  "schedule_rule": "FIFO",
+  "use_proxy": false,
+  "first_schedule": 0
+}
+
+
+driller:39.net:fitask
+{
+  "domain": "39.net",
+  "url_pattern": "/fitask/\\d+",
+  "alias": "fitask",
+  "id_parameter": [
+    "#"
+  ],
+  "encoding": "auto",
+  "type": "branch",
+  "save_page": false,
+  "format": "html",
+  "jshandle": false,
+  "extract_rule": {
+    "category": "crawled",
+    "rule": {}
+  },
+  "cookie": [],
+  "inject_jquery": false,
+  "load_img": false,
+  "drill_rules": [
+    "a"
+  ],
+  "drill_relation": {
+    "base": "content",
+    "mode": "css",
+    "expression": "title",
+    "pick": "text",
+    "index": 1
+  },
+  "validation_keywords": [],
+  "script": [],
+  "navigate_rule": [],
+  "stoppage": -1,
+  "priority": 4,
+  "weight": 10,
+  "schedule_interval": 86400,
+  "active": true,
+  "seed": [
+    "http://jianfei.39.net/fitask/27-32-1.html"
+  ],
+  "schedule_rule": "FIFO",
+  "use_proxy": false,
+  "first_schedule": 0
+}
+
+// baby ask
+
+{
+  "domain": "39.net",
+  "url_pattern": "/babyask/\\d+",
+  "alias": "babyask",
+  "id_parameter": [
+    "#"
+  ],
+  "encoding": "auto",
+  "type": "branch",
+  "save_page": false,
+  "format": "html",
+  "jshandle": false,
+  "extract_rule": {
+    "category": "crawled",
+    "rule": {}
+  },
+  "cookie": [],
+  "inject_jquery": false,
+  "load_img": false,
+  "drill_rules": [
+    "a"
+  ],
+  "drill_relation": {
+    "base": "content",
+    "mode": "css",
+    "expression": "title",
+    "pick": "text",
+    "index": 1
+  },
+  "validation_keywords": [],
+  "script": [],
+  "navigate_rule": [],
+  "stoppage": -1,
+  "priority": 4,
+  "weight": 10,
+  "schedule_interval": 86400,
+  "active": true,
+  "seed": [
+    "http://baby.39.net/babyask/14468-1-1.html"
+  ],
+  "schedule_rule": "FIFO",
+  "use_proxy": false,
+  "first_schedule": 0
+}
+
+
+
+//driller:39.net:forum
+
+
+{
+  "domain": "39.net",
+  "url_pattern": "/forum-",
+  "alias": "forum",
+  "id_parameter": [
+    "#"
+  ],
+  "encoding": "auto",
+  "type": "branch",
+  "save_page": false,
+  "format": "html",
+  "jshandle": false,
+  "extract_rule": {
+    "category": "crawled",
+    "rule": {}
+  },
+  "cookie": [],
+  "inject_jquery": false,
+  "load_img": false,
+  "drill_rules": [
+    "a"
+  ],
+  "drill_relation": {
+    "base": "content",
+    "mode": "css",
+    "expression": "title",
+    "pick": "text",
+    "index": 1
+  },
+  "validation_keywords": [],
+  "script": [],
+  "navigate_rule": [],
+  "stoppage": -1,
+  "priority": 4,
+  "weight": 10,
+  "schedule_interval": 86400,
+  "active": true,
+  "seed": [
+    "http://jianfei.39.net/forum-all.html",
+    "http://baby.39.net/bbs/forum-87-1.html",
+    "http://baby.39.net/bbs/forum-107-1.html",
+    "http://baby.39.net/bbs/forum-79-1.html",
+    "http://baby.39.net/bbs/forum-113-1.html",
+    "http://baby.39.net/bbs/forum-115-1.html"
+  ],
+  "schedule_rule": "FIFO",
+  "use_proxy": false,
+  "first_schedule": 0
+}
+
+//driller:39.net:topic
+{
+  "domain": "39.net",
+  "url_pattern": "/topic-",
+  "alias": "topic",
+  "id_parameter": [],
+  "encoding": "auto",
+  "type": "node",
+  "save_page": true,
+  "format": "html",
+  "jshandle": false,
+  "extract_rule": {
+    "category": "crawled",
+    "rule": {
+      "title": {
+        "base": "content",
+        "mode": "css",
+        "expression": "title",
+        "pick": "text",
+        "index": 1
+      },
+      "keywords": {
+        "base": "content",
+        "mode": "css",
+        "expression": "meta[name=keywords]",
+        "pick": "@content",
+        "index": -1
+      },
+      "description": {
+        "base": "content",
+        "mode": "css",
+        "expression": "meta[name=description]",
+        "pick": "@content",
+        "index": -1
+      },
+      "content": {
+        "base": "content",
+        "mode": "css",
+        "expression": ".arts .b_right>*:not(ul)",
+        "pick": "text",
+        "index": -1
+      },
+      "img": {
+        "base": "content",
+        "mode": "css",
+        "expression": ".arts .b_right img",
+        "pick": "@src",
+        "index": -1
+      }
+    }
+  },
+  "cookie": [],
+  "inject_jquery": false,
+  "load_img": false,
+  "drill_rules": [
+    "a"
+  ],
+  "drill_relation": {
+    "base": "content",
+    "mode": "css",
+    "expression": "title",
+    "pick": "text",
+    "index": 1
+  },
+  "validation_keywords": [],
+  "script": [],
+  "navigate_rule": [],
+  "stoppage": -1,
+  "priority": 1,
+  "weight": 10,
+  "schedule_interval": 86400,
+  "active": true,
+  "seed": [],
+  "schedule_rule": "FIFO",
+  "use_proxy": false,
+  "first_schedule": 0
+}
+
+
+//driller:39.net:article
+{
+  "domain": "39.net",
+  "url_pattern": "39.net/a/",
+  "alias": "article",
+  "id_parameter": [],
+  "encoding": "gb2312",
+  "type": "node",
+  "save_page": true,
+  "format": "html",
+  "jshandle": false,
+  "extract_rule": {
+    "category": "crawled",
+    "rule": {
+      "title": {
+        "base": "content",
+        "mode": "css",
+        "expression": "title",
+        "pick": "text",
+        "index": 1
+      },
+      "keywords": {
+        "base": "content",
+        "mode": "css",
+        "expression": "meta[name=keywords]",
+        "pick": "@content",
+        "index": -1
+      },
+      "description": {
+        "base": "content",
+        "mode": "css",
+        "expression": "meta[name=description]",
+        "pick": "@content",
+        "index": -1
+      },
+      "content": {
+        "base": "content",
+        "mode": "css",
+        "expression": "#contentText>p",
+        "pick": "text",
+        "index": -1
+      },
+      "img": {
+        "base": "content",
+        "mode": "css",
+        "expression": "#contentText>p img",
+        "pick": "@src",
+        "index": -1
+      }
+    }
+  },
+  "cookie": [],
+  "inject_jquery": false,
+  "load_img": false,
+  "drill_rules": [
+    "a"
+  ],
+  "drill_relation": {
+    "base": "content",
+    "mode": "css",
+    "expression": "title",
+    "pick": "text",
+    "index": 1
+  },
+  "validation_keywords": [],
+  "script": [],
+  "navigate_rule": [],
+  "stoppage": -1,
+  "priority": 1,
+  "weight": 10,
+  "schedule_interval": 86400,
+  "active": true,
+  "seed": [],
+  "schedule_rule": "FIFO",
+  "use_proxy": false,
+  "first_schedule": 0
+}
+
+//driller:39.net:thread
+{
+  "domain": "39.net",
+  "url_pattern": "/thread-",
+  "alias": "thread",
+  "id_parameter": [],
+  "encoding": "auto",
+  "type": "node",
+  "save_page": true,
+  "format": "html",
+  "jshandle": false,
+  "extract_rule": {
+    "category": "crawled",
+    "rule": {
+      "title": {
+        "base": "content",
+        "mode": "css",
+        "expression": "title",
+        "pick": "text",
+        "index": 1
+      },
+      "keywords": {
+        "base": "content",
+        "mode": "css",
+        "expression": "meta[name=keywords]",
+        "pick": "@content",
+        "index": -1
+      },
+      "description": {
+        "base": "content",
+        "mode": "css",
+        "expression": "meta[name=description]",
+        "pick": "@content",
+        "index": -1
+      },
+      "content": {
+        "base": "content",
+        "mode": "css",
+        "expression": "#postlist>div>table td.plc .pct .pcb .t_fsz table",
+        "pick": "text",
+        "index": -1
+      },
+      "img": {
+        "base": "content",
+        "mode": "css",
+        "expression": "#postlist>div>table td.plc .pct .pcb .t_fsz table ignore_js_op img",
+        "pick": "@src",
+        "index": -1
+      }
+    }
+  },
+  "cookie": [],
+  "inject_jquery": false,
+  "load_img": false,
+  "drill_rules": [
+    "a"
+  ],
+  "drill_relation": {
+    "base": "content",
+    "mode": "css",
+    "expression": "title",
+    "pick": "text",
+    "index": 1
+  },
+  "validation_keywords": [],
+  "script": [],
+  "navigate_rule": [],
+  "stoppage": -1,
+  "priority": 1,
+  "weight": 10,
+  "schedule_interval": 86400,
+  "active": true,
+  "seed": [],
+  "schedule_rule": "FIFO",
+  "use_proxy": false,
+  "first_schedule": 0
+}
+
+
+
+////
+
+
+{
+  "domain": "39.net",
+  "url_pattern": "news.39.net/\\w+/\\d+/\\d+.html",
+  "alias": "news",
+  "id_parameter": [],
+  "encoding": "gb2312",
+  "type": "node",
+  "save_page": true,
+  "format": "html",
+  "jshandle": false,
+  "extract_rule": {
+    "category": "crawled",
+    "rule": {
+      "title": {
+        "base": "content",
+        "mode": "css",
+        "expression": "title",
+        "pick": "text",
+        "index": 1
+      },
+      "keywords": {
+        "base": "content",
+        "mode": "css",
+        "expression": "meta[name=keywords]",
+        "pick": "@content",
+        "index": -1
+      },
+      "description": {
+        "base": "content",
+        "mode": "css",
+        "expression": "meta[name=description]",
+        "pick": "@content",
+        "index": -1
+      },
+      "content": {
+        "base": "content",
+        "mode": "css",
+        "expression": ".art_box *:not(script)",
+        "pick": "text",
+        "index": -1
+      },
+      "img": {
+        "base": "content",
+        "mode": "css",
+        "expression": ".art_box img, .conBox img",
+        "pick": "@src",
+        "index": -1
+      }
+    }
+  },
+  "cookie": [],
+  "inject_jquery": false,
+  "load_img": false,
+  "drill_rules": [],
+  "drill_relation": {
+    "base": "content",
+    "mode": "css",
+    "expression": "title",
+    "pick": "text",
+    "index": 1
+  },
+  "validation_keywords": [],
+  "script": [],
+  "navigate_rule": [],
+  "stoppage": -1,
+  "priority": 1,
+  "weight": 10,
+  "schedule_interval": 86400,
+  "active": true,
+  "seed": [],
+  "schedule_rule": "FIFO",
+  "use_proxy": false
+}
+
+
+///
+{
+  "domain": "39.net",
+  "url_pattern": "39.net",
+  "alias": "other",
+  "id_parameter": [
+    "#"
+  ],
+  "encoding": "auto",
+  "type": "branch",
+  "save_page": false,
+  "format": "html",
+  "jshandle": false,
+  "extract_rule": {
+    "category": "crawled",
+    "rule": {}
+  },
+  "cookie": [],
+  "inject_jquery": false,
+  "load_img": false,
+  "drill_rules": [
+    "a"
+  ],
+  "drill_relation": {
+    "base": "content",
+    "mode": "css",
+    "expression": "title",
+    "pick": "text",
+    "index": 1
+  },
+  "validation_keywords": [],
+  "script": [],
+  "navigate_rule": [],
+  "stoppage": -1,
+  "priority": 10,
+  "weight": 10,
+  "schedule_interval": 86400,
+  "active": true,
+  "seed": [],
+  "schedule_rule": "FIFO",
+  "use_proxy": false,
+  "first_schedule": 0
+}
+
+
+
+/// topic2
+
+
+{
+  "domain": "39.net",
+  "url_pattern": "39.net/\\w+/topic/\\d+.html",
+  "alias": "topic2",
+  "id_parameter": [],
+  "encoding": "auto",
+  "type": "node",
+  "save_page": true,
+  "format": "html",
+  "jshandle": false,
+  "extract_rule": {
+    "category": "crawled",
+    "rule": {
+      "title": {
+        "base": "content",
+        "mode": "css",
+        "expression": "title",
+        "pick": "text",
+        "index": 1
+      },
+      "keywords": {
+        "base": "content",
+        "mode": "css",
+        "expression": "meta[name=keywords]",
+        "pick": "@content",
+        "index": -1
+      },
+      "description": {
+        "base": "content",
+        "mode": "css",
+        "expression": "meta[name=description]",
+        "pick": "@content",
+        "index": -1
+      },
+      "content": {
+        "base": "content",
+        "mode": "css",
+        "expression": "#divContent .main",
+        "pick": "text",
+        "index": -1
+      },
+      "img": {
+        "base": "content",
+        "mode": "css",
+        "expression": "#divContent .main img",
+        "pick": "@src",
+        "index": -1
+      }
+    }
+  },
+  "cookie": [],
+  "inject_jquery": false,
+  "load_img": false,
+  "drill_rules": [
+    "a"
+  ],
+  "drill_relation": {
+    "base": "content",
+    "mode": "css",
+    "expression": "title",
+    "pick": "text",
+    "index": 1
+  },
+  "validation_keywords": [],
+  "script": [],
+  "navigate_rule": [],
+  "stoppage": -1,
+  "priority": 1,
+  "weight": 10,
+  "schedule_interval": 86400,
+  "active": true,
+  "seed": [],
+  "schedule_rule": "FIFO",
+  "use_proxy": false,
+  "first_schedule": 0
+}
