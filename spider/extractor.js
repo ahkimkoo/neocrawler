@@ -94,7 +94,7 @@ extractor.prototype.detectLink = function(link){
             var url_pattern  = decodeURIComponent(alias[current_rule]['url_pattern']);
             var patt = new RegExp(url_pattern);
             if(patt.test(link)){
-                result = ['driller:'+domain+':'+current_rule,alias[current_rule]];
+              result = [`driller:${this.spiderCore.settings['instance']}:${domain}:${current_rule}`, alias[current_rule]];
                 break;
             }
         }
@@ -215,7 +215,7 @@ extractor.prototype.extract = function(crawl_info){
 extractor.prototype.extract_data = function(url,content,extract_rule,uppper_data,dom){
     var data = {};
     var self = this;
-    if(extract_rule['category'])data['$category'] = extract_rule['category'];
+    if(extract_rule['category'])data['category'] = extract_rule['category'];
 //    if(extract_rule['require'])data['$require'] = extract_rule['require'];
     if(extract_rule['relate'])data['relate'] = uppper_data[extract_rule['relate']];
     for(i in extract_rule['rule']){
@@ -280,12 +280,12 @@ extractor.prototype.extract_data = function(url,content,extract_rule,uppper_data
         }
         if(!isEmpty(lacks)){
             logger.error(url + ' extracted data lacks of '+lacks.join(','));
-            self.spiderCore.spider.redis_cli2.zadd('incomplete:data:url',(new Date()).getTime(),url,function(err,result){
+            self.spiderCore.spider.urlReportRedis.zadd('incomplete:data:url',(new Date()).getTime(),url,function(err,result){
                 //nothing
             });
             if('data_lack_alert' in self.spiderCore.spider_extend)self.spiderCore.spider_extend.data_lack_alert(url,lacks);
         }else{
-            self.spiderCore.spider.redis_cli2.zrem('incomplete:data:url',url,function(err,result){
+            self.spiderCore.spider.urlReportRedis.zrem('incomplete:data:url',url,function(err,result){
                 //nothing
             });
         }

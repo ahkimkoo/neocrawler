@@ -4,8 +4,8 @@
  */
 var crypto = require('crypto');
 var redis = require("redis");
-var HBase = require('../lib/node_hbase/index.js');
-var hbase_http = require('hbase');
+// var HBase = require('../lib/node_hbase/index.js');
+// var hbase_http = require('hbase');
 var os = require("os");
 var async = require('async');
 var urlUtil =  require("url");
@@ -22,40 +22,40 @@ var pipeline = function(spiderCore){
 ////report to spidercore standby////////////////////////
 pipeline.prototype.assembly = function(callback){
     var spiderCore = this.spiderCore;
-    this.hbase_via_http = false;
-    if(spiderCore.settings['crawled_hbase_conf'] instanceof Array)this.hbase_via_http  = true;
-    if(this.spiderCore.settings['save_content_to_hbase']===true){
-        if(this.hbase_via_http){
-            this.hbase_cli = hbase_http({
-                host:this.spiderCore.settings['crawled_hbase_conf'][0],
-                port:this.spiderCore.settings['crawled_hbase_conf'][1]
-            });
-            this.HBASE_TABLE = this.hbase_cli.getTable(this.spiderCore.settings['crawled_hbase_table']);
-            this.HBASE_BIN_TABLE = this.hbase_cli.getTable(this.spiderCore.settings['crawled_hbase_bin_table']);
-        }else{
-            this.HBASE_POOL = poolModule.Pool({
-                name     : 'hbase_pool',
-                create   : function(hbase_callback) {
-                    logger.debug('Create a hbase connection.');
-                    hbase_callback(null,HBase(spiderCore.settings['crawled_hbase_conf']));
-                },
-                destroy  : function(db) {
-                    logger.debug('Destroy a hbase connection.');
-                    db = null;
-                },
-                max      : this.spiderCore.settings['spider_concurrency'],
-                idleTimeoutMillis : 30000,
-                log : false
-            });
-//            this.hbase_cli = HBase(this.spiderCore.settings['crawled_hbase_conf']);
-            this.HBASE_TABLE = this.spiderCore.settings['crawled_hbase_table'];
-            this.HBASE_BIN_TABLE = this.spiderCore.settings['crawled_hbase_bin_table'];
-        }
-    }
+    // this.hbase_via_http = false;
+    // if(spiderCore.settings['crawled_hbase_conf'] instanceof Array)this.hbase_via_http  = true;
+//     if(this.spiderCore.settings['save_content_to_hbase']===true){
+//         if(this.hbase_via_http){
+//             this.hbase_cli = hbase_http({
+//                 host:this.spiderCore.settings['crawled_hbase_conf'][0],
+//                 port:this.spiderCore.settings['crawled_hbase_conf'][1]
+//             });
+//             this.HBASE_TABLE = this.hbase_cli.getTable(this.spiderCore.settings['crawled_hbase_table']);
+//             this.HBASE_BIN_TABLE = this.hbase_cli.getTable(this.spiderCore.settings['crawled_hbase_bin_table']);
+//         }else{
+//             this.HBASE_POOL = poolModule.Pool({
+//                 name     : 'hbase_pool',
+//                 create   : function(hbase_callback) {
+//                     logger.debug('Create a hbase connection.');
+//                     hbase_callback(null,HBase(spiderCore.settings['crawled_hbase_conf']));
+//                 },
+//                 destroy  : function(db) {
+//                     logger.debug('Destroy a hbase connection.');
+//                     db = null;
+//                 },
+//                 max      : this.spiderCore.settings['spider_concurrency'],
+//                 idleTimeoutMillis : 30000,
+//                 log : false
+//             });
+// //            this.hbase_cli = HBase(this.spiderCore.settings['crawled_hbase_conf']);
+//             this.HBASE_TABLE = this.spiderCore.settings['crawled_hbase_table'];
+//             this.HBASE_BIN_TABLE = this.spiderCore.settings['crawled_hbase_bin_table'];
+//         }
+//     }
 
-    this.redis_cli0 = spiderCore.spider.redis_cli0;
-    this.redis_cli1 = spiderCore.spider.redis_cli1;
-    this.redis_cli2 = spiderCore.spider.redis_cli2;
+  this.drillerInfoRedis = spiderCore.spider.drillerInfoRedis;
+  this.urlInfoRedis = spiderCore.spider.urlInfoRedis;
+  this.reportInfoRedis = spiderCore.spider.reportInfoRedis;
     if(callback)callback(null,'done');
 }
 /**
@@ -65,8 +65,8 @@ pipeline.prototype.assembly = function(callback){
  */
 pipeline.prototype.save_links = function(page_url,version,linkobjs,drill_relation,callback){
     var spiderCore = this.spiderCore;
-    var redis_cli0 = this.redis_cli0;
-    var redis_cli1 = this.redis_cli1;
+    var drillerInfoRedis = this.drillerInfoRedis;
+    var urlInfoRedis = this.urlInfoRedis;
     var aliasArr = Object.keys(linkobjs);
     var linkCount = 0;
     var index = 0;
@@ -77,8 +77,8 @@ pipeline.prototype.save_links = function(page_url,version,linkobjs,drill_relatio
             var alias = aliasArr[index];
             var links = linkobjs[alias];
             var t_alias_arr = alias.split(':');
-            var drill_alias = t_alias_arr[3];
-            var domain = t_alias_arr[2];
+            var drill_alias = t_alias_arr[4];
+            var domain = t_alias_arr[3];
             if(!spiderCore.spider.driller_rules[domain]||!spiderCore.spider.driller_rules[domain][drill_alias]){
                 logger.error(alias+' not in configuration');
                 cb(new Error('Drill rule not found'));
@@ -119,7 +119,7 @@ pipeline.prototype.save_links = function(page_url,version,linkobjs,drill_relatio
                         function(final_link, mcb){
                             if(final_link!=link)logger.debug('Transform: ' + link + ' -> '+final_link);
                             var urlhash = crypto.createHash('md5').update(final_link+'').digest('hex');
-                            redis_cli1.hgetall(urlhash,function(err, value){
+                            urlInfoRedis.hgetall(urlhash,function(err, value){
                                 mcb(err,final_link,urlhash,value);
                             });
                         },
@@ -163,7 +163,7 @@ pipeline.prototype.save_links = function(page_url,version,linkobjs,drill_relatio
                                     logger.debug(final_link+' keep the version: '+values['version']);
                                 }
                                 if(!isEmpty(ctc)){
-                                    redis_cli1.hmset(urlhash,ctc,function(err, svalue){
+                                    urlInfoRedis.hmset(urlhash,ctc,function(err, svalue){
                                         if(err){logger.error(err);}
                                         logger.debug('update url('+final_link+') version, '+t_version+' -> '+version);
                                         mcb(err,final_link,validate);
@@ -184,7 +184,7 @@ pipeline.prototype.save_links = function(page_url,version,linkobjs,drill_relatio
                                 if(spiderCore.settings['keep_link_relation']){
                                     vv['drill_relation'] = drill_relation?drill_relation:'*';
                                 }
-                                redis_cli1.hmset(urlhash,vv,function(err, value){
+                                urlInfoRedis.hmset(urlhash,vv,function(err, value){
                                     if (err) throw(err);
                                     logger.debug(' save new url('+link+') to urlinfo.');
                                     mcb(null,final_link,true);
@@ -194,7 +194,7 @@ pipeline.prototype.save_links = function(page_url,version,linkobjs,drill_relatio
                         ////save link to urllib////////////
                         function(final_link,validate,mcb){
                             if(validate){
-                                redis_cli0.rpush(alias,final_link,function(err, value){
+                                drillerInfoRedis.rpush(alias,final_link,function(err, value){
                                     if(err)throw(err);
                                     logger.debug('push url: '+link+' to urllib: '+alias);
                                     mcb(err,value);
@@ -266,7 +266,7 @@ pipeline.prototype.save_content = function(pageurl,content,extracted_data,js_res
         if(err){
             self.HBASE_POOL.release(db);
             logger.error(pageurl+', connect to hbase error: '+err);
-            self.redis_cli2.zadd('stuck:'+urllib,(new Date()).getTime(),pageurl,function(err,result){
+            self.urlReportRedis.zadd('stuck:'+urllib,(new Date()).getTime(),pageurl,function(err,result){
                 if(err)throw err;
                 logger.debug('append '+pageurl+' to stuck record');
                 if(callback)callback(err);
@@ -276,14 +276,14 @@ pipeline.prototype.save_content = function(pageurl,content,extracted_data,js_res
                 self.HBASE_POOL.release(db);
                 if(err){
                     logger.error(pageurl+', data insert to hbase error: '+err);
-                    self.redis_cli2.zadd('stuck:'+urllib,(new Date()).getTime(),pageurl,function(err,result){
+                    self.urlReportRedis.zadd('stuck:'+urllib,(new Date()).getTime(),pageurl,function(err,result){
                         if(err)throw err;
                         logger.debug('append '+pageurl+' to stuck record');
                         if(callback)callback(err);
                     });
                 }else{
                     logger.info(pageurl+', data insert to hbase cost '+((new Date()).getTime()-start_time)+' ms');
-                    self.redis_cli2.zrem('stuck:'+urllib,pageurl,function(err,result){
+                    self.urlReportRedis.zrem('stuck:'+urllib,pageurl,function(err,result){
                         if(err)throw err;
                         logger.debug('remove '+pageurl+' from stuck record');
                         if(callback)callback(err);
@@ -358,14 +358,14 @@ pipeline.prototype.save_content_vhttp = function(pageurl,content,extracted_data,
             logger.info('insert content extracted from '+pageurl+', cost: '+((new Date()).getTime() - start_time)+' ms');
             if(err){
                 logger.error(pageurl+', data insert to hbase error: '+err);
-                self.redis_cli2.zadd('stuck:'+urllib,(new Date()).getTime(),pageurl,function(err,result){
+                self.urlReportRedis.zadd('stuck:'+urllib,(new Date()).getTime(),pageurl,function(err,result){
                     if(err)throw err;
                     logger.debug('append '+pageurl+' to stuck record');
                     if(callback)callback(err);
                 });
             }else{
                 logger.info(pageurl+', data insert to hbase cost '+((new Date()).getTime()-start_time)+' ms');
-                self.redis_cli2.zrem('stuck:'+urllib,pageurl,function(err,result){
+                self.urlReportRedis.zrem('stuck:'+urllib,pageurl,function(err,result){
                     if(err)throw err;
                     logger.debug('remove '+pageurl+' from stuck record');
                     if(callback)callback(err);
@@ -377,131 +377,7 @@ pipeline.prototype.save_content_vhttp = function(pageurl,content,extracted_data,
 //        });
     }catch(e){
         logger.error(pageurl+', data insert to hbase error: '+e);
-        self.redis_cli2.zadd('stuck:'+urllib,(new Date()).getTime(),pageurl,function(err,result){
-            if(err)throw err;
-            logger.debug('append '+pageurl+' to stuck record');
-            if(callback)callback(err);
-        });
-    }
-}
-
-pipeline.prototype.save_binary = function(pageurl,content,referer,urllib,drill_relation,callback){
-    if(this.hbase_via_http)return this.save_binary_vhttp(pageurl,content,referer,urllib,drill_relation,callback);
-
-    var url_hash = crypto.createHash('md5').update(pageurl+'').digest('hex');
-    var spider = os.hostname()+'-'+process.pid;
-    var start_time = (new Date()).getTime();
-    var self = this;
-
-    var put = new HBase.Put(url_hash);
-    put.add('basic','spider',spider);
-    put.add('basic','url',pageurl);
-    put.add('binary','file',content);
-    put.add('basic','referer',referer);
-    put.add('basic','urllib',urllib);
-    put.add('basic','updated',(new Date()).getTime().toString());
-
-    self.HBASE_POOL.acquire(function(err, db) {
-        if(err) {
-            self.HBASE_POOL.release(db);
-            logger.error(pageurl+', data connect to hbase error: '+err);
-            self.redis_cli2.zadd('stuck:'+urllib,(new Date()).getTime(),pageurl,function(err,result){
-                if(err)throw err;
-                logger.debug('append '+pageurl+' to stuck record');
-                if(callback)callback(err);
-            });
-        }else{
-            db.put(this.HBASE_BIN_TABLE, put, function (err,res) {
-                self.HBASE_POOL.release(db);
-                if(err){
-                    logger.error(pageurl+', data insert to hbase error: '+err);
-                    self.redis_cli2.zadd('stuck:'+urllib,(new Date()).getTime(),pageurl,function(err,result){
-                        if(err)throw err;
-                        logger.debug('append '+pageurl+' to stuck record');
-                        if(callback)callback(err);
-                    });
-                }else{
-                    logger.info(pageurl+', data insert to hbase cost '+((new Date()).getTime()-start_time)+' ms');
-                    self.redis_cli2.zrem('stuck:'+urllib,pageurl,function(err,result){
-                        if(err)throw err;
-                        logger.debug('remove '+pageurl+' from stuck record');
-                        if(callback)callback(err);
-                    });
-                }
-            });
-        }
-    });
-}
-
-/**
- * save binary to hbase via http
- * @param pageurl
- * @param content
- * @param referer
- * @param urllib
- * @param drill_relation
- * @param callback
- */
-pipeline.prototype.save_binary_vhttp = function(pageurl,content,referer,urllib,drill_relation,callback){
-    var url_hash = crypto.createHash('md5').update(pageurl+'').digest('hex');
-    var spider = os.hostname()+'-'+process.pid;
-    var start_time = (new Date()).getTime();
-    var self = this;
-
-    var keylist = [
-        'basic:spider',
-        'basic:url',
-        'basic:updated'
-    ];
-    var valuelist = [
-        spider,
-        pageurl,
-        (new Date()).getTime().toString()
-    ];
-
-    if(referer){
-        keylist.push('basic:referer');
-        valuelist.push(referer);
-    }
-
-    if(urllib){
-        keylist.push('basic:urllib');
-        valuelist.push(urllib);
-    }
-
-    if(drill_relation){
-        keylist.push('basic:drill_relation');
-        valuelist.push(drill_relation);
-    }
-
-    if(content){
-        keylist.push('binary:file');
-        valuelist.push(content);
-    }
-
-    var row = this.HBASE_BIN_TABLE.getRow(url_hash);
-    try{
-        row.put(keylist,valuelist,function(err,success){
-            logger.info('insert content extracted from '+pageurl+', cost: '+((new Date()).getTime() - start_time)+' ms');
-            if(err){
-                logger.error(pageurl+', data insert to hbase error: '+err);
-                self.redis_cli2.zadd('stuck:'+urllib,(new Date()).getTime(),pageurl,function(err,result){
-                    if(err)throw err;
-                    logger.debug('append '+pageurl+' to stuck record');
-                    if(callback)callback(err);
-                });
-            }else{
-                logger.info(pageurl+', data insert to hbase cost '+((new Date()).getTime()-start_time)+' ms');
-                self.redis_cli2.zrem('stuck:'+urllib,pageurl,function(err,result){
-                    if(err)throw err;
-                    logger.debug('remove '+pageurl+' from stuck record');
-                    if(callback)callback(err);
-                });
-            }
-        });
-    }catch(e){
-        logger.error(pageurl+', data insert to hbase error(2): '+e);
-        self.redis_cli2.zadd('stuck:'+urllib,(new Date()).getTime(),pageurl,function(err,result){
+        self.urlReportRedis.zadd('stuck:'+urllib,(new Date()).getTime(),pageurl,function(err,result){
             if(err)throw err;
             logger.debug('append '+pageurl+' to stuck record');
             if(callback)callback(err);
@@ -548,28 +424,28 @@ pipeline.prototype.save =function(extracted_info,callback){
                     if(extracted_info['drill_link'])pipeline.save_links(extracted_info['url'],extracted_info['origin']['version'],extracted_info['drill_link'],extracted_info['drill_relation'],cb);
                     else cb(null);
                 },
-                function(cb){
-                    if(pipeline.spiderCore.settings['save_content_to_hbase']===true&&extracted_info['origin']['type']=='node'){//type must be node
-                        if(extracted_info['origin']['format']=='binary'){
-                            pipeline.save_binary(extracted_info['url'],extracted_info['content'],extracted_info['origin']['referer'],extracted_info['origin']['urllib'],extracted_info['drill_relation'],cb);
-                        }else{
-                            var html_content = extracted_info['content'];
-                            if(!extracted_info['origin']['save_page'])html_content = false;
-                            pipeline.save_content(
-                                extracted_info['url'],
-                                html_content,
-                                extracted_info['extracted_data'],
-                                extracted_info['js_result'],
-                                extracted_info['origin']['referer'],
-                                extracted_info['origin']['urllib'],
-                                extracted_info['drill_relation'],
-                                function(s_err){
-					                if(!s_err && 'save_content_alert' in pipeline.spiderCore.spider_extend)pipeline.spiderCore.spider_extend.save_content_alert(extracted_info);//report
-					                cb(s_err);
-				            });
-                        }
-                    }else cb(null);
-                },
+                // function(cb){
+                //     if(pipeline.spiderCore.settings['save_content_to_hbase']===true&&extracted_info['origin']['type']=='node'){//type must be node
+                //         if(extracted_info['origin']['format']=='binary'){
+                //             pipeline.save_binary(extracted_info['url'],extracted_info['content'],extracted_info['origin']['referer'],extracted_info['origin']['urllib'],extracted_info['drill_relation'],cb);
+                //         }else{
+                //             var html_content = extracted_info['content'];
+                //             if(!extracted_info['origin']['save_page'])html_content = false;
+                //             pipeline.save_content(
+                //                 extracted_info['url'],
+                //                 html_content,
+                //                 extracted_info['extracted_data'],
+                //                 extracted_info['js_result'],
+                //                 extracted_info['origin']['referer'],
+                //                 extracted_info['origin']['urllib'],
+                //                 extracted_info['drill_relation'],
+                //                 function(s_err){
+					       //          if(!s_err && 'save_content_alert' in pipeline.spiderCore.spider_extend)pipeline.spiderCore.spider_extend.save_content_alert(extracted_info);//report
+					       //          cb(s_err);
+				         //    });
+                //         }
+                //     }else cb(null);
+                // },
                 function(cb){
                     if('pipeline' in pipeline.spiderCore.spider_extend)pipeline.spiderCore.spider_extend.pipeline(extracted_info,cb);//spider extend
                     else cb(null);

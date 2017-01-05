@@ -1,0 +1,39 @@
+{
+  "crawler": {
+    "use_proxy": false,
+    "proxy_router": "127.0.0.1:2013",
+    "download_timeout": 60,
+    "spider_concurrency": 5,
+    "spider_request_delay": 0,
+    "schedule_interval": 60,
+    "schedule_quantity_limitation": 200,
+    "check_driller_rules_interval": 120,
+    "download_retry": 2,
+    "log_level": "DEBUG",
+    "use_ssdb": false,
+    "to_much_fail_exit": false,
+    "save_content_to_hbase": false,
+    "keep_link_relation": false
+  },
+  "mongodb": {
+  },
+  "redis": {
+    "drillerInfo": "redis://127.0.0.1:6379/0",
+    "urlInfo": "redis://127.0.0.1:6379/1",
+    "urlReport": "redis://127.0.0.1:6379/2",
+    "proxyInfo": "redis://127.0.0.1:6379/3"
+  },
+  "elasticSearch": {
+  },
+  "hbase": {
+    "hosts": [
+      "127.0.0.1:2181"
+    ],
+    "crawledTable": "crawled",
+    "crawledBinTable": "crawled_bin"
+  },
+  "instance": {
+    "example": {
+    }
+  }
+}
