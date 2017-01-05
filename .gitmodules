@@ -1,0 +1,3 @@
+[submodule "instance"]
+	path = instance
+	url = git@github.com:veryci/neocrawler-instance.git
