@@ -6,7 +6,7 @@ var util = require('util');
 var events = require('events');
 var url =  require("url");
 var async  = require('async');
-var myredis = require('../lib/myredis.js');
+var redis = require('../lib/redis.js');
 require('../lib/jsextend.js');
 var logger;
 var PROXY_KEYS = 'proxy:public:available:3s';
@@ -27,17 +27,18 @@ util.inherits(proxyRouter, events.EventEmitter);//eventemitter inherits
  */
 proxyRouter.prototype.start = function(){
     var self = this;
-    var dbtype = 'redis';
-    if(self.settings['use_ssdb'])dbtype = 'ssdb';
-    myredis.createClient(
-        self.settings['proxy_info_redis_db'][0],
-        self.settings['proxy_info_redis_db'][1],
-        self.settings['proxy_info_redis_db'][2],
-        dbtype,
-        function(err,cli){
-            self.redis_cli3 = cli;
+    // var dbtype = 'redis';
+    // if(self.settings['use_ssdb'])dbtype = 'ssdb';
+    // myredis.createClient(
+    //     self.settings['proxy_info_redis_db'][0],
+    //     self.settings['proxy_info_redis_db'][1],
+    //     self.settings['proxy_info_redis_db'][2],
+    //     dbtype,
+    //     function(err,cli){
+    //         self.redis_cli3 = cli;
+    //     });
+  self.redis_cli3=redis.proxyInfoRedis;
             self.proxyDaemon();
-        });
 }
 
 /**
