@@ -1,8 +1,8 @@
 /**
- * ux crawler entrance 
+ * ux crawler entrance
  */
 ////log setting////////////////////////////////////////////////////////////////////
-var logging = require('./lib/logging.js'); 
+var logging = require('./lib/logging.js');
 ////arguments parse///////////////////////////////////////////////////////////////
 var userArgv = require('optimist')
 .usage('Usage: $0 -i [instance name] -a [crawl|test|config|proxy|schedule]  -p [num] -l[url] -h')
@@ -55,7 +55,7 @@ var proxyService = function(){
 	settings['logger'] = logger;
 	settings['port'] = parseInt(options['p']);
 	var proxyRouter = new (require('./proxyrouter'))(settings);
-	
+
 	proxyRouter.start();
 }
 ////config service////////////////////////////////////////////////////////////
@@ -64,8 +64,8 @@ var configService = function(){
 	settings['logger'] = logger;
 	settings['port'] = parseInt(options['p']);
 	var webConfig = new(require('./webconfig'))(settings);
-	
-	webConfig.start();	
+
+	webConfig.start();
 }
 ////scheduler///////////////////////////////////////////////////////////////
 var schedule = function(){
@@ -89,6 +89,10 @@ var testUrl = function(){
     }
 }
 
+const load = () => {
+  require('./util/im').load(settings);
+};
+
 ////route/////////////////////////////////////////////////////////////////////
 switch(options['a']){
 case 'crawl':
@@ -105,6 +109,9 @@ case 'schedule':
     break;
 case 'test':
     testUrl();
+    break;
+case 'load':
+    load();
     break;
 default:
 	userArgv.showHelp();
