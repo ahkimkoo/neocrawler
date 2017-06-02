@@ -23,6 +23,7 @@
   "dependencies": {
     "async": ">=0.2.10",
     "bufferhelper": "0.2.0",
+    "bytebuffer": "^5.0.1",
     "cheerio": "0.12.4",
     "debug": "^1.0.0",
     "ejs": "0.8.5",
