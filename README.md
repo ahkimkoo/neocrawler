@@ -70,7 +70,7 @@ NEOCrawler(中文名：牛咖)，是nodejs、redis、phantomjs实现的爬虫系
 
 # 二、运行步骤
 
-##【运行环境准备】
+## 【运行环境准备】
 * 安装好nodejs 环境，从git仓库clone源码到本地，在文件夹位置打开命令提示符，运行“**npm install**”安装依赖的模块；
 * redis server安装（同时支持redis和ssdb，从节约内存的角度考虑，可以使用ssdb，在setting.json可以指定类型，下面会提到）。
 * hbase环境，抓取到网页、摘取到的数据将存储到hbase，hbase安装完毕后要将http rest服务开启，后面的配置中会用到，如果要使用其他的数据库存储，可以不安装hbase，下面的章节中将会讲到如何关闭hbase功能以及定制化自己的存储。hbase shell中初始化hbase 列簇:
@@ -88,7 +88,7 @@ create 'crawled_bin',{NAME => 'basic', VERSIONS => 3},{NAME=>"binary",VERSIONS=>
 
 默认端口为8080, 下面配置中会用到.
 
-##【实例配置】
+## 【实例配置】
 * 实例在instance目录下，拷贝一份example，重命名其他的实例名，例如：abc，以下说明中均使用该实例名举例。
 * 编辑instance/abc/setting.json
 
@@ -120,7 +120,7 @@ create 'crawled_bin',{NAME => 'basic', VERSIONS => 3},{NAME=>"binary",VERSIONS=>
     "keep_link_relation":false/*链接库里是否存储链接间关系*/
 }
 ```
-##【运行】
+## 【运行】
 
 * 爬虫运行的基本步骤是: *
 
@@ -158,7 +158,7 @@ create 'crawled_bin',{NAME => 'basic', VERSIONS => 3},{NAME=>"binary",VERSIONS=>
 
 在正式运行的环境下建议使用nodejs 的 pm2或者python的supervisor来托管进程.
 
-##【抓取规则配置】
+## 【抓取规则配置】
 打开web界面,例如：http://localhost:8888/ , 进入“Drilling Rules”，添加规则。这是一个json编辑器，可以在代码模式/可视化模式之间切换。下面给出配置项的说明.具体的应用配置可以参考下一章节的示例.
 
 ```javascript
@@ -258,7 +258,7 @@ create 'crawled_bin',{NAME => 'basic', VERSIONS => 3},{NAME=>"binary",VERSIONS=>
 第一步是观察网站的结构,大概可以分为4个层次:首页,分类频道页,列表页,详情页.
 我们根据这个页面层次来进行抓取规则的配置,其中,只有详情页是需要配置字段摘取信息的,其他3种页面都是用来逐步发现详情页的.
 我们将这个顺序倒过来,从详情页开始配置,最后再看首页.
-##规则列表截图(你的界面肯定还没有这些规则列表,点击Add添加规则,参考我下面列出的配置)
+## 规则列表截图(你的界面肯定还没有这些规则列表,点击Add添加规则,参考我下面列出的配置)
 ![DrillingRules](http://git.oschina.net/uploads/images/2014/1103/155217_f57d134c_13016.png)
 
 
